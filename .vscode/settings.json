@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "assert.h": "c",
+        "dict.h": "c",
+        "stdlib.h": "c",
+        "list.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}
