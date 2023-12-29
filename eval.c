@@ -71,39 +71,44 @@ static token *get_token_at_code_position(const char *code, int len, int *pos) {
 
     if (is_number_char(c)) {
         char *data = collect(code, len, pos, is_number_char);
-        return new_token_data(T_NUMBER_LITERAL, data);
+        return new_data_token(T_NUMBER_LITERAL, data);
     }
 
     if (is_identifier_char(c)) {
         char *data = collect(code, len, pos, is_identifier_char);
-        return new_token_data(T_IDENTIFIER, data);
+        return new_data_token(T_IDENTIFIER, data);
     }
     
-    return new_token_data(T_UNKNOWN, &code[*pos]);
+    return new_data_token(T_UNKNOWN, &code[*pos]);
 }
 
 static list *parse_string_into_tokens(const char *code) {
+    list *tokens = new_list();
+    if (code == NULL)
+        return tokens;
     int len = strlen(code);
     int pos = 0;
-    list *tokens = new_list();
     while (pos < len) {
         token *t = get_token_at_code_position(code, len, &pos);
         if (t == NULL)
             break;
         list_add(tokens, t);
+        if (token_get_type(t) == T_UNKNOWN)
+            break;
     }
     return tokens;
 }
 
 static list *parse_tokens_into_expressions(list *tokens) {
     // parse the tokens into an AST. Need operation precedence here & double stack.
+    return new_list();
 }
 
 value *evaluate(const char *code, dict *arguments) {
     list *tokens = parse_string_into_tokens(code);
     list *expressions = parse_tokens_into_expressions(tokens);
-    
-    value *result = NULL;
+
+    value *result = new_null_value();
     for (int i = 0; i < list_length(expressions); i++) {
         expression *expr = (expression *)list_get(expressions, i);
 

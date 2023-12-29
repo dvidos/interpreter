@@ -3,7 +3,8 @@
         "assert.h": "c",
         "dict.h": "c",
         "stdlib.h": "c",
-        "list.h": "c"
+        "list.h": "c",
+        "token.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

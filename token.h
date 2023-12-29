@@ -19,7 +19,7 @@ typedef enum token_type {
 typedef struct token token;
 
 token *new_token(token_type type);
-token *new_token_data(token_type type, const char *data);
+token *new_data_token(token_type type, const char *data);
 
 token_type token_get_type(token *t);
 

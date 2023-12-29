@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "value.h"
 #include "dict.h"
 
@@ -145,11 +146,6 @@ static void test_evaluations() {
     verify_evaluation_iii("if(a >= 5, b, 1)", 5, 2, 2);
     verify_evaluation_iii("if(a == 5, b, 1)", 5, 3, 3);
     verify_evaluation_iii("if(a != 5, b, 1)", 5, 4, 1);
-
-    // verify_evaluation_sb("left(a, 3) == 'har'", "harvard", true);
-    // verify_evaluation_sb("right(a, 3) == 'ard'", "harvard", true);
-    // verify_evaluation_sb("left(a, 10) == 'abc'", "abc", true);
-    // verify_evaluation_sb("len(a) == 7", "harvard", true);
 }
 
 void main() {
