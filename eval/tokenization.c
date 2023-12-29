@@ -1,8 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "tokenization.h"
 #include "token.h"
-#include "list.h"
 
 
 static bool is_whilespace(char c) {

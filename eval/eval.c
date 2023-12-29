@@ -1,8 +1,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include "list.h"
-#include "stack.h"
+#include "../utils/list.h"
+#include "../utils/stack.h"
 #include "expression.h"
 #include "token.h"
 #include "tokenization.h"

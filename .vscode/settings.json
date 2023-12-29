@@ -4,7 +4,9 @@
         "dict.h": "c",
         "stdlib.h": "c",
         "list.h": "c",
-        "token.h": "c"
+        "token.h": "c",
+        "tokenization.h": "c",
+        "eval.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

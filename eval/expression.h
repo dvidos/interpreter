@@ -1,8 +1,8 @@
 #ifndef _EXPRESSION_H
 #define _EXPRESSION_H
 
-#include "value.h"
-#include "dict.h"
+#include "../utils/value.h"
+#include "../utils/dict.h"
 
 
 typedef enum expr_type {
