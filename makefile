@@ -3,7 +3,9 @@ FILES = \
 	value.c \
 	dict.c \
 	list.c \
+	stack.c \
 	token.c \
+	tokenization.c \
 	expression.c \
 	eval.c
 
