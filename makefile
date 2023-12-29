@@ -7,7 +7,8 @@ FILES = \
 	token.c \
 	tokenization.c \
 	expression.c \
-	eval.c
+	eval.c \
+	tests.c
 
 
 evaluator:
