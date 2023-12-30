@@ -49,4 +49,25 @@ void *list_get(list *l, int index) {
     return e == NULL ? NULL : e->item;
 }
 
+iterator *start_iterator(list *l) {
+    return (iterator *)l->head;
+}
+
+bool iterator_valid(iterator *it) {
+    return (it != NULL);
+}
+
+void iterator_next(iterator *it) {
+    list_entry *e = (list_entry *)it;
+    if (e != NULL)
+        e = e->next;
+}
+
+void *iterator_current(iterator *it) {
+    list_entry *e = (list_entry *)it;
+    return e == NULL ? NULL : e->item;
+}
+
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(list);
+
+

@@ -163,7 +163,7 @@ static failable_token get_token_at_code_position(const char *code, int len, int 
             return ok_token(new_data_token(T_IDENTIFIER, data));
     }
     
-    return failed_token("Unrecognized token at pos %d", *pos);
+    return failed_token("Unrecognized token at pos %d ('%c')", *pos, code[*pos]);
 }
 
 failable_list parse_code_into_tokens(const char *code) {
@@ -177,7 +177,7 @@ failable_list parse_code_into_tokens(const char *code) {
     while (pos < len) {
         failable_token t = get_token_at_code_position(code, len, &pos, &token);
         if (t.failed)
-            return failed_list("Didn't get token: %s", t);
+            return failed_list("Cannot get token: %s", t);
         if (t.result == NULL)
             break;
         list_add(tokens, t.result);
