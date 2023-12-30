@@ -23,3 +23,5 @@ token *new_data_token(token_type type, const char *data) {
 token_type token_get_type(token *t) {
     return t->type;
 }
+
+STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(token);

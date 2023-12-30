@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "../utils/status.h"
+#include "../utils/failable.h"
 #include "expression.h"
 
 typedef struct expression {
@@ -58,11 +58,12 @@ expression *new_ternary_expression(operator op, expression *op1, expression *op2
     return e;
 }
 
-status execute_expression(expression *expr, dict *values, value **result_out) {
+failable_value execute_expression(expression *expr, dict *values) {
     // depending on whether it's a unary, binary, ternary expression,
     // evaluate deeper nodes first, then evaluate self.
     // have to apply conversions as needed (e.g. int to string etc)
 
-    *result_out = new_null_value();
-    return status_failed("execute_expression() is not implemented yet!");
+    return failed_value("execute_expression() is not implemented yet!");
 }
+
+STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(expression);

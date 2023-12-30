@@ -1,4 +1,4 @@
-#include "../utils/status.h"
+#include "../utils/failable.h"
 #include "parser.h"
 #include "token.h"
 #include "expression.h"
@@ -81,14 +81,12 @@ static bool parse_full_expression() {
 
 
 
-status parse_tokens_into_expressions(list *tokens, list **expressions_out) {
+failable_list parse_tokens_into_expressions(list *tokens) {
     // parse the tokens into an AST. Need operation precedence here & double stack.
     // expression can be:
     //    <operand> [ <operator> <operand> ]
     // operand:=  <op> | <pre><op> | <op><post>
 
-    *expressions_out = new_list();
-    return status_failed("parse_tokens_into_expressions() is not implemented yet!");
-    return status_ok();
+    return failed_list("parse_tokens_into_expressions() is not implemented yet!");
 }
 

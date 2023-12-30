@@ -1,6 +1,6 @@
 FILES = \
 	main.c \
-	utils/status.c \
+	utils/failable.c \
 	utils/value.c \
 	utils/dict.c \
 	utils/list.c \

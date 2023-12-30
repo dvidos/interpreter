@@ -49,4 +49,4 @@ void *list_get(list *l, int index) {
     return e == NULL ? NULL : e->item;
 }
 
-TYPED_STATUS_IMPLEMENTATION(list);
+STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(list);

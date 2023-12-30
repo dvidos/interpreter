@@ -1,6 +1,7 @@
 #ifndef _TOKEN_H
 #define _TOKEN_H
 
+#include "../utils/failable.h"
 
 typedef enum token_type {
     T_UNKNOWN,
@@ -49,5 +50,6 @@ token *new_data_token(token_type type, const char *data);
 
 token_type token_get_type(token *t);
 
+STRONGLY_TYPED_FAILABLE_DECLARATION(token);
 
 #endif

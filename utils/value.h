@@ -2,7 +2,7 @@
 #define _VALUE_H
 
 #include <stdbool.h>
-#include "status.h"
+#include "failable.h"
 
 typedef struct value value;
 
@@ -24,6 +24,6 @@ float value_as_float(value *v);
 const char *value_as_str(value *v);
 
 
-TYPED_STATUS_DECLARATION(value);
+STRONGLY_TYPED_FAILABLE_DECLARATION(value);
 
 #endif

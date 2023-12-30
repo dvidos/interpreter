@@ -2,26 +2,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "status.h"
+#include "failable.h"
 
 
-status status_ok() {
-    status s = { false, NULL };
+failable succeeded() {
+    failable s = { false, NULL };
     return s;
 }
 
-status status_failed(const char *err_msg_fmt, ...) {
-    status s = { true, NULL };
+failable failed(const char *err_msg_fmt, ...) {
+    failable s = { true, NULL };
 
     va_list args;
     va_start(args, err_msg_fmt);
-    s.err_msg = _status_format_err_msg_args(err_msg_fmt, args);
+    s.err_msg = _format_failable_err_msg_args(err_msg_fmt, args);
     va_end(args);
 
     return s;
 }
 
-const char *_status_format_err_msg_args(const char *err_msg_fmt, va_list args) {
+const char *_format_failable_err_msg_args(const char *err_msg_fmt, va_list args) {
     char buffer[256];
     vsnprintf(buffer, sizeof(buffer), err_msg_fmt, args);
     char *err_msg = malloc(strlen(buffer) + 1);

@@ -70,4 +70,4 @@ value *dict_get(dict *d, const char *key) {
     return NULL;
 }
 
-TYPED_STATUS_IMPLEMENTATION(dict);
+STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(dict);

@@ -4,7 +4,7 @@
 #include "../utils/value.h"
 #include "../utils/dict.h"
 
-status evaluate(const char *code, dict *arguments, value **result_out);
+failable_value evaluate(const char *code, dict *arguments);
 
 
 #endif

@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "utils/status.h"
+#include "utils/failable.h"
 #include "utils/dict.h"
 #include "utils/value.h"
 #include "eval/eval.h"
@@ -27,72 +27,64 @@ static bool tests_failed;
 
 static void verify_evaluation_null(char *expression) {
     dict *values = new_dict(10);
-    value *returned;
-    status s = evaluate(expression, values, &returned);
-    if (s.failed) { fail(s.err_msg); return; }
-    assert_msg(value_is_null(returned), expression);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(value_is_null(evaluation.result), expression);
 }
 
-static void verify_evaluation_b(char *expression, bool result) {
+static void verify_evaluation_b(char *expression, bool expected_result) {
     dict *values = new_dict(10);
-    value *returned;
-    status s = evaluate(expression, values, &returned);
-    if (s.failed) { fail(s.err_msg); return; }
-    assert_msg(value_as_bool(returned) == result, expression);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
 }
 
-static void verify_evaluation_bb(char *expression, bool a, bool result) {
+static void verify_evaluation_bb(char *expression, bool a, bool expected_result) {
     dict *values = new_dict(10);
     dict_set(values, "a", new_bool_value(a));
-    value *returned;
-    status s = evaluate(expression, values, &returned);
-    if (s.failed) { fail(s.err_msg); return; }
-    assert_msg(value_as_bool(returned) == result, expression);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
 }
 
-static void verify_evaluation_bbb(char *expression, bool a, bool b, bool result) {
+static void verify_evaluation_bbb(char *expression, bool a, bool b, bool expected_result) {
     dict *values = new_dict(10);
     dict_set(values, "a", new_bool_value(a));
     dict_set(values, "b", new_bool_value(b));
-    value *returned;
-    status s = evaluate(expression, values, &returned);
-    if (s.failed) { fail(s.err_msg); return; }
-    assert_msg(value_as_bool(returned) == result, expression);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
 }
 
-static void verify_evaluation_i(char *expression, int result) {
+static void verify_evaluation_i(char *expression, int expected_result) {
     dict *values = new_dict(10);
-    value *returned;
-    status s = evaluate(expression, values, &returned);
-    if (s.failed) { fail(s.err_msg); return; }
-    assert_msg(value_as_int(returned) == result, expression);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(value_as_int(evaluation.result) == expected_result, expression);
 }
 
-static void verify_evaluation_ii(char *expression, int a, int result) {
+static void verify_evaluation_ii(char *expression, int a, int expected_result) {
     dict *values = new_dict(10);
     dict_set(values, "a", new_int_value(a));
-    value *returned;
-    status s = evaluate(expression, values, &returned);
-    if (s.failed) { fail(s.err_msg); return; }
-    assert_msg(value_as_int(returned) == result, expression);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(value_as_int(evaluation.result) == expected_result, expression);
 }
 
-static void verify_evaluation_iii(char *expression, int a, int b, int result) {
+static void verify_evaluation_iii(char *expression, int a, int b, int expected_result) {
     dict *values = new_dict(10);
     dict_set(values, "a", new_int_value(a));
     dict_set(values, "b", new_int_value(b));
-    value *returned;
-    status s = evaluate(expression, values, &returned);
-    if (s.failed) { fail(s.err_msg); return; }
-    assert_msg(value_as_int(returned) == result, expression);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(value_as_int(evaluation.result) == expected_result, expression);
 }
 
-static void verify_evaluation_ib(char *expression, int a, bool result) {
+static void verify_evaluation_ib(char *expression, int a, bool expected_result) {
     dict *values = new_dict(10);
-    value *returned;
-    status s = evaluate(expression, values, &returned);
-    if (s.failed) { fail(s.err_msg); return; }
-    assert_msg(value_as_bool(returned) == result, expression);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
 }
 
 bool run_unit_tests() {
