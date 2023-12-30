@@ -6,33 +6,25 @@
 
 
 status status_ok() {
-    status s;
-    s.failed = false;
-    s.error_message = NULL;
-    s.data = NULL;
+    status s = { false, NULL };
     return s;
 }
 
-status status_data(void *data) {
-    status s;
-    s.failed = false;
-    s.error_message = NULL;
-    s.data = data;
-    return s;
-}
+status status_failed(const char *err_msg_fmt, ...) {
+    status s = { true, NULL };
 
-status status_failed(const char *error_message_fmt, ...) {
-    char buffer[256];
     va_list args;
-
-    va_start(args, error_message_fmt);
-    vsnprintf(buffer, sizeof(buffer), error_message_fmt, args);
+    va_start(args, err_msg_fmt);
+    s.err_msg = _status_format_err_msg_args(err_msg_fmt, args);
     va_end(args);
 
-    status s;
-    s.failed = true;
-    s.error_message = malloc(strlen(buffer) + 1);
-    strcpy(s.error_message, buffer);
-    s.data = NULL;
     return s;
+}
+
+const char *_status_format_err_msg_args(const char *err_msg_fmt, va_list args) {
+    char buffer[256];
+    vsnprintf(buffer, sizeof(buffer), err_msg_fmt, args);
+    char *err_msg = malloc(strlen(buffer) + 1);
+    strcpy(err_msg, buffer);
+    return err_msg;
 }

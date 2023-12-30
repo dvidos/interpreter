@@ -2,6 +2,7 @@
 #define _VALUE_H
 
 #include <stdbool.h>
+#include "status.h"
 
 typedef struct value value;
 
@@ -21,5 +22,8 @@ bool value_as_bool(value *v);
 int value_as_int(value *v);
 float value_as_float(value *v);
 const char *value_as_str(value *v);
+
+
+TYPED_STATUS_DECLARATION(value);
 
 #endif

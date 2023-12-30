@@ -8,7 +8,8 @@
         "tokenization.h": "c",
         "eval.h": "c",
         "expression.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "status.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

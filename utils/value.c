@@ -171,3 +171,4 @@ const char *value_as_str(value *v) {
     }
 }
 
+TYPED_STATUS_IMPLEMENTATION(value);
