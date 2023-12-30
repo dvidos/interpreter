@@ -49,7 +49,7 @@ void *list_get(list *l, int index) {
     return e == NULL ? NULL : e->item;
 }
 
-iterator *start_iterator(list *l) {
+iterator *list_iterator(list *l) {
     return (iterator *)l->head;
 }
 

@@ -83,9 +83,6 @@ static bool parse_full_expression() {
 
 failable_list parse_tokens_into_expressions(list *tokens) {
     // parse the tokens into an AST. Need operation precedence here & double stack.
-    // expression can be:
-    //    <operand> [ <operator> <operand> ]
-    // operand:=  <op> | <pre><op> | <op><post>
 
     return failed_list("parse_tokens_into_expressions() is not implemented yet!");
 }

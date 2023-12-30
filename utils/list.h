@@ -12,7 +12,7 @@ int   list_length(list *l);
 void  list_add(list *l, void *item);
 void *list_get(list *l, int index);
 
-iterator *start_iterator(list *l);
+iterator *list_iterator(list *l);
 bool iterator_valid(iterator *it);
 void iterator_next(iterator *it);
 void *iterator_current(iterator *it);
