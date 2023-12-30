@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "utils/status.h"
 #include "utils/dict.h"
 #include "utils/value.h"
 #include "eval/eval.h"
@@ -18,23 +19,34 @@ static bool tests_failed;
         tests_failed = true; \
     }
 
+#define fail(msg)      do { \
+        printf("Failed: %s, at %s:%d\n", msg, __FILE__, __LINE__); \
+        tests_failed = true; \
+    } while(0)
+
 
 static void verify_evaluation_null(char *expression) {
     dict *values = new_dict(10);
-    value *returned = evaluate(expression, values);
+    value *returned;
+    status s = evaluate(expression, values, &returned);
+    if (s.failed) { fail(s.error_message); return; }
     assert_msg(value_is_null(returned), expression);
 }
 
 static void verify_evaluation_b(char *expression, bool result) {
     dict *values = new_dict(10);
-    value *returned = evaluate(expression, values);
+    value *returned;
+    status s = evaluate(expression, values, &returned);
+    if (s.failed) { fail(s.error_message); return; }
     assert_msg(value_as_bool(returned) == result, expression);
 }
 
 static void verify_evaluation_bb(char *expression, bool a, bool result) {
     dict *values = new_dict(10);
     dict_set(values, "a", new_bool_value(a));
-    value *returned = evaluate(expression, values);
+    value *returned;
+    status s = evaluate(expression, values, &returned);
+    if (s.failed) { fail(s.error_message); return; }
     assert_msg(value_as_bool(returned) == result, expression);
 }
 
@@ -42,20 +54,26 @@ static void verify_evaluation_bbb(char *expression, bool a, bool b, bool result)
     dict *values = new_dict(10);
     dict_set(values, "a", new_bool_value(a));
     dict_set(values, "b", new_bool_value(b));
-    value *returned = evaluate(expression, values);
+    value *returned;
+    status s = evaluate(expression, values, &returned);
+    if (s.failed) { fail(s.error_message); return; }
     assert_msg(value_as_bool(returned) == result, expression);
 }
 
 static void verify_evaluation_i(char *expression, int result) {
     dict *values = new_dict(10);
-    value *returned = evaluate(expression, values);
+    value *returned;
+    status s = evaluate(expression, values, &returned);
+    if (s.failed) { fail(s.error_message); return; }
     assert_msg(value_as_int(returned) == result, expression);
 }
 
 static void verify_evaluation_ii(char *expression, int a, int result) {
     dict *values = new_dict(10);
     dict_set(values, "a", new_int_value(a));
-    value *returned = evaluate(expression, values);
+    value *returned;
+    status s = evaluate(expression, values, &returned);
+    if (s.failed) { fail(s.error_message); return; }
     assert_msg(value_as_int(returned) == result, expression);
 }
 
@@ -63,13 +81,17 @@ static void verify_evaluation_iii(char *expression, int a, int b, int result) {
     dict *values = new_dict(10);
     dict_set(values, "a", new_int_value(a));
     dict_set(values, "b", new_int_value(b));
-    value *returned = evaluate(expression, values);
+    value *returned;
+    status s = evaluate(expression, values, &returned);
+    if (s.failed) { fail(s.error_message); return; }
     assert_msg(value_as_int(returned) == result, expression);
 }
 
 static void verify_evaluation_ib(char *expression, int a, bool result) {
     dict *values = new_dict(10);
-    value *returned = evaluate(expression, values);
+    value *returned;
+    status s = evaluate(expression, values, &returned);
+    if (s.failed) { fail(s.error_message); return; }
     assert_msg(value_as_bool(returned) == result, expression);
 }
 

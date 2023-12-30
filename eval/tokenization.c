@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "../utils/status.h"
 #include "tokenization.h"
 #include "token.h"
 
@@ -132,54 +133,60 @@ static token_type get_char_token_type(const char *code, int len, int *pos, char 
     return single_char_type; // can be unknown
 }
 
-static token *get_token_at_code_position(const char *code, int len, int *pos) {
+static status get_token_at_code_position(const char *code, int len, int *pos, token **token_out) {
     if (!skip_whitespace(code, len, pos))
-        return NULL;
+        return status_ok();
     
     char c = code[*pos];
     (*pos) += 1;
 
     token_type char_token_type = get_char_token_type(code, len, pos, c);
     if (char_token_type != T_UNKNOWN) {
-        return new_token(char_token_type);
+        *token_out = new_token(char_token_type);
+        return status_ok();
     }
 
     if (c == '"' || c == '\'') {
         char *data = collect_string_literal(code, len, pos, c);
-        return new_data_token(T_STRING_LITERAL, data);
+        *token_out = new_data_token(T_STRING_LITERAL, data);
+        return status_ok();
     }
 
     if (is_number_char(c)) {
         char *data = collect(code, len, pos, c, is_number_char);
-        return new_data_token(T_NUMBER_LITERAL, data);
+        *token_out = new_data_token(T_NUMBER_LITERAL, data);
+        return status_ok();
     }
 
     if (is_identifier_char(c)) {
         char *data = collect(code, len, pos, c, is_identifier_char);
         if (strcmp(data, "true") == 0 || strcmp(data, "false") == 0)
-            return new_data_token(T_BOOLEAN_LITERAL, data);
+            *token_out = new_data_token(T_BOOLEAN_LITERAL, data);
         else
-            return new_data_token(T_IDENTIFIER, data);
+            *token_out = new_data_token(T_IDENTIFIER, data);
+        return status_ok();
     }
     
-    return new_data_token(T_UNKNOWN, &code[*pos]);
+    return status_failed("Unrecognized token at pos %d", *pos);
 }
 
-list *parse_code_into_tokens(const char *code) {
-    list *tokens = new_list();
+status parse_code_into_tokens(const char *code, list **tokens_out) {
+    *tokens_out = new_list();
     if (code == NULL)
-        return tokens;
+        return status_ok();
+    
+    token *token;
     int len = strlen(code);
     int pos = 0;
     while (pos < len) {
-        token *t = get_token_at_code_position(code, len, &pos);
-        if (t == NULL)
+        status s = get_token_at_code_position(code, len, &pos, &token);
+        if (s.failed)
+            return s;
+        if (token == NULL)
             break;
-        list_add(tokens, t);
-        if (token_get_type(t) == T_UNKNOWN)
-            break;
+        list_add(*tokens_out, token);
     }
 
-    list_add(tokens, new_token(T_END));
-    return tokens;
+    list_add(*tokens_out, new_token(T_END));
+    return status_ok();
 }

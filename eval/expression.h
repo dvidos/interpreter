@@ -12,7 +12,7 @@ expression *new_unary_expression(operator op, expression *operand);
 expression *new_binary_expression(operator op, expression *left, expression *right);
 expression *new_ternary_expression(operator op, expression *op1, expression *op2, expression *op3);
 
-value *execute_expression(expression *expr, dict *values);
+status execute_expression(expression *expr, dict *values, value **result_out);
 
 
 

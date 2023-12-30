@@ -3,7 +3,7 @@
 
 #include "../utils/list.h"
 
-list *parse_tokens_into_expressions(list *tokens);
+status parse_tokens_into_expressions(list *tokens, list **expressions_out);
 
 
 #endif
