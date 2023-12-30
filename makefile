@@ -6,7 +6,9 @@ FILES = \
 	utils/stack.c \
 	eval/token.c \
 	eval/tokenization.c \
+	eval/operator.c \
 	eval/expression.c \
+	eval/parser.c \
 	eval/eval.c \
 	tests.c
 

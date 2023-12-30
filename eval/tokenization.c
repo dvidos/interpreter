@@ -47,6 +47,69 @@ static char *collect(const char *code, int len, int *pos, char first_char, char_
     return data;
 }
 
+struct char_token_type {
+    char *str;
+    token_type type;
+};
+
+struct char_token_type char_token_types[] = {
+    { "(",  T_LPAREN },
+    { ")",  T_RPAREN },
+    { "[",  T_LSQBRACKET },
+    { "]",  T_RSQBRACKET },
+    { "+",  T_PLUS },
+    { "-",  T_MINUS },
+    { "*",  T_ASTERISK },
+    { "/",  T_FWD_SLASH },
+    { "//", T_DOUBLE_SLASH },
+    { ";",  T_SEMICOLON },
+    { "~",  T_TIDLE },
+    { "!",  T_EXCLAMATION },
+    { "!=", T_EXCLAMATION_EQUAL },
+    { "=",  T_EQUAL },
+    { "==", T_DOUBLE_EQUAL },
+    { "->", T_ARROW },
+    { ".",  T_DOT },
+    { ",",  T_COMMA },
+    { "&",  T_AMPERSAND },
+    { "&&", T_DOUBLE_AMPERSAND },
+    { "|",  T_PIPE },
+    { "||", T_DOUBLE_PIPE },
+    { "<",  T_SMALLER },
+    { "<<", T_DOUBLE_SMALLER },
+    { "<=", T_SMALLER_EQUAL },
+    { ">",  T_LARGER },
+    { ">>", T_DOUBLE_LARGER },
+    { ">=", T_LARGER_EQUAL },
+};
+
+static token_type get_char_token_type(const char *code, int len, int *pos, char first_char) {
+
+    char second_char = (*pos) + 1 < len ? code[(*pos)+1] : (char)0;
+    token_type single_char_type = T_UNKNOWN;
+    token_type double_char_type = T_UNKNOWN;
+
+    for (int i = 0; i < (sizeof(char_token_types)/sizeof(char_token_types[0])); i++) {
+        char *str = char_token_types[i].str;
+        token_type type = char_token_types[i].type;
+
+        if (str[1] != 0 && second_char != 0) {
+            if (str[0] == first_char && str[1] == second_char)
+                double_char_type = type;
+        } else {
+            if (str[0] == first_char)
+                single_char_type = type;
+        }
+    }
+
+    // if we matched the double character token, prefer that.
+    if (double_char_type != T_UNKNOWN) {
+        (*pos) += 1;
+        return double_char_type;
+    }
+    return single_char_type; // can be unknown
+}
+
 static token *get_token_at_code_position(const char *code, int len, int *pos) {
     if (!skip_whitespace(code, len, pos))
         return NULL;
@@ -54,14 +117,9 @@ static token *get_token_at_code_position(const char *code, int len, int *pos) {
     char c = code[*pos];
     (*pos) += 1;
 
-    switch (c) {
-        case '(': return new_token(T_LPAREN);
-        case ')': return new_token(T_RPAREN);
-        case '+': return new_token(T_PLUS);
-        case '-': return new_token(T_MINUS);
-        case '*': return new_token(T_ASTERISK);
-        case '/': return new_token(T_FWD_SLASH);
-        case ';': return new_token(T_SEMICOLON);
+    token_type char_token_type = get_char_token_type(code, len, pos, c);
+    if (char_token_type != T_UNKNOWN) {
+        return new_token(char_token_type);
     }
 
     if (is_number_char(c)) {
@@ -91,5 +149,7 @@ list *parse_code_into_tokens(const char *code) {
         if (token_get_type(t) == T_UNKNOWN)
             break;
     }
+
+    list_add(tokens, new_token(T_END));
     return tokens;
 }

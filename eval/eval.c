@@ -6,13 +6,9 @@
 #include "expression.h"
 #include "token.h"
 #include "tokenization.h"
+#include "parser.h"
 #include "eval.h"
 
-
-static list *parse_tokens_into_expressions(list *tokens) {
-    // parse the tokens into an AST. Need operation precedence here & double stack.
-    return new_list();
-}
 
 value *evaluate(const char *code, dict *arguments) {
     list *tokens = parse_code_into_tokens(code);

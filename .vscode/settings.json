@@ -6,7 +6,8 @@
         "list.h": "c",
         "token.h": "c",
         "tokenization.h": "c",
-        "eval.h": "c"
+        "eval.h": "c",
+        "expression.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
