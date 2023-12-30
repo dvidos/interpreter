@@ -47,6 +47,28 @@ static char *collect(const char *code, int len, int *pos, char first_char, char_
     return data;
 }
 
+static char *collect_string_literal(const char *code, int len, int *pos, char opening_quote) {
+    char buffer[128];
+    memset(buffer, 0, sizeof(buffer));
+    char closing_quote = opening_quote;
+    
+    while ((*pos < len)
+        && (code[*pos] != closing_quote)
+        && (strlen(buffer) < sizeof(buffer) - 1) 
+    ) {
+        buffer[strlen(buffer)] = code[*pos];
+        (*pos) += 1;
+    }
+
+    // since we encountered the closing quote, advance position
+    if (code[*pos] == closing_quote)
+        (*pos) += 1;
+
+    char *data = malloc(strlen(buffer) + 1);
+    strcpy(data, buffer);
+    return data;
+}
+
 struct char_token_type {
     char *str;
     token_type type;
@@ -122,6 +144,11 @@ static token *get_token_at_code_position(const char *code, int len, int *pos) {
         return new_token(char_token_type);
     }
 
+    if (c == '"' || c == '\'') {
+        char *data = collect_string_literal(code, len, pos, c);
+        return new_data_token(T_STRING_LITERAL, data);
+    }
+
     if (is_number_char(c)) {
         char *data = collect(code, len, pos, c, is_number_char);
         return new_data_token(T_NUMBER_LITERAL, data);
@@ -129,7 +156,10 @@ static token *get_token_at_code_position(const char *code, int len, int *pos) {
 
     if (is_identifier_char(c)) {
         char *data = collect(code, len, pos, c, is_identifier_char);
-        return new_data_token(T_IDENTIFIER, data);
+        if (strcmp(data, "true") == 0 || strcmp(data, "false") == 0)
+            return new_data_token(T_BOOLEAN_LITERAL, data);
+        else
+            return new_data_token(T_IDENTIFIER, data);
     }
     
     return new_data_token(T_UNKNOWN, &code[*pos]);

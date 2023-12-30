@@ -4,6 +4,8 @@
 enum operator {
     OP_SYMBOL_VALUE,
     OP_NUMBER_VALUE,
+    OP_STRING_VALUE,
+    OP_LOGICAL_VALUE,
 
     OP_ADDITION,
     OP_SUBTRACTION,

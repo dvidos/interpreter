@@ -7,8 +7,8 @@ typedef enum token_type {
 
     T_IDENTIFIER,
     T_NUMBER_LITERAL,
-    T_BOOLEAN_LITERAL,
     T_STRING_LITERAL,
+    T_BOOLEAN_LITERAL,
 
     T_LPAREN,
     T_RPAREN,

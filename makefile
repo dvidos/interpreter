@@ -1,5 +1,6 @@
 FILES = \
 	main.c \
+	utils/result.c \
 	utils/value.c \
 	utils/dict.c \
 	utils/list.c \
@@ -13,5 +14,5 @@ FILES = \
 	tests.c
 
 
-evaluator:
+evaluator: $(FILES)
 	gcc -g -o evaluator $(FILES)
