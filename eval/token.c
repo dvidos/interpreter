@@ -20,8 +20,12 @@ token *new_data_token(token_type type, const char *data) {
     return t;
 }
 
-token_type token_get_type(token *t) {
+token_type inline token_get_type(token *t) {
     return t->type;
+}
+
+inline const char *token_get_data(token *t) {
+    return t->data;
 }
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(token);

@@ -42,7 +42,7 @@ int operator_precedence(operator op) {
         if (op_infos[i].op == op)
             return i;
     }
-    return 999;
+    return LOWEST_OPERATOR_PRECEDENCE;
 }
 
 op_position operator_position(operator op) {

@@ -8,7 +8,7 @@
 
 typedef struct expression expression;
 
-expression *new_terminal_expression(operator op);
+expression *new_terminal_expression(operator op, const char *data);
 expression *new_unary_expression(operator op, expression *operand);
 expression *new_binary_expression(operator op, expression *left, expression *right);
 expression *new_ternary_expression(operator op, expression *op1, expression *op2, expression *op3);

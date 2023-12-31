@@ -7,7 +7,7 @@ struct expression {
     int operand_count; // 0=terminal, 1=unary, 2=binary, 3=ternary
     union {
         struct terminal {
-            char *data;
+            const char *data;
         } terminal;
         struct unary {
             struct expression *operand;
@@ -24,10 +24,11 @@ struct expression {
     } per_type;
 };
 
-expression *new_terminal_expression(operator op) {
+expression *new_terminal_expression(operator op, const char *data) {
     expression *e = malloc(sizeof(expression));
     e->op = op;
     e->operand_count = 0;
+    e->per_type.terminal.data = data;
     return e;
 }
 
