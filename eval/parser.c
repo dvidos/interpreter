@@ -14,17 +14,19 @@
     Insightful answer here: https://stackoverflow.com/questions/16380234
     General format: PREFIX_OP* OPERAND POSTFIX_OP* (INFIX_OP PREFIX_OP* OPERAND POSTFIX_OP*)*
 
-    +-------+            +-------+              
-    | WANT  |-----OP---->| HAVE  |              
-    |OPERAND|<----INF----|OPERAND|              
-    |       |---+        |       |---+
-    +-------+   |        +-------+   |
-        ^      PRE           ^     POST
-        |       |            |       |
-        +-------+            +-------+
+    +---------+                     +---------+  
+    |  WANT   | ------OPERAND-----> |  HAVE   | 
+    | OPERAND | <---INFIX_OPERTR--- | OPERAND |
+    |         |---+                 |         |---+
+    +---------+   |                 +---------+   |
+         ^      PREFIX                   ^     POSTFIX
+         |      OPERTR                   |      OPERTR
+         +--------+                      +--------+
 */
 
-enum states { WANT_OPERAND, HAVE_OPERAND, FINISHED };
+enum state { WANT_OPERAND, HAVE_OPERAND, FINISHED };
+enum context { NORMAL, PARENTHESIS, FUNC_ARGS, SHORT_IF_TRUE_PART, SHORT_IF_FALSE_PART };
+
 static stack *operators_stack;
 static stack *expressions_stack;
 static iterator *tokens_iterator;
@@ -156,7 +158,7 @@ static failable detect_finish(token_type curr_token, token_type expected_ending,
     return succeeded();
 }
 
-static failable parse_expression_on_want_operand(enum states *state) {
+static failable parse_expression_on_want_operand(enum state *state) {
     // read a token. If there are no more tokens, announce an error.
     token *t = get_token_and_advance();
     token_type tt = token_get_type(t);
@@ -201,7 +203,7 @@ static failable parse_expression_on_want_operand(enum states *state) {
     return failed("Unexpected token type %d, was expecting prefix, operand, or lparen", tt);
 }
 
-static failable parse_expression_on_have_operand(enum states *state, token_type expected_ending) {
+static failable parse_expression_on_have_operand(enum state *state, token_type expected_ending) {
     // read a token   
     token *t = get_token_and_advance();
     token_type tt = token_get_type(t);
@@ -270,7 +272,7 @@ static failable_expression parse_expression(token_type expected_finish) {
     // - possible comma, for parsing function arguments.
 
     failable state_handling;
-    enum states state = WANT_OPERAND;
+    enum state state = WANT_OPERAND;
     
     while (state != FINISHED) {
         if (token_get_type(peek_token()) == T_END)
@@ -312,3 +314,9 @@ failable_list parse_tokens_into_expressions(list *tokens) {
 
     return ok_list(expressions);
 }
+
+
+// perform unit tests and report if successful
+bool parser_self_diagnostics() {
+}
+

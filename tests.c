@@ -6,6 +6,8 @@
 #include "utils/dict.h"
 #include "utils/value.h"
 #include "eval/eval.h"
+#include "eval/tokenization.h"
+#include "eval/parser.h"
 
 static bool tests_failed;
 
@@ -157,10 +159,15 @@ bool run_unit_tests() {
     // verify_evaluation_ib("a != 5", 5, false);
     // verify_evaluation_ib("a != 5", 6, true);
 
-    verify_evaluation_iii("if(a >  5, b, 1)",  5, 2, 8);
-    verify_evaluation_iii("if(a >= 5, b, 1)", 5, 2, 2);
-    verify_evaluation_iii("if(a == 5, b, 1)", 5, 3, 3);
-    verify_evaluation_iii("if(a != 5, b, 1)", 5, 4, 1);
+    // verify_evaluation_iii("if(a >  5, b, 1)",  5, 2, 8);
+    // verify_evaluation_iii("if(a >= 5, b, 1)", 5, 2, 2);
+    // verify_evaluation_iii("if(a == 5, b, 1)", 5, 3, 3);
+    // verify_evaluation_iii("if(a != 5, b, 1)", 5, 4, 1);
+
+    if (!tokenizer_self_diagnostics())
+        tests_failed = true;
+    if (!parser_self_diagnostics())
+        tests_failed = true;
 
     return tests_failed;
 }

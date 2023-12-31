@@ -51,6 +51,8 @@ token *new_data_token(token_type type, const char *data);
 token_type token_get_type(token *t);
 const char *token_get_data(token *t);
 
+const char *token_type_str(token_type type);
+
 STRONGLY_TYPED_FAILABLE_DECLARATION(token);
 
 #endif

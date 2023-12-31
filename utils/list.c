@@ -37,6 +37,7 @@ void list_add(list *l, void *item) {
         l->length = 1;
     } else {
         l->tail->next = entry;
+        l->tail = entry;
         l->length += 1;
     }
 }
