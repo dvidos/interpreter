@@ -18,6 +18,7 @@ void iterator_next(iterator *it);
 void *iterator_current(iterator *it);
 
 
+
 STRONGLY_TYPED_FAILABLE_DECLARATION(list);
 
 #endif

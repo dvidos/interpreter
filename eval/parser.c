@@ -1,4 +1,7 @@
+#include <stdbool.h>
 #include "../utils/failable.h"
+#include "../utils/list.h"
+#include "../utils/stack.h"
 #include "parser.h"
 #include "token.h"
 #include "expression.h"
@@ -8,7 +11,7 @@
     https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm#shunting_yard
     
     Very good answer here: https://stackoverflow.com/questions/16380234
-    General format: PREFIX_OP* OPERAND POSTFIX_OP* (INFIX_OP PREFIXOP* OPERAND POSTFIX_OP*)*
+    General format: PREFIX_OP* OPERAND POSTFIX_OP* (INFIX_OP PREFIX_OP* OPERAND POSTFIX_OP*)*
 
     +-----+            +-----+              
     |State|-----OP---->|State|              State 1: want operand
@@ -20,10 +23,58 @@
         +------+           +------+
 */
 
-enum states { WANT_OPERAND, HAVE_OPERAND, COMPLETED };
+enum states { WANT_OPERAND, HAVE_OPERAND, DONE };
+static stack *operands_stack;
+static stack *expressions_stack;
+static iterator *tokens_iterator;
+static token *end_token;
 
-static void handle_want_operand_state(enum states *state) {
+static token* get_next_token() {
+    if (!iterator_valid(tokens_iterator)) {
+        return end_token;
+    }
+    token *t = iterator_current(tokens_iterator);
+    iterator_next(tokens_iterator);
+    return t;
+}
+
+static bool is_operand(token *t) {
+    token_type tt = token_get_type(t);
+    return (tt == T_IDENTIFIER ||
+            tt == T_NUMBER_LITERAL ||
+            tt == T_STRING_LITERAL ||
+            tt == T_BOOLEAN_LITERAL);
+}
+
+static operator get_possible_prefix_operator(token *token) {
+    // for example, '-' can be prefix/infix, '++' can be prefix/postfix
+    // return operator or OP_UNKNOWN
+}
+
+static operator get_possible_infix_operator(token *token) {
+    // for example, '-' can be prefix/infix, '++' can be prefix/postfix
+    // return operator or OP_UNKNOWN
+}
+
+static operator get_possible_postfix_operator(token *token) {
+    // for example, '-' can be prefix/infix, '++' can be prefix/postfix
+    // return operator or OP_UNKNOWN
+}
+
+static failable handle_want_operand_state(enum states *state) {
     // read a token. If there are no more tokens, announce an error.
+    token *t = get_next_token();
+    if (token_get_type(t) == T_END)
+        return failed("tokens finished prematurely");
+    
+    if (token_get_type(t) == T_LPAREN) {
+
+    }
+    
+    if (is_operand(t)) {
+
+    }
+
     // if the token is an prefix operator or an '(':
     //     mark it as prefix and push it onto the operator stack
     //     goto want_operand
@@ -31,10 +82,13 @@ static void handle_want_operand_state(enum states *state) {
     //     add it to the output queue
     //     goto have_operand
     // if the token is anything else, announce an error and stop. (**)    
+    return succeeded();
 }
 
-static void handle_have_operand_state(enum states *state) {
-    // read a token
+static failable handle_have_operand_state(enum states *state) {
+    // read a token   
+    token *t = get_next_token();
+
     // if there are no more tokens:
     //     pop all operators off the stack, adding each one to the output queue.
     //     if a `(` is found on the stack, announce an error and stop.
@@ -59,31 +113,48 @@ static void handle_have_operand_state(enum states *state) {
     //     than infix operators.)
     //     got to want_operand
     // otherwise, token is an operand. Announce an error
+    return succeeded();
 }
 
+static failable_expression parse_full_expression() {
 
-static bool parse_full_expression() {
-    // e.g. "a+b*c+d"
+    failable handling;
+    operands_stack = new_stack();
+    expressions_stack = new_stack();
     enum states state = WANT_OPERAND;
-    while (state != COMPLETED) {
+    
+    while (state != DONE) {
         switch (state) {
             case WANT_OPERAND:
-                handle_want_operand_state(&state);
+                handling = handle_want_operand_state(&state);
+                if (handling.failed)
+                    return failed_expression("Want operand failed: %s", handling.err_msg);
                 break;
             case HAVE_OPERAND:
-                handle_have_operand_state(&state);
+                handling = handle_have_operand_state(&state);
+                if (handling.failed)
+                    return failed_expression("Have operand failed: %s", handling.err_msg);
                 break;
         }
     }
-    return false;
+
+    expression *e = stack_pop(expressions_stack);
+    return ok_expression(e);
 }
-
-
-
 
 failable_list parse_tokens_into_expressions(list *tokens) {
-    // parse the tokens into an AST. Need operation precedence here & double stack.
+    tokens_iterator = list_iterator(tokens);
+    end_token = new_token(T_END);
 
-    return failed_list("parse_tokens_into_expressions() is not implemented yet!");
+    // there may be more than one expressions, parse them as long as we have tokens
+    list *expressions = new_list();
+    while iterator_valid(tokens_iterator) {
+        failable_expression parsing = parse_full_expression();
+        if (parsing.failed)
+            return failed_list("Error parsing: %s", parsing.err_msg);
+
+        list_add(expressions, parsing.result);
+    }
+
+    return ok_list(expressions);
 }
-

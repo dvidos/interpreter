@@ -1,5 +1,5 @@
-#ifndef _LIST_H
-#define _LIST_H
+#ifndef _STACK_H
+#define _STACK_H
 
 #include <stdbool.h>
 

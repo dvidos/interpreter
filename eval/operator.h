@@ -2,6 +2,8 @@
 #define _OPERATOR_H
 
 enum operator {
+    OP_UNKNOWN,
+
     OP_SYMBOL_VALUE,
     OP_NUMBER_VALUE,
     OP_STRING_VALUE,
