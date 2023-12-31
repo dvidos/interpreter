@@ -57,10 +57,11 @@ bool iterator_valid(iterator *it) {
     return (it != NULL);
 }
 
-void iterator_next(iterator *it) {
+iterator *iterator_next(iterator *it) {
     list_entry *e = (list_entry *)it;
     if (e != NULL)
         e = e->next;
+    return (iterator *)e;
 }
 
 void *iterator_current(iterator *it) {

@@ -21,8 +21,8 @@ stack *new_stack() {
     return s;
 }
 
-bool stack_length(stack *s) {
-    return s->length;
+bool stack_empty(stack *s) {
+    return s->length == 0;
 }
 
 void stack_push(stack *s, void *item) {

@@ -2,7 +2,7 @@
 #include "../utils/failable.h"
 #include "expression.h"
 
-typedef struct expression {
+struct expression {
     operator op;
     int operand_count; // 0=terminal, 1=unary, 2=binary, 3=ternary
     union {
@@ -22,7 +22,7 @@ typedef struct expression {
             struct expression *op3;
         } ternary;
     } per_type;
-} expression;
+};
 
 expression *new_terminal_expression(operator op) {
     expression *e = malloc(sizeof(expression));

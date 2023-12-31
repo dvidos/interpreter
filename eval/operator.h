@@ -1,6 +1,16 @@
 #ifndef _OPERATOR_H
 #define _OPERATOR_H
 
+#include "token.h"
+
+
+enum op_position {
+    PREFIX,
+    POSTFIX,
+    INFIX,
+    OPERAND
+};
+
 enum operator {
     OP_UNKNOWN,
 
@@ -13,6 +23,8 @@ enum operator {
     OP_SUBTRACTION,
     OP_MULTIPLICATION,
     OP_DIVISION,
+    OP_POSITIVE_NUM,
+    OP_NEGATIVE_NUM,
 
     OP_LOGICAL_AND,
     OP_LOGICAL_OR,
@@ -27,8 +39,12 @@ enum operator {
 };
 
 typedef enum operator operator;
+typedef enum op_position op_position;
 
+
+operator get_operator_by_token_type_and_position(token_type type, enum op_position position);
 int operator_precedence(operator op);
+op_position operator_position(operator op);
 int operator_operands_count(operator op);
 
 

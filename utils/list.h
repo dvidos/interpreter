@@ -13,9 +13,9 @@ void  list_add(list *l, void *item);
 void *list_get(list *l, int index);
 
 iterator *list_iterator(list *l);
-bool iterator_valid(iterator *it);
-void iterator_next(iterator *it);
-void *iterator_current(iterator *it);
+bool      iterator_valid(iterator *it);
+iterator *iterator_next(iterator *it);
+void     *iterator_current(iterator *it);
 
 
 
