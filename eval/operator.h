@@ -47,6 +47,6 @@ operator get_operator_by_token_type_and_position(token_type type, enum op_positi
 int operator_precedence(operator op);
 op_position operator_position(operator op);
 int operator_operands_count(operator op);
-
+const char *operator_str(operator op);
 
 #endif

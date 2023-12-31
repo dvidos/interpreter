@@ -22,6 +22,16 @@ list *new_list() {
     l->tail = NULL;
 }
 
+list *list_of(int items, ...) {
+    list *l = new_list();
+    va_list args;
+    va_start(args, items);
+    while (items-- > 0)
+        list_add(l, va_arg(args, void *));
+    va_end(args);
+    return l;
+}
+
 int list_length(list *l) {
     return l->length;
 }

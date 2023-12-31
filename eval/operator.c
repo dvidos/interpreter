@@ -63,3 +63,27 @@ int operator_operands_count(operator op) {
     return 0;
 }
 
+const char *operator_str(operator op) {
+    switch (op) {
+        case OP_UNKNOWN: return "OP_UNKNOWN";
+        case OP_SYMBOL_VALUE: return "OP_SYMBOL_VALUE";
+        case OP_NUMBER_VALUE: return "OP_NUMBER_VALUE";
+        case OP_STRING_VALUE: return "OP_STRING_VALUE";
+        case OP_LOGICAL_VALUE: return "OP_LOGICAL_VALUE";
+        case OP_ADDITION: return "OP_ADDITION";
+        case OP_SUBTRACTION: return "OP_SUBTRACTION";
+        case OP_MULTIPLICATION: return "OP_MULTIPLICATION";
+        case OP_DIVISION: return "OP_DIVISION";
+        case OP_POSITIVE_NUM: return "OP_POSITIVE_NUM";
+        case OP_NEGATIVE_NUM: return "OP_NEGATIVE_NUM";
+        case OP_LOGICAL_AND: return "OP_LOGICAL_AND";
+        case OP_LOGICAL_OR: return "OP_LOGICAL_OR";
+        case OP_LOGICAL_NOT: return "OP_LOGICAL_NOT";
+        case OP_BINARY_AND: return "OP_BINARY_AND";
+        case OP_BINARY_OR: return "OP_BINARY_OR";
+        case OP_BINARY_NOT: return "OP_BINARY_NOT";
+        case OP_SHORTHAND_IF: return "OP_SHORTHAND_IF";
+        case OP_MAX_VALUE: return "OP_MAX_VALUE";
+    }
+    return "(unknown)";
+}

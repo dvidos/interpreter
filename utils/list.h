@@ -7,6 +7,7 @@ typedef struct list list;
 typedef struct iterator iterator;
 
 list *new_list();
+list *list_of(int items, ...);
 
 int   list_length(list *l);
 void  list_add(list *l, void *item);

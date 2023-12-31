@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "token.h"
 
 struct token {
@@ -69,5 +70,37 @@ const char *token_type_str(token_type type) {
     return "(unknown type)";
 }
 
+void token_print(token *t, FILE *stream, char *prefix) {
+    token_type tt = token_get_type(t);
+    const char *data = token_get_data(t);
+    bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
+
+    fprintf(stream, "%s%s%s%s%s\n", 
+        prefix,
+        token_type_str(tt), 
+        has_data ? " \"" : "",
+        has_data ? data : "",
+        has_data ? "\"" : ""
+    );
+}
+
+void token_print_list(list *tokens, FILE *stream, char *prefix) {
+    iterator *it;
+    for (it = list_iterator(tokens); iterator_valid(it); it = iterator_next(it))
+        token_print((token *)iterator_current(it), stream, prefix);
+}
+
+bool tokens_are_equal(token *a, token *b) {
+    if (a == NULL && b == NULL) return true;
+    if ((a == NULL && b != NULL) || (a != NULL && b == NULL)) return false;
+    if (a == b) return true;
+    
+    if (a->type != b->type)
+        return false;
+    if (strcmp(a->data, b->data) != 0)
+        return false;
+
+    return true;
+}
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(token);

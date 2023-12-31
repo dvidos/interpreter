@@ -1,7 +1,9 @@
 #ifndef _TOKEN_H
 #define _TOKEN_H
 
+#include <stdio.h>
 #include "../utils/failable.h"
+#include "../utils/list.h"
 
 typedef enum token_type {
     T_UNKNOWN,
@@ -52,6 +54,9 @@ token_type token_get_type(token *t);
 const char *token_get_data(token *t);
 
 const char *token_type_str(token_type type);
+void token_print(token *t, FILE *stream, char *prefix);
+void token_print_list(list *tokens, FILE *stream, char *prefix);
+bool tokens_are_equal(token *a, token *b);
 
 STRONGLY_TYPED_FAILABLE_DECLARATION(token);
 

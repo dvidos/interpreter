@@ -193,26 +193,6 @@ failable_list parse_code_into_tokens(const char *code) {
 
 // -----------------------------------
 
-static void print_token(token *t, char *prefix) {
-    token_type tt = token_get_type(t);
-    const char *data = token_get_data(t);
-    bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
-
-    fprintf(stderr, "%s%s%s%s%s\n", 
-        prefix,
-        token_type_str(tt), 
-        has_data ? " \"" : "",
-        has_data ? data : "",
-        has_data ? "\"" : ""
-    );
-}
-static void print_tokens_list(list *tokens, char *prefix) {
-    iterator *it;
-    for (it = list_iterator(tokens); iterator_valid(it); it = iterator_next(it))
-        print_token((token *)iterator_current(it), prefix);
-}
-
-
 // for each token, pass in expected type. for identifiers and literals, pass in data.
 static bool use_case_passes(const char *code, bool expect_failure, int expected_tokens, ...) {
     failable_list parsing = parse_code_into_tokens(code);
@@ -240,7 +220,7 @@ static bool use_case_passes(const char *code, bool expect_failure, int expected_
 
     if (list_length(tokens) != expected_tokens) {
         fprintf(stderr, "Expected %d tokens, gotten %d, code=\"%s\")\n", expected_tokens, list_length(tokens), code);
-        print_tokens_list(tokens, "  - ");
+        token_print_list(tokens, stderr, "  - ");
         return false;
     }
 
@@ -315,5 +295,3 @@ bool tokenizer_self_diagnostics() {
 
     return all_passed;
 }
-
-

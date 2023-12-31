@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include "../utils/failable.h"
 #include "../utils/list.h"
 #include "../utils/stack.h"
@@ -6,6 +7,7 @@
 #include "token.h"
 #include "operator.h"
 #include "expression.h"
+#include "tokenization.h"
 
 /*
     The shunting yard algorithm, for parsing operators according to precedence,
@@ -315,8 +317,74 @@ failable_list parse_tokens_into_expressions(list *tokens) {
     return ok_list(expressions);
 }
 
+// ------------------------------------------------
+
+static bool use_case_passes(const char *code, bool expect_failure, list *expected_expressions) {
+    failable_list tokenization = parse_code_into_tokens(code);
+    if (tokenization.failed) {
+        fprintf(stderr, "Code parsing failed unexpectedly (code=\"%s\"): %s", code, tokenization.err_msg);
+        return false;
+    }
+
+    failable_list parsing = parse_tokens_into_expressions(tokenization.result);
+
+    // test failure
+    if (expect_failure) {
+        if (!parsing.failed) {
+            fprintf(stderr, "Parsing did not fail as expected: (code=\"%s\")\n", code);
+            return false;
+        }
+        return true;
+    }
+
+    // success, verify
+    if (parsing.failed) {
+        fprintf(stderr, "Parsing failed unexpectedly: %s\n\t(code=\"%s\")\n", parsing.err_msg, code);
+        return false;
+    }
+
+    // compare lengths first
+    list *actual_expressions = parsing.result;
+    if (list_length(actual_expressions) != list_length(expected_expressions)) {
+        fprintf(stderr, "Expected %d expressions, gotten %d, (code=\"%s\")\n", 
+            list_length(expected_expressions), list_length(actual_expressions), code);
+        expression_print_list(actual_expressions, stderr, "  - ");
+        return false;
+    }
+
+    // compare each expression
+    for (int i = 0; i < list_length(expected_expressions); i++) {
+        expression *actual = list_get(expected_expressions, i);
+        expression *expected = list_get(actual_expressions, i);
+        if (!expressions_are_equal(actual, expected)) {
+            fprintf(stderr, "Expression #%d differs, (code=\"%s\"), expected expression:\n", i, code);
+            expression_print(expected, stderr, "  ");
+            fprintf(stderr, "actual:\n");
+            expression_print(actual, stderr, "  ");
+            return false;
+        }
+    }
+
+    return true;
+}
 
 // perform unit tests and report if successful
 bool parser_self_diagnostics() {
+    bool all_passed = true;
+
+    if (!use_case_passes(NULL, false, list_of(0)))
+        all_passed = false;
+
+    if (!use_case_passes("", false, list_of(0)))
+        all_passed = false;
+
+    if (!use_case_passes("a+1", false, list_of(1,
+        new_binary_expression(OP_ADDITION, 
+            new_terminal_expression(OP_SYMBOL_VALUE, "a"),
+            new_terminal_expression(OP_NUMBER_VALUE, "1")
+        )
+    ))) all_passed = false;
+
+    return all_passed;
 }
 
