@@ -45,6 +45,8 @@ typedef enum op_position op_position;
 
 #define LOWEST_OPERATOR_PRECEDENCE    OP_SENTINEL
 
+void initialize_operator_tables();
+
 operator get_operator_by_token_type_and_position(token_type type, enum op_position position);
 int operator_precedence(operator op);
 op_position operator_position(operator op);

@@ -42,7 +42,8 @@ typedef enum token_type {
     T_DOT,
     T_COMMA,
 
-    T_END // the last token of the stream
+    T_END, // the last token of the stream
+    T_MAX_VALUE // max value for the sizing of the enum
 } token_type;
 
 typedef struct token token;

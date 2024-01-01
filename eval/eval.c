@@ -10,6 +10,10 @@
 #include "parser.h"
 #include "eval.h"
 
+void initialize_evaluator() {
+    initialize_operator_tables();
+}
+
 
 failable_value evaluate(const char *code, dict *arguments) {
 

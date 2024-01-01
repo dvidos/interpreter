@@ -1,4 +1,5 @@
 #include "tests.h"
+#include "eval/eval.h"
 
 
 /*
@@ -19,6 +20,8 @@
 */
 
 int main() {
+    initialize_evaluator();
+
     if (!run_unit_tests())
         return 1;
     
