@@ -22,8 +22,8 @@ failable_value evaluate(const char *code, dict *arguments) {
         return failed_value("Parsing failed: %s", parsing.err_msg);
 
     value *result = new_null_value();
-    for (iterator *it = list_iterator(parsing.result); iterator_valid(it); it = iterator_next(it)) {
-        expression *expr = (expression *)iterator_current(it);
+    for (sequential *s = list_sequential(parsing.result); s != NULL; s = s->next) {
+        expression *expr = (expression *)s->data;
         failable_value execution = execute_expression(expr, arguments);
         if (execution.failed)
             return failed_value("Execution failed: %s", execution.err_msg);

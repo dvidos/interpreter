@@ -21,6 +21,10 @@ stack *new_stack() {
     return s;
 }
 
+int stack_length(stack *s) {
+    return s->length;
+}
+
 bool stack_empty(stack *s) {
     return s->length == 0;
 }
@@ -44,5 +48,9 @@ void *stack_pop(stack *s) {
     void *item = s->head->item;
     s->head = s->head->next;
     s->length -= 1;
+    return item;
 }
 
+sequential *stack_sequential(stack *s) {
+    return (sequential *)s->head;
+}

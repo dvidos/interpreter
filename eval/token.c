@@ -75,7 +75,7 @@ void token_print(token *t, FILE *stream, char *prefix) {
     const char *data = token_get_data(t);
     bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
 
-    fprintf(stream, "%s%s%s%s%s\n", 
+    fprintf(stream, "%s%s%s%s%s", 
         prefix,
         token_type_str(tt), 
         has_data ? " \"" : "",
@@ -85,9 +85,10 @@ void token_print(token *t, FILE *stream, char *prefix) {
 }
 
 void token_print_list(list *tokens, FILE *stream, char *prefix) {
-    iterator *it;
-    for (it = list_iterator(tokens); iterator_valid(it); it = iterator_next(it))
-        token_print((token *)iterator_current(it), stream, prefix);
+    for (sequential *s = list_sequential(tokens); s != NULL; s = s->next) {
+        token_print((token *)s->data, stream, prefix);
+        fprintf(stream, "\n");
+    }
 }
 
 bool tokens_are_equal(token *a, token *b) {

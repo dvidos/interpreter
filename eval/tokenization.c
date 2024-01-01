@@ -135,7 +135,7 @@ static token_type get_char_token_type(const char *code, int len, int *pos, char 
     return single_char_type; // can be unknown
 }
 
-static failable_token get_token_at_code_position(const char *code, int len, int *pos, token **token_out) {
+static failable_token get_token_at_code_position(const char *code, int len, int *pos) {
     if (!skip_whitespace(code, len, pos))
         return ok_token(NULL);
     
@@ -170,22 +170,24 @@ static failable_token get_token_at_code_position(const char *code, int len, int 
 
 failable_list parse_code_into_tokens(const char *code) {
     list *tokens = new_list();
-    if (code == NULL)
+
+    if (code == NULL) {
+        list_add(tokens, new_token(T_END));
         return ok_list(tokens);
+    }
     
-    token *token;
     int len = strlen(code);
     int pos = 0;
     while (pos < len) {
-        failable_token t = get_token_at_code_position(code, len, &pos, &token);
+        failable_token t = get_token_at_code_position(code, len, &pos);
         if (t.failed)
             return failed_list("Cannot get token: %s", t);
         if (t.result == NULL)
             break;
         list_add(tokens, t.result);
     }
-
     list_add(tokens, new_token(T_END));
+
     return ok_list(tokens);
 }
 
@@ -195,31 +197,31 @@ failable_list parse_code_into_tokens(const char *code) {
 
 // for each token, pass in expected type. for identifiers and literals, pass in data.
 static bool use_case_passes(const char *code, bool expect_failure, int expected_tokens, ...) {
-    failable_list parsing = parse_code_into_tokens(code);
+    failable_list tokenization = parse_code_into_tokens(code);
 
     // test failure
     if (expect_failure) {
-        if (!parsing.failed) {
-            fprintf(stderr, "Parsing did not fail as expected: code=\"%s\")\n", code);
+        if (!tokenization.failed) {
+            fprintf(stderr, "Tokenization did not fail as expected: (code=\"%s\")\n", code);
             return false;
         }
         return true;
     }
 
     // success, verify
-    if (parsing.failed) {
-        fprintf(stderr, "Parsing failed unexpectedly: code=\"%s\")\n", code);
+    if (tokenization.failed) {
+        fprintf(stderr, "Tokenization failed unexpectedly: %s\n\t(code=\"%s\")\n", tokenization.err_msg, code);
         return false;
     }
 
-    list *tokens = parsing.result;
+    list *tokens = tokenization.result;
     if (tokens == NULL) {
-        fprintf(stderr, "Parsing returned NULL list: code=\"%s\")\n", code);
+        fprintf(stderr, "Tokenization returned NULL list: code=\"%s\")\n", code);
         return false;
     }
 
     if (list_length(tokens) != expected_tokens) {
-        fprintf(stderr, "Expected %d tokens, gotten %d, code=\"%s\")\n", expected_tokens, list_length(tokens), code);
+        fprintf(stderr, "Tokenization expected %d tokens, gotten %d, code=\"%s\")\n", expected_tokens, list_length(tokens), code);
         token_print_list(tokens, stderr, "  - ");
         return false;
     }
@@ -232,7 +234,7 @@ static bool use_case_passes(const char *code, bool expect_failure, int expected_
         token_type expected_type = va_arg(args, token_type);
         token_type actual_type = token_get_type(t);
         if (actual_type != expected_type) {
-            fprintf(stderr, "Parsed token #%d expected type %s, gotten %s, code=\"%s\")\n", 
+            fprintf(stderr, "Tokenization token #%d expected type %s, gotten %s, code=\"%s\")\n", 
                         i, token_type_str(expected_type), token_type_str(actual_type), code);
             return false;
         }
@@ -240,7 +242,7 @@ static bool use_case_passes(const char *code, bool expect_failure, int expected_
             char *expected_data = va_arg(args, char *);
             const char *actual_data = token_get_data(t);
             if (strcmp(actual_data, expected_data) != 0) {
-                fprintf(stderr, "Parsed token #%d expected data \"%s\", gotten \"%s\", code=\"%s\")\n", 
+                fprintf(stderr, "Tokenization token #%d expected data \"%s\", gotten \"%s\", code=\"%s\")\n", 
                             i, expected_data, actual_data, code);
                 return false;
             }
@@ -255,9 +257,9 @@ bool tokenizer_self_diagnostics() {
     bool all_passed = true;
     
     // for each token, pass in expected type. for identifiers and literals, pass in data.
-    if (!use_case_passes(NULL, false, 0)) 
-        all_passed = false;
     if (!use_case_passes(":", true, 0))
+        all_passed = false;
+    if (!use_case_passes(NULL, false, 1, T_END)) 
         all_passed = false;
     if (!use_case_passes("", false, 1, T_END))
         all_passed = false;

@@ -61,35 +61,40 @@ expression *new_ternary_expression(operator op, expression *op1, expression *op2
     return e;
 }
 
-static void expression_print_indented(expression *e, FILE *stream, char *prefix, int level) {
-    fprintf(stream, "%s%*s%s(", prefix, level * 4, "", operator_str(e->op));
+static void expression_print_indented(expression *e, FILE *stream, char *prefix, bool single_line, int level) {
+    if (level == 0)
+        fprintf(stream, "%s", prefix);
+    
+    fprintf(stream, "%s(", operator_str(e->op));
     if (e->operand_count == 0) {
         fprintf(stream, "\"%s\"", e->per_type.terminal.data);
     } else if (e->operand_count == 1) {
-        expression_print_indented(e->per_type.unary.operand, stream, prefix, level + 1);
+        expression_print_indented(e->per_type.unary.operand, stream, "", single_line, level + 1);
     } else if (e->operand_count == 2) {
-        expression_print_indented(e->per_type.binary.left, stream, prefix, level + 1);
+        expression_print_indented(e->per_type.binary.left, stream, "", single_line, level + 1);
         fprintf(stream, ", ");
-        expression_print_indented(e->per_type.binary.right, stream, prefix, level + 1);
+        expression_print_indented(e->per_type.binary.right, stream, "", single_line, level + 1);
     } else if (e->operand_count == 3) {
-        expression_print_indented(e->per_type.ternary.op1, stream, prefix, level + 1);
+        expression_print_indented(e->per_type.ternary.op1, stream, "", single_line, level + 1);
         fprintf(stream, ", ");
-        expression_print_indented(e->per_type.ternary.op2, stream, prefix, level + 1);
+        expression_print_indented(e->per_type.ternary.op2, stream, "", single_line, level + 1);
         fprintf(stream, ", ");
-        expression_print_indented(e->per_type.ternary.op3, stream, prefix, level + 1);
+        expression_print_indented(e->per_type.ternary.op3, stream, "", single_line, level + 1);
     }
     fprintf(stream, ")");
+
+    if (level == 0)
+        fprintf(stream, "\n");
+    
 }
 
-void expression_print(expression *e, FILE *stream, char *prefix) {
-    expression_print_indented(e, stream, prefix, 0);
-    fprintf(stream, "\n");
+void expression_print(expression *e, FILE *stream, char *prefix, bool single_line) {
+    expression_print_indented(e, stream, prefix, single_line, 0);
 }
 
-void expression_print_list(list *expressions, FILE *stream, char *prefix) {
-    iterator *it;
-    for (it = list_iterator(expressions); iterator_valid(it); it = iterator_next(it))
-        expression_print((expression *)iterator_current(it), stream, prefix);
+void expression_print_list(list *expressions, FILE *stream, char *prefix, bool single_lines) {
+    for (sequential *s = list_sequential(expressions); s != NULL; s = s->next)
+        expression_print((expression *)s->data, stream, prefix, single_lines);
 }
 
 bool expressions_are_equal(expression *a, expression *b) {
@@ -108,16 +113,16 @@ bool expressions_are_equal(expression *a, expression *b) {
         if (!expressions_are_equal(a->per_type.unary.operand, b->per_type.unary.operand))
             return false;
     } else if (a->operand_count == 2) {
-        if (expressions_are_equal(a->per_type.binary.left, b->per_type.binary.left))
+        if (!expressions_are_equal(a->per_type.binary.left, b->per_type.binary.left))
             return false;
-        if (expressions_are_equal(a->per_type.binary.right, b->per_type.binary.right))
+        if (!expressions_are_equal(a->per_type.binary.right, b->per_type.binary.right))
             return false;
     } else if (a->operand_count == 3) {
-        if (expressions_are_equal(a->per_type.ternary.op1, b->per_type.ternary.op1))
+        if (!expressions_are_equal(a->per_type.ternary.op1, b->per_type.ternary.op1))
             return false;
-        if (expressions_are_equal(a->per_type.ternary.op2, b->per_type.ternary.op2))
+        if (!expressions_are_equal(a->per_type.ternary.op2, b->per_type.ternary.op2))
             return false;
-        if (expressions_are_equal(a->per_type.ternary.op3, b->per_type.ternary.op3))
+        if (!expressions_are_equal(a->per_type.ternary.op3, b->per_type.ternary.op3))
             return false;
     }
 

@@ -2,8 +2,8 @@
 #include "token.h"
 
 struct op_info {
-    enum op_position position;
-    token_type token;
+    token_type type;
+    op_position position;
     operator op;
     int operands_count;
 };
@@ -30,7 +30,7 @@ operator get_operator_by_token_type_and_position(token_type type, enum op_positi
     // for example, '-' can be prefix/infix, '++' can be prefix/postfix
     // we can convert this to a tree / hashtable later on.
     for (int i = 0; i < (sizeof(op_infos)/sizeof(op_infos[0])); i++) {
-        if (op_infos[i].token == type && op_infos[i].position == position)
+        if (op_infos[i].type == type && op_infos[i].position == position)
             return op_infos[i].op;
     }
     return OP_UNKNOWN;
@@ -83,6 +83,7 @@ const char *operator_str(operator op) {
         case OP_BINARY_OR: return "OP_BINARY_OR";
         case OP_BINARY_NOT: return "OP_BINARY_NOT";
         case OP_SHORTHAND_IF: return "OP_SHORTHAND_IF";
+        case OP_SENTINEL: return "OP_SENTINEL";
         case OP_MAX_VALUE: return "OP_MAX_VALUE";
     }
     return "(unknown)";

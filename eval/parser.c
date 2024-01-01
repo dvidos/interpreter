@@ -26,37 +26,35 @@
          +--------+                      +--------+
 */
 
-enum state { WANT_OPERAND, HAVE_OPERAND, FINISHED };
-enum context { NORMAL, PARENTHESIS, FUNC_ARGS, SHORT_IF_TRUE_PART, SHORT_IF_FALSE_PART };
+typedef enum run_state { WANT_OPERAND, HAVE_OPERAND, FINISHED } run_state;
+typedef enum run_context { CTX_NORMAL, CTX_PARENTHESIS, FUNC_ARGS, SHORT_IF_TRUE_PART, SHORT_IF_FALSE_PART } run_context;
+
 
 static stack *operators_stack;
 static stack *expressions_stack;
-static iterator *tokens_iterator;
-static token *end_token;
+static sequential *tokens_sequential;
 static token *last_token;
-
-static failable_expression parse_expression(token_type expected_finish);
-
-
+static token *end_token;
+static failable_expression parse_expression(run_context context);
 
 
 static token* get_token_and_advance() {
     // get token, advance to next position, so we can peek.
-    if (!iterator_valid(tokens_iterator)) {
+    if (tokens_sequential == NULL)
         return end_token;
-    }
-    token *t = iterator_current(tokens_iterator);
-    tokens_iterator = iterator_next(tokens_iterator);
+    
+    token *t = (token *)tokens_sequential->data;
+    tokens_sequential = tokens_sequential->next;
     last_token = t;
     return t;
 }
 
 static token* peek_token() {
     // get token, but don't advance to next position
-    if (!iterator_valid(tokens_iterator)) {
+    if (tokens_sequential == NULL)
         return end_token;
-    }
-    return iterator_current(tokens_iterator);
+    
+    return (token *)tokens_sequential->data;
 }
 
 static token* peek_last_token() {
@@ -107,6 +105,15 @@ static inline operator pop_top_operator() {
     return (operator)stack_pop(operators_stack);
 }
 
+static void print_operators_stack(FILE *stream, char *prefix) {
+    fprintf(stream, "%sOperators stack (%d)\n", prefix, stack_length(operators_stack));
+    sequential *s = stack_sequential(operators_stack);
+    while (s != NULL) {
+        fprintf(stream, "%s  - %s\n", prefix, operator_str((operator)s->data));
+        s = s->next;
+    }
+}
+
 static inline void push_expression(expression *e) {
     return stack_push(expressions_stack, e);
 }
@@ -118,6 +125,22 @@ static inline expression *pop_top_expression() {
 static inline expression *peek_top_expression() {
     return (expression *)stack_peek(expressions_stack);
 }
+
+static void print_expression_stack(FILE *stream, char *prefix) {
+    fprintf(stream, "%sExpressions stack (%d)\n", prefix, stack_length(expressions_stack));
+    sequential *s = stack_sequential(expressions_stack);
+    if (s == NULL) {
+        fprintf(stream, "%s  (empty)\n", prefix);
+    } else {
+        while (s != NULL) {
+            fprintf(stream, "%s", prefix);
+            expression_print((expression *)s->data, stream, "  - ", true);
+            s = s->next;
+        }
+    }
+}
+
+// --------------------------------------------
 
 static void make_one_expression_from_top_operator() {
     operator op = pop_top_operator();
@@ -134,33 +157,33 @@ static void make_one_expression_from_top_operator() {
     }
     push_expression(new_expr);
 }
+
 static void resolve_pending_higher_precedence_operators(int precedence) {
     // the operators stack always has the highest precedence ops at the top.
     // if we want to add a smaller precedence, we pop them into expressions
     // this assumes the use of the SENTINEL, the lowest priority operator
     operator top_op = peek_top_operator();
-    while (operator_precedence(top_op) > precedence) {
+    while (operator_precedence(top_op) < precedence) {
         make_one_expression_from_top_operator();
         top_op = peek_top_operator();
     }
 }
 
+// --------------------------------------------
 
-
-static failable detect_finish(token_type curr_token, token_type expected_ending, bool *finished) {
-    if (expected_ending != T_UNKNOWN) {
-        // if there is an expected ending, normal endings are an error
-        if (curr_token == T_END || curr_token == T_SEMICOLON)
-            return failed("Premature end of tokens, was expecting %d", expected_ending);
-        *finished = (curr_token == expected_ending);
-    }
-    else {
+static failable detect_finish(token_type curr_token, run_context context, bool *finished) {
+    if (context == CTX_NORMAL) {
         *finished = (curr_token == T_END || curr_token == T_SEMICOLON);
+
+    } else if (context == CTX_PARENTHESIS) {
+        if (curr_token == T_END || curr_token == T_SEMICOLON)
+            return failed("Premature end of tokens, was expecting ')' to end parenthesis context");
+        *finished = (curr_token == T_RPAREN);
     }
     return succeeded();
 }
 
-static failable parse_expression_on_want_operand(enum state *state) {
+static failable parse_expression_on_want_operand(run_state *state) {
     // read a token. If there are no more tokens, announce an error.
     token *t = get_token_and_advance();
     token_type tt = token_get_type(t);
@@ -182,9 +205,8 @@ static failable parse_expression_on_want_operand(enum state *state) {
     }
 
     // handle sub-expressions, func cals are handled after having operand.
-    // TODO: detect function calls, allow subexpressions to end on a comma or a RPAREN
     if (tt == T_LPAREN) {
-        failable_expression sub_expression = parse_expression(T_RPAREN);
+        failable_expression sub_expression = parse_expression(CTX_PARENTHESIS);
         if (sub_expression.failed)
             return failed("%s", sub_expression.err_msg);
         push_expression(sub_expression.result);
@@ -202,10 +224,10 @@ static failable parse_expression_on_want_operand(enum state *state) {
     }
 
     // nothing else should be expected here
-    return failed("Unexpected token type %d, was expecting prefix, operand, or lparen", tt);
+    return failed("Unexpected token type %s, was expecting prefix, operand, or lparen", token_type_str(tt));
 }
 
-static failable parse_expression_on_have_operand(enum state *state, token_type expected_ending) {
+static failable parse_expression_on_have_operand(run_state *state, run_context context) {
     // read a token   
     token *t = get_token_and_advance();
     token_type tt = token_get_type(t);
@@ -229,7 +251,7 @@ static failable parse_expression_on_have_operand(enum state *state, token_type e
 
     // detect if we finished (we may be a sub-expression)
     bool finished = false;
-    failable fin_detection = detect_finish(tt, expected_ending, &finished);
+    failable fin_detection = detect_finish(tt, context, &finished);
     if (fin_detection.failed)
         return failed("%s", fin_detection.err_msg);
     if (finished) {
@@ -265,7 +287,33 @@ static failable parse_expression_on_have_operand(enum state *state, token_type e
     return succeeded();
 }
 
-static failable_expression parse_expression(token_type expected_finish) {
+static void print_debug_information(char *title, run_state state) {
+        fprintf(stderr, "%s\n", title);
+
+        char *state_name;
+        switch (state) {
+            case WANT_OPERAND: state_name = "WANT_OPERAND"; break;
+            case HAVE_OPERAND: state_name = "HAVE_OPERAND"; break;
+            case FINISHED: state_name = "FINISHED"; break;
+            default: state_name = "(unknown)";
+        }
+        fprintf(stderr, "    Curr state %s", state_name);
+
+        fprintf(stderr, ", last token "); 
+        if (last_token == NULL)
+            fprintf(stderr, "(null)");
+        else
+            token_print(last_token, stderr, "");
+
+        fprintf(stderr, ", next token ");
+        token_print(peek_token(), stderr, "");
+        fprintf(stderr, "\n");
+
+        print_expression_stack(stderr, "    ");
+        print_operators_stack(stderr, "    ");
+}
+
+static failable_expression parse_expression(run_context context) {
     // re-entrable, for subexpressions.
     // parse till we meet:
     // - T_END, or, end of expression ';'
@@ -274,11 +322,11 @@ static failable_expression parse_expression(token_type expected_finish) {
     // - possible comma, for parsing function arguments.
 
     failable state_handling;
-    enum state state = WANT_OPERAND;
-    
+    run_state state = WANT_OPERAND;
+    push_operator_for_later(OP_SENTINEL);
+
     while (state != FINISHED) {
-        if (token_get_type(peek_token()) == T_END)
-            return failed_expression("Premature end of tokens");
+        // print_debug_information("parse_expression() loop", state);
 
         switch (state) {
             case WANT_OPERAND:
@@ -287,7 +335,7 @@ static failable_expression parse_expression(token_type expected_finish) {
                     return failed_expression("Failed on want operand: %s", state_handling.err_msg);
                 break;
             case HAVE_OPERAND:
-                state_handling = parse_expression_on_have_operand(&state, expected_finish);
+                state_handling = parse_expression_on_have_operand(&state, context);
                 if (state_handling.failed)
                     return failed_expression("Failed on have operand: %s", state_handling.err_msg);
                 break;
@@ -300,14 +348,14 @@ static failable_expression parse_expression(token_type expected_finish) {
 failable_list parse_tokens_into_expressions(list *tokens) {
     operators_stack = new_stack();
     expressions_stack = new_stack();
-    tokens_iterator = list_iterator(tokens);
+    tokens_sequential = list_sequential(tokens);
     end_token = new_token(T_END);
     last_token = new_token(T_UNKNOWN);
 
     // there may be more than one expressions, parse them as long as we have tokens
     list *expressions = new_list();
-    while (iterator_valid(tokens_iterator)) {
-        failable_expression parsing = parse_expression(T_UNKNOWN);
+    while (tokens_sequential != NULL && token_get_type(peek_token()) != T_END) {
+        failable_expression parsing = parse_expression(CTX_NORMAL);
         if (parsing.failed)
             return failed_list("%s", parsing.err_msg);
 
@@ -322,7 +370,7 @@ failable_list parse_tokens_into_expressions(list *tokens) {
 static bool use_case_passes(const char *code, bool expect_failure, list *expected_expressions) {
     failable_list tokenization = parse_code_into_tokens(code);
     if (tokenization.failed) {
-        fprintf(stderr, "Code parsing failed unexpectedly (code=\"%s\"): %s", code, tokenization.err_msg);
+        fprintf(stderr, "Parsing tokenization failed unexpectedly: %s\n\t(code=\"%s\")", tokenization.err_msg, code);
         return false;
     }
 
@@ -348,19 +396,19 @@ static bool use_case_passes(const char *code, bool expect_failure, list *expecte
     if (list_length(actual_expressions) != list_length(expected_expressions)) {
         fprintf(stderr, "Expected %d expressions, gotten %d, (code=\"%s\")\n", 
             list_length(expected_expressions), list_length(actual_expressions), code);
-        expression_print_list(actual_expressions, stderr, "  - ");
+        expression_print_list(actual_expressions, stderr, "  - ", false);
         return false;
     }
 
     // compare each expression
     for (int i = 0; i < list_length(expected_expressions); i++) {
-        expression *actual = list_get(expected_expressions, i);
-        expression *expected = list_get(actual_expressions, i);
+        expression *actual = list_get(actual_expressions, i);
+        expression *expected = list_get(expected_expressions, i);
         if (!expressions_are_equal(actual, expected)) {
-            fprintf(stderr, "Expression #%d differs, (code=\"%s\"), expected expression:\n", i, code);
-            expression_print(expected, stderr, "  ");
-            fprintf(stderr, "actual:\n");
-            expression_print(actual, stderr, "  ");
+            fprintf(stderr, "Expression #%d differs, (code=\"%s\"), \n  expected: ", i, code);
+            expression_print(expected, stderr, "", false);
+            fprintf(stderr, "  actual:   ");
+            expression_print(actual, stderr, "", false);
             return false;
         }
     }
@@ -377,7 +425,7 @@ bool parser_self_diagnostics() {
 
     if (!use_case_passes("", false, list_of(0)))
         all_passed = false;
-
+    
     if (!use_case_passes("a+1", false, list_of(1,
         new_binary_expression(OP_ADDITION, 
             new_terminal_expression(OP_SYMBOL_VALUE, "a"),
