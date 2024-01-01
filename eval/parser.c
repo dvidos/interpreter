@@ -426,10 +426,44 @@ bool parser_self_diagnostics() {
     if (!use_case_passes("", false, list_of(0)))
         all_passed = false;
     
+    if (!use_case_passes("+", true, list_of(0)))
+        all_passed = false;
+    
+    if (!use_case_passes("a+", true, list_of(0)))
+        all_passed = false;
+    
+
+
     if (!use_case_passes("a+1", false, list_of(1,
         new_binary_expression(OP_ADDITION, 
             new_terminal_expression(OP_SYMBOL_VALUE, "a"),
             new_terminal_expression(OP_NUMBER_VALUE, "1")
+        )
+    ))) all_passed = false;
+
+    if (!use_case_passes("1+2*3+4", false, list_of(1,
+        new_binary_expression(OP_ADDITION, 
+            new_terminal_expression(OP_NUMBER_VALUE, "1"),
+            new_binary_expression(OP_ADDITION, 
+                new_binary_expression(OP_MULTIPLICATION, 
+                    new_terminal_expression(OP_NUMBER_VALUE, "2"),
+                    new_terminal_expression(OP_NUMBER_VALUE, "3")
+                ),
+                new_terminal_expression(OP_NUMBER_VALUE, "4")
+            )
+        )
+    ))) all_passed = false;
+
+    if (!use_case_passes("(1+2)*(3+4)", false, list_of(1,
+        new_binary_expression(OP_ADDITION, 
+            new_binary_expression(OP_MULTIPLICATION, 
+                new_terminal_expression(OP_NUMBER_VALUE, "1"),
+                new_terminal_expression(OP_NUMBER_VALUE, "2")
+            ),
+            new_binary_expression(OP_MULTIPLICATION, 
+                new_terminal_expression(OP_NUMBER_VALUE, "3"),
+                new_terminal_expression(OP_NUMBER_VALUE, "4")
+            )
         )
     ))) all_passed = false;
 
