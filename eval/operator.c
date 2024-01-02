@@ -3,32 +3,32 @@
 #include "token.h"
 
 struct op_info {
-    token_type token_type;
-    op_position position;
     operator op;
     int operands_count;
     int priority;
+    token_type token_type;
+    op_position position;
     const char *name;
 };
 
 // first entries more precedent than later entries
 static struct op_info operators_flat_list[] = {
-    { T_IDENTIFIER,       OPERAND,   OP_SYMBOL_VALUE,     0,  1, "IDENTIFIER" },
-    { T_NUMBER_LITERAL,   OPERAND,   OP_NUMBER_VALUE,     0,  1, "NUMBER_LITERAL" },
-    { T_PLUS,             INFIX,     OP_ADDITION,         2,  4, "PLUS" },
-    { T_PLUS,             PREFIX,    OP_POSITIVE_NUM,     1,  1, "PLUS" },
-    { T_MINUS,            INFIX,     OP_SUBTRACTION,      2,  4, "MINUS" },
-    { T_MINUS,            PREFIX,    OP_NEGATIVE_NUM,     1,  1, "MINUS" },
-    { T_ASTERISK,         INFIX,     OP_MULTIPLICATION,   2,  2, "ASTERISK" },
-    { T_FWD_SLASH,        INFIX,     OP_DIVISION,         2,  2, "FWD_SLASH" },
-    { T_AMPERSAND,        INFIX,     OP_BINARY_AND,       2,  1, "AMPERSAND" },
-    { T_PIPE,             INFIX,     OP_BINARY_OR,        2,  1, "PIPE" },
-    { T_TIDLE,            PREFIX,    OP_BINARY_NOT,       1,  1, "TIDLE" },
-    { T_DOUBLE_AMPERSAND, INFIX,     OP_LOGICAL_AND,      2,  1, "DOUBLE_AMPERSAND" },
-    { T_DOUBLE_PIPE,      INFIX,     OP_LOGICAL_OR,       2,  1, "DOUBLE_PIPE" },
-    { T_EXCLAMATION,      PREFIX,    OP_LOGICAL_NOT,      1,  1, "EXCLAMATION" },
+    { OP_SYMBOL_VALUE,     0,   1, T_IDENTIFIER,       OPERAND,   "SYMBOL_VALUE" },
+    { OP_NUMBER_VALUE,     0,   1, T_NUMBER_LITERAL,   OPERAND,   "NUMBER_VALUE" },
+    { OP_ADDITION,         2,   4, T_PLUS,             INFIX,     "ADDITION" },
+    { OP_POSITIVE_NUM,     1,   1, T_PLUS,             PREFIX,    "POSITIVE_NUM" },
+    { OP_SUBTRACTION,      2,   4, T_MINUS,            INFIX,     "SUBTRACTION" },
+    { OP_NEGATIVE_NUM,     1,   1, T_MINUS,            PREFIX,    "NEGATIVE_NUM" },
+    { OP_MULTIPLICATION,   2,   2, T_ASTERISK,         INFIX,     "MULTIPLICATION" },
+    { OP_DIVISION,         2,   2, T_FWD_SLASH,        INFIX,     "DIVISION" },
+    { OP_BINARY_AND,       2,   1, T_AMPERSAND,        INFIX,     "BINARY_AND" },
+    { OP_BINARY_OR,        2,   1, T_PIPE,             INFIX,     "BINARY_OR" },
+    { OP_BINARY_NOT,       1,   1, T_TIDLE,            PREFIX,    "BINARY_NOT" },
+    { OP_LOGICAL_AND,      2,   1, T_DOUBLE_AMPERSAND, INFIX,     "LOGICAL_AND" },
+    { OP_LOGICAL_OR,       2,   1, T_DOUBLE_PIPE,      INFIX,     "LOGICAL_OR" },
+    { OP_LOGICAL_NOT,      1,   1, T_EXCLAMATION,      PREFIX,    "LOGICAL_NOT" },
+    { OP_SENTINEL,         0, 999, T_UNKNOWN,          OPERAND,   "SENTINEL" },
 };
-
 
 struct op_info_per_token_type {
     operator operand_op;
@@ -66,6 +66,7 @@ void initialize_operator_tables() {
 
 operator get_operator_by_token_type_and_position(token_type type, enum op_position position) {
     // for example, '-' can be prefix/infix, '++' can be prefix/postfix
+    // or '(' in prefix is subexpression, in infix it's function call.
     struct op_info_per_token_type *info = &op_infos_per_token_type[type];
     if      (position == OPERAND) return info->operand_op;
     else if (position == PREFIX)  return info->prefix_op;
@@ -75,9 +76,7 @@ operator get_operator_by_token_type_and_position(token_type type, enum op_positi
 }
 
 int operator_precedence(operator op) {
-    return (op == OP_SENTINEL) ? 
-        LOWEST_OPERATOR_PRECEDENCE :
-        op_infos_per_operator[op].priority;
+    return op_infos_per_operator[op].priority;
 }
 
 op_position operator_position(operator op) {
