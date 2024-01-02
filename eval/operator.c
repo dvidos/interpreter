@@ -8,37 +8,39 @@ struct op_info {
     operator op;
     int operands_count;
     int priority;
+    const char *name;
 };
 
 // first entries more precedent than later entries
 static struct op_info operators_flat_list[] = {
-    { T_IDENTIFIER,       OPERAND,   OP_SYMBOL_VALUE,     0,  1 },
-    { T_NUMBER_LITERAL,   OPERAND,   OP_NUMBER_VALUE,     0,  1 },
-    { T_PLUS,             INFIX,     OP_ADDITION,         2,  4 },
-    { T_PLUS,             PREFIX,    OP_POSITIVE_NUM,     1,  1 },
-    { T_MINUS,            INFIX,     OP_SUBTRACTION,      2,  4 },
-    { T_MINUS,            PREFIX,    OP_NEGATIVE_NUM,     1,  1 },
-    { T_ASTERISK,         INFIX,     OP_MULTIPLICATION,   2,  2 },
-    { T_FWD_SLASH,        INFIX,     OP_DIVISION,         2,  2 },
-    { T_AMPERSAND,        INFIX,     OP_BINARY_AND,       2,  1 },
-    { T_PIPE,             INFIX,     OP_BINARY_OR,        2,  1 },
-    { T_TIDLE,            PREFIX,    OP_BINARY_NOT,       1,  1 },
-    { T_DOUBLE_AMPERSAND, INFIX,     OP_LOGICAL_AND,      2,  1 },
-    { T_DOUBLE_PIPE,      INFIX,     OP_LOGICAL_OR,       2,  1 },
-    { T_EXCLAMATION,      PREFIX,    OP_LOGICAL_NOT,      1,  1 },
+    { T_IDENTIFIER,       OPERAND,   OP_SYMBOL_VALUE,     0,  1, "IDENTIFIER" },
+    { T_NUMBER_LITERAL,   OPERAND,   OP_NUMBER_VALUE,     0,  1, "NUMBER_LITERAL" },
+    { T_PLUS,             INFIX,     OP_ADDITION,         2,  4, "PLUS" },
+    { T_PLUS,             PREFIX,    OP_POSITIVE_NUM,     1,  1, "PLUS" },
+    { T_MINUS,            INFIX,     OP_SUBTRACTION,      2,  4, "MINUS" },
+    { T_MINUS,            PREFIX,    OP_NEGATIVE_NUM,     1,  1, "MINUS" },
+    { T_ASTERISK,         INFIX,     OP_MULTIPLICATION,   2,  2, "ASTERISK" },
+    { T_FWD_SLASH,        INFIX,     OP_DIVISION,         2,  2, "FWD_SLASH" },
+    { T_AMPERSAND,        INFIX,     OP_BINARY_AND,       2,  1, "AMPERSAND" },
+    { T_PIPE,             INFIX,     OP_BINARY_OR,        2,  1, "PIPE" },
+    { T_TIDLE,            PREFIX,    OP_BINARY_NOT,       1,  1, "TIDLE" },
+    { T_DOUBLE_AMPERSAND, INFIX,     OP_LOGICAL_AND,      2,  1, "DOUBLE_AMPERSAND" },
+    { T_DOUBLE_PIPE,      INFIX,     OP_LOGICAL_OR,       2,  1, "DOUBLE_PIPE" },
+    { T_EXCLAMATION,      PREFIX,    OP_LOGICAL_NOT,      1,  1, "EXCLAMATION" },
 };
 
-struct op_info_per_operator {
-    op_position position;
-    int operands_count;
-    int priority;
-};
 
 struct op_info_per_token_type {
     operator operand_op;
     operator prefix_op;
     operator infix_op;
     operator postfix_op;
+};
+struct op_info_per_operator {
+    op_position position;
+    int operands_count;
+    int priority;
+    const char *name;
 };
 static struct op_info_per_token_type op_infos_per_token_type[T_MAX_VALUE + 1];
 static struct op_info_per_operator   op_infos_per_operator[OP_MAX_VALUE + 1];
@@ -58,6 +60,7 @@ void initialize_operator_tables() {
         op_infos_per_operator[info->op].position       = info->position;
         op_infos_per_operator[info->op].operands_count = info->operands_count;
         op_infos_per_operator[info->op].priority       = info->priority;
+        op_infos_per_operator[info->op].name           = info->name;
     }
 }
 
@@ -86,27 +89,5 @@ int operator_operands_count(operator op) {
 }
 
 const char *operator_str(operator op) {
-    switch (op) {
-        case OP_UNKNOWN: return "OP_UNKNOWN";
-        case OP_SYMBOL_VALUE: return "OP_SYMBOL_VALUE";
-        case OP_NUMBER_VALUE: return "OP_NUMBER_VALUE";
-        case OP_STRING_VALUE: return "OP_STRING_VALUE";
-        case OP_LOGICAL_VALUE: return "OP_LOGICAL_VALUE";
-        case OP_ADDITION: return "OP_ADDITION";
-        case OP_SUBTRACTION: return "OP_SUBTRACTION";
-        case OP_MULTIPLICATION: return "OP_MULTIPLICATION";
-        case OP_DIVISION: return "OP_DIVISION";
-        case OP_POSITIVE_NUM: return "OP_POSITIVE_NUM";
-        case OP_NEGATIVE_NUM: return "OP_NEGATIVE_NUM";
-        case OP_LOGICAL_AND: return "OP_LOGICAL_AND";
-        case OP_LOGICAL_OR: return "OP_LOGICAL_OR";
-        case OP_LOGICAL_NOT: return "OP_LOGICAL_NOT";
-        case OP_BINARY_AND: return "OP_BINARY_AND";
-        case OP_BINARY_OR: return "OP_BINARY_OR";
-        case OP_BINARY_NOT: return "OP_BINARY_NOT";
-        case OP_SHORTHAND_IF: return "OP_SHORTHAND_IF";
-        case OP_SENTINEL: return "OP_SENTINEL";
-        case OP_MAX_VALUE: return "OP_MAX_VALUE";
-    }
-    return "(unknown)";
+    return op_infos_per_operator[op].name;
 }

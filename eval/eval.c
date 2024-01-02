@@ -11,6 +11,7 @@
 #include "eval.h"
 
 void initialize_evaluator() {
+    initialize_char_tokens_trie();
     initialize_operator_tables();
 }
 

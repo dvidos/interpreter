@@ -6,7 +6,7 @@
 #include "../utils/list.h"
 
 typedef enum token_type {
-    T_UNKNOWN,
+    T_UNKNOWN = 0, // important that zero has unknown meaning
 
     T_IDENTIFIER,
     T_NUMBER_LITERAL,
