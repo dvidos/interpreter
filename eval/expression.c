@@ -105,7 +105,7 @@ static void expression_print_indented(expression *e, FILE *stream, char *prefix,
 
     if (level == 0)
         fprintf(stream, "\n");
-    
+
 }
 
 void expression_print(expression *e, FILE *stream, char *prefix, bool single_line) {
