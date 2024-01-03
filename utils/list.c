@@ -20,6 +20,7 @@ list *new_list() {
     l->length = 0;
     l->head = NULL;
     l->tail = NULL;
+    return l;
 }
 
 list *list_of(int items, ...) {
@@ -77,8 +78,7 @@ bool lists_are_equal(list *a, list *b) {
 
     // compare items, if they are values, use values_are_same()
     for (int i = 0; i < a->length; i++) {
-        void *ptr_a = list_get(a, i);
-        void *ptr_b = list_get(b, i);
+        // must find to get a "compare" or "equals" function.
     }
 
     return true;
