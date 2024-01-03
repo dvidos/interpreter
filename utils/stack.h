@@ -14,5 +14,6 @@ void  stack_push(stack *s, void *item);
 void *stack_peek(stack *s);
 void *stack_pop(stack *s);
 sequential *stack_sequential(stack *s);
+const char *stack_to_string(stack *s, const char *separator);
 
 #endif

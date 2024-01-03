@@ -1,5 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
+#include "../utils/strbuff.h"
 #include "../utils/failable.h"
 #include "../utils/list.h"
 #include "../utils/stack.h"
@@ -107,11 +109,10 @@ static inline operator pop_top_operator() {
 
 static void print_operators_stack(FILE *stream, char *prefix) {
     fprintf(stream, "%sOperators stack (%d)\n", prefix, stack_length(operators_stack));
-    sequential *s = stack_sequential(operators_stack);
-    while (s != NULL) {
-        fprintf(stream, "%s    %s\n", prefix, operator_str((operator)s->data));
-        s = s->next;
-    }
+    strbuff *separator_sb = new_strbuff();
+    strbuff_catf(separator_sb, "\n%s", prefix);
+    const char *str = stack_to_string(operators_stack, strbuff_charptr(separator_sb));
+    fprintf(stream, "%s%s", prefix, strlen(str) > 0 ? str : "(empty)");
 }
 
 static inline void push_expression(expression *e) {
@@ -128,16 +129,10 @@ static inline expression *peek_top_expression() {
 
 static void print_expression_stack(FILE *stream, char *prefix) {
     fprintf(stream, "%sExpressions stack (%d)\n", prefix, stack_length(expressions_stack));
-    sequential *s = stack_sequential(expressions_stack);
-    if (s == NULL) {
-        fprintf(stream, "%s    (empty)\n", prefix);
-    } else {
-        while (s != NULL) {
-            fprintf(stream, "%s", prefix);
-            expression_print((expression *)s->data, stream, "    ", true);
-            s = s->next;
-        }
-    }
+    strbuff *separator_sb = new_strbuff();
+    strbuff_catf(separator_sb, "\n%s", prefix);
+    const char *str = stack_to_string(expressions_stack, strbuff_charptr(separator_sb));
+    fprintf(stream, "%s%s", prefix, strlen(str) > 0 ? str : "(empty)");
 }
 
 // --------------------------------------------
@@ -440,7 +435,7 @@ static bool use_case_passes(const char *code, bool expect_failure, list *expecte
     if (list_length(parsed_expressions) != list_length(expected_expressions)) {
         fprintf(stderr, "Expected %d expressions, gotten %d, (code=\"%s\")\n", 
             list_length(expected_expressions), list_length(parsed_expressions), code);
-        expression_print_list(parsed_expressions, stderr, "  - ", false);
+        fprintf(stderr, "    %s\n", list_to_string(parsed_expressions, "\n    "));
         return false;
     }
 
@@ -449,10 +444,10 @@ static bool use_case_passes(const char *code, bool expect_failure, list *expecte
         expression *parsed = list_get(parsed_expressions, i);
         expression *expected = list_get(expected_expressions, i);
         if (!expressions_are_equal(parsed, expected)) {
-            fprintf(stderr, "Expression #%d differs, (code=\"%s\"), \n  expected: ", i, code);
-            expression_print(expected, stderr, "", false);
-            fprintf(stderr, "  parsed:   ");
-            expression_print(parsed, stderr, "", false);
+            fprintf(stderr, "Expression #%d differs, (code=\"%s\"), \n" \
+                            "  expected: %s\n" \
+                            "  parsed:   %s\n",
+                            i, code, expression_to_string(expected), expression_to_string(parsed));
             return false;
         }
     }

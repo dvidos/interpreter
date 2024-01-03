@@ -81,51 +81,6 @@ expression *new_func_args_expression(list *args) {
     return e;
 }
 
-static void expression_print_indented(expression *e, FILE *stream, char *prefix, bool single_line, int level) {
-    if (level == 0)
-        fprintf(stream, "%s", prefix);
-    
-    fprintf(stream, "%s(", operator_str(e->op));
-    if (e->operand_count == FUNC_ARGS_OPERAND_COUNT) {
-        sequential *s = list_sequential(e->per_type.func_args.list);
-        int num = 0;
-        while (s != NULL) {
-            if (num++ > 0)
-                fprintf(stream, ", ");
-            expression_print_indented((expression *)s->data, stream, "", single_line, level + 1);
-            s = s->next;
-        }
-    } else if (e->operand_count == 0) {
-        fprintf(stream, "\"%s\"", e->per_type.terminal.data);
-    } else if (e->operand_count == 1) {
-        expression_print_indented(e->per_type.unary.operand, stream, "", single_line, level + 1);
-    } else if (e->operand_count == 2) {
-        expression_print_indented(e->per_type.binary.left, stream, "", single_line, level + 1);
-        fprintf(stream, ", ");
-        expression_print_indented(e->per_type.binary.right, stream, "", single_line, level + 1);
-    } else if (e->operand_count == 3) {
-        expression_print_indented(e->per_type.ternary.op1, stream, "", single_line, level + 1);
-        fprintf(stream, ", ");
-        expression_print_indented(e->per_type.ternary.op2, stream, "", single_line, level + 1);
-        fprintf(stream, ", ");
-        expression_print_indented(e->per_type.ternary.op3, stream, "", single_line, level + 1);
-    }
-    fprintf(stream, ")");
-
-    if (level == 0)
-        fprintf(stream, "\n");
-
-}
-
-void expression_print(expression *e, FILE *stream, char *prefix, bool single_line) {
-    expression_print_indented(e, stream, prefix, single_line, 0);
-}
-
-void expression_print_list(list *expressions, FILE *stream, char *prefix, bool single_lines) {
-    for (sequential *s = list_sequential(expressions); s != NULL; s = s->next)
-        expression_print((expression *)s->data, stream, prefix, single_lines);
-}
-
 bool expressions_are_equal(expression *a, expression *b) {
     if (a == NULL && b == NULL) return true;
     if ((a == NULL && b != NULL) || (a != NULL && b == NULL)) return false;
