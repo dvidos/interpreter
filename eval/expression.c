@@ -6,7 +6,7 @@
 
 struct expression {
     operator op;
-    int operand_count; // 0=terminal, 1=unary, 2=binary, 3=ternary
+    int operand_count;
     union {
         struct terminal {
             const char *data;
@@ -28,6 +28,7 @@ struct expression {
         } func_args;
     } per_type;
 };
+
 
 expression *new_terminal_expression(operator op, const char *data) {
     expression *e = malloc(sizeof(expression));
@@ -126,8 +127,14 @@ bool expressions_are_equal(expression *a, expression *b) {
     if (a->operand_count != b->operand_count)
         return false;
     if (a->op == OP_FUNC_ARGS) {
-        if (!lists_are_equal(a->per_type.func_args.list, b->per_type.func_args.list))
+        if (list_length(a->per_type.func_args.list) != list_length(b->per_type.func_args.list))
             return false;
+        for (int i = 0; i < list_length(a->per_type.func_args.list); i++) {
+            expression *exp_a = list_get(a->per_type.func_args.list, i);
+            expression *exp_b = list_get(b->per_type.func_args.list, i);
+            if (!expressions_are_equal(exp_a, exp_b))
+                return false;
+        }
     } else if (a->operand_count == 0) {
         if (strcmp(a->per_type.terminal.data, b->per_type.terminal.data) != 0)
             return false;

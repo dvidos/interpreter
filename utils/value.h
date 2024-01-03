@@ -6,9 +6,7 @@
 
 typedef struct value value;
 
-bool is_value(void *pointer);
-
-value *new_null_value();
+value *new_value();
 value *new_bool_value(bool b);
 value *new_int_value(int i);
 value *new_float_value(float f);

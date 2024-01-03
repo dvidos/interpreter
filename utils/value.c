@@ -15,10 +15,7 @@ typedef enum value_type {
     // other: array of, dict of, function
 } value_type;
 
-#define VALUE_MAGIC_NUMBER  0x374b6216
-
 struct value {
-    int magic_number;
     value_type type;
     union {
         bool b;
@@ -32,49 +29,36 @@ struct value {
     char *str_repr;
 };
 
-bool is_value(void *pointer) {
-    return ((value *)pointer)->magic_number == VALUE_MAGIC_NUMBER;
-}
-
-value *new_null_value() {
+value *new_value() {
     value *v = malloc(sizeof(value));
     memset(v, 0, sizeof(value));
-    v->magic_number = VALUE_MAGIC_NUMBER;
     v->type = VT_NULL;
     return v;
 }
 
 value *new_bool_value(bool b) {
-    value *v = malloc(sizeof(value));
-    memset(v, 0, sizeof(value));
-    v->magic_number = VALUE_MAGIC_NUMBER;
+    value *v = new_value();
     v->type = VT_BOOL;
     v->per_type.b = b;
     return v;
 }
 
 value *new_int_value(int i) {
-    value *v = malloc(sizeof(value));
-    memset(v, 0, sizeof(value));
-    v->magic_number = VALUE_MAGIC_NUMBER;
+    value *v = new_value();
     v->type = VT_INT;
     v->per_type.i = i;
     return v;
 }
 
 value *new_float_value(float f) {
-    value *v = malloc(sizeof(value));
-    memset(v, 0, sizeof(value));
-    v->magic_number = VALUE_MAGIC_NUMBER;
+    value *v = new_value();
     v->type = VT_FLOAT;
     v->per_type.f = f;
     return v;
 }
 
 value *new_str_value(char *p) {
-    value *v = malloc(sizeof(value));
-    memset(v, 0, sizeof(value));
-    v->magic_number = VALUE_MAGIC_NUMBER;
+    value *v = new_value();
     v->type = VT_STR;
     v->per_type.s.len = strlen(p);
     v->per_type.s.ptr = malloc(v->per_type.s.len + 1);
@@ -181,6 +165,38 @@ const char *value_as_str(value *v) {
         default:
             return NULL;
     }
+}
+
+bool values_are_same(value *a, value *b) {
+    if (a == NULL && b == NULL)
+        return true;
+    if ((a == NULL && b != NULL) || (a != NULL && b == NULL))
+        return false;
+    if (a == b)
+        return true;
+
+    // if we allow ("4"==4) we have the pitfalls of javascript
+    if (a->type != b->type)
+        return false;
+    
+    switch (a->type) {
+        case VT_NULL:
+            return true;
+        case VT_BOOL:
+            return a->per_type.b == b->per_type.b;
+        case VT_INT:
+            return a->per_type.i == b->per_type.i;
+        case VT_FLOAT:
+            return a->per_type.f == b->per_type.f;
+        case VT_STR:
+            if (a->per_type.s.len != b->per_type.s.len)
+                return false;
+            return memcmp(a->per_type.s.ptr, b->per_type.s.ptr, a->per_type.s.len) == 0;
+        // for other types, we should implement is_dict_equal() etc.
+    }
+
+    // we shouldn't get here...
+    return false;
 }
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(value);
