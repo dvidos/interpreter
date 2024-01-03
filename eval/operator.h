@@ -14,11 +14,6 @@ enum op_position {
 enum operator {
     OP_UNKNOWN,
 
-    OP_SYMBOL,
-    OP_NUMERIC_VAL,
-    OP_STRING_VALUE,
-    OP_LOGICAL_VALUE,
-
     OP_ADDITION,
     OP_SUBTRACTION,
     OP_MULTIPLICATION,

@@ -80,7 +80,20 @@ static inline operator get_token_postfix_operator(token_type tt) {
 }
 
 static inline bool is_token_operand(token_type tt) {
-    return get_token_operand_operator(tt) != T_UNKNOWN;
+    return tt == T_IDENTIFIER ||
+           tt == T_NUMBER_LITERAL ||
+           tt == T_STRING_LITERAL ||
+           tt == T_BOOLEAN_LITERAL;
+}
+
+static inline expression *get_operand_expression(token_type tt, const char *data) {
+    switch (tt) {
+        case T_IDENTIFIER: return new_identifier_expression(data);
+        case T_NUMBER_LITERAL: return new_numeric_literal_expression(data);
+        case T_STRING_LITERAL: return new_string_literal_expression(data);
+        case T_BOOLEAN_LITERAL: return new_boolean_literal_expression(data);
+    }
+    return NULL;
 }
 
 static inline bool is_token_prefix_operator(token_type tt) {
@@ -144,11 +157,11 @@ static void make_one_expression_from_top_operator() {
     op_position pos = operator_position(op);
     if (pos == PREFIX || pos == POSTFIX) {
         expression *operand1 = pop_top_expression();
-        new_expr = new_unary_expression(op, operand1);
+        new_expr = new_unary_op_expression(op, operand1);
     } else if (pos == INFIX) {
         expression *operand2 = pop_top_expression();
         expression *operand1 = pop_top_expression();
-        new_expr = new_binary_expression(op, operand1, operand2);
+        new_expr = new_binary_op_expression(op, operand1, operand2);
     }
     push_expression(new_expr);
 }
@@ -218,8 +231,7 @@ static failable parse_expression_on_want_operand(run_state *state) {
 
     // handle operands
     if (is_token_operand(tt)) {
-        operator op = get_token_operand_operator(tt);
-        expression *e = new_terminal_expression(op, token_get_data(t));
+        expression *e = get_operand_expression(tt, token_get_data(t));
         push_expression(e);
         *state = HAVE_OPERAND;
         return succeeded();
@@ -463,34 +475,34 @@ bool parser_self_diagnostics() {
     if (!use_case_passes("a+", true,  list_of(0))) all_passed = false;
 
     if (!use_case_passes("a+1", false, list_of(1,
-        new_binary_expression(OP_ADDITION, 
-            new_terminal_expression(OP_SYMBOL, "a"),
-            new_terminal_expression(OP_NUMERIC_VAL, "1")
+        new_binary_op_expression(OP_ADDITION, 
+            new_identifier_expression("a"),
+            new_numeric_literal_expression("1")
         )
     ))) all_passed = false;
 
     if (!use_case_passes("1+2*3+4", false, list_of(1,
-        new_binary_expression(OP_ADDITION, 
-            new_terminal_expression(OP_NUMERIC_VAL, "1"),
-            new_binary_expression(OP_ADDITION, 
-                new_binary_expression(OP_MULTIPLICATION, 
-                    new_terminal_expression(OP_NUMERIC_VAL, "2"),
-                    new_terminal_expression(OP_NUMERIC_VAL, "3")
+        new_binary_op_expression(OP_ADDITION, 
+            new_numeric_literal_expression("1"),
+            new_binary_op_expression(OP_ADDITION, 
+                new_binary_op_expression(OP_MULTIPLICATION, 
+                    new_numeric_literal_expression("2"),
+                    new_numeric_literal_expression("3")
                 ),
-                new_terminal_expression(OP_NUMERIC_VAL, "4")
+                new_numeric_literal_expression("4")
             )
         )
     ))) all_passed = false;
 
     if (!use_case_passes("(1+2)*(3+4)", false, list_of(1,
-        new_binary_expression(OP_MULTIPLICATION, 
-            new_binary_expression(OP_ADDITION, 
-                new_terminal_expression(OP_NUMERIC_VAL, "1"),
-                new_terminal_expression(OP_NUMERIC_VAL, "2")
+        new_binary_op_expression(OP_MULTIPLICATION, 
+            new_binary_op_expression(OP_ADDITION, 
+                new_numeric_literal_expression("1"),
+                new_numeric_literal_expression("2")
             ),
-            new_binary_expression(OP_ADDITION, 
-                new_terminal_expression(OP_NUMERIC_VAL, "3"),
-                new_terminal_expression(OP_NUMERIC_VAL, "4")
+            new_binary_op_expression(OP_ADDITION, 
+                new_numeric_literal_expression("3"),
+                new_numeric_literal_expression("4")
             )
         )
     ))) all_passed = false;
@@ -501,41 +513,41 @@ bool parser_self_diagnostics() {
     if (!use_case_passes("time(1,2", true, list_of(0))) all_passed = false;
 
     if (!use_case_passes("time()", false, list_of(1,
-        new_binary_expression(OP_FUNC_CALL,
-            new_terminal_expression(OP_SYMBOL, "time"),
+        new_binary_op_expression(OP_FUNC_CALL,
+            new_identifier_expression("time"),
             new_func_args_expression(list_of(0))
         )
     ))) all_passed = false;
 
     if (!use_case_passes("round(3.14)", false, list_of(1,
-        new_binary_expression(OP_FUNC_CALL,
-            new_terminal_expression(OP_SYMBOL, "round"),
+        new_binary_op_expression(OP_FUNC_CALL,
+            new_identifier_expression("round"),
             new_func_args_expression(list_of(1,
-                new_terminal_expression(OP_NUMERIC_VAL, "3.14")
+                new_numeric_literal_expression("3.14")
             ))
         )
     ))) all_passed = false;
 
     if (!use_case_passes("round(3.14, 2)", false, list_of(1,
-        new_binary_expression(OP_FUNC_CALL,
-            new_terminal_expression(OP_SYMBOL, "round"),
+        new_binary_op_expression(OP_FUNC_CALL,
+            new_identifier_expression("round"),
             new_func_args_expression(list_of(2,
-                new_terminal_expression(OP_NUMERIC_VAL, "3.14"),
-                new_terminal_expression(OP_NUMERIC_VAL, "2")
+                new_numeric_literal_expression("3.14"),
+                new_numeric_literal_expression("2")
             ))
         )
     ))) all_passed = false;
 
     if (!use_case_passes("pow(8, 2) + 1", false, list_of(1,
-        new_binary_expression(OP_ADDITION,
-            new_binary_expression(OP_FUNC_CALL,
-                new_terminal_expression(OP_SYMBOL, "pow"),
+        new_binary_op_expression(OP_ADDITION,
+            new_binary_op_expression(OP_FUNC_CALL,
+                new_identifier_expression("pow"),
                 new_func_args_expression(list_of(2,
-                    new_terminal_expression(OP_NUMERIC_VAL, "8"),
-                    new_terminal_expression(OP_NUMERIC_VAL, "2")
+                    new_numeric_literal_expression("8"),
+                    new_numeric_literal_expression("2")
                 ))
             ),
-            new_terminal_expression(OP_NUMERIC_VAL, "1")
+            new_numeric_literal_expression("1")
     )))) all_passed = false;
     
     return all_passed;

@@ -13,8 +13,6 @@ struct op_info {
 
 // first entries more precedent than later entries
 static struct op_info operators_flat_list[] = {
-    { OP_SYMBOL,           0,   1, T_IDENTIFIER,       OPERAND,   "SYMBOL" },
-    { OP_NUMERIC_VAL,      0,   1, T_NUMBER_LITERAL,   OPERAND,   "NUMBER" },
     { OP_ADDITION,         2,   5, T_PLUS,             INFIX,     "ADD" },
     { OP_POSITIVE_NUM,     1,   1, T_PLUS,             PREFIX,    "POSITIVE_NUM" },
     { OP_SUBTRACTION,      2,   5, T_MINUS,            INFIX,     "SUB" },
