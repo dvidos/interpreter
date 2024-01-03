@@ -42,4 +42,14 @@ const char *_format_failable_err_msg_args(const char *err_msg_fmt, va_list args)
     }
 
 
+
+typedef struct failable_bool {
+    bool failed;
+    const char *err_msg;
+    bool result;
+} failable_bool;
+
+failable_bool ok_bool(bool result);
+failable_bool failed_bool(const char *err_msg_fmt, ...);
+
 #endif

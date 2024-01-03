@@ -166,24 +166,23 @@ static void resolve_pending_higher_precedence_operators(int precedence) {
 
 // --------------------------------------------
 
-static failable detect_completion(token_type curr_token, completion_mode completion, bool *completed) {
+static failable_bool detect_completion(token_type curr_token, completion_mode completion) {
     if (completion == CM_NORMAL) {
-        *completed = (curr_token == T_END || curr_token == T_SEMICOLON);
-        return succeeded();
+        return ok_bool(curr_token == T_END || curr_token == T_SEMICOLON);
     }
 
     // all other modes should not end prematurely.
     if (curr_token == T_END || curr_token == T_SEMICOLON)
-        return failed("Unexpected end of expression (%s), when completion mode is %d", 
+        return failed_bool("Unexpected end of expression (%s), when completion mode is %d", 
                 token_type_str(curr_token), completion);
     
     if (completion == CM_SUB_EXPRESSION) {
-        *completed = (curr_token == T_RPAREN);
+        return ok_bool(curr_token == T_RPAREN);
     } else if (completion == CM_FUNC_ARGS) {
-        *completed = (curr_token == T_RPAREN || curr_token == T_COMMA);
+        return ok_bool(curr_token == T_RPAREN || curr_token == T_COMMA);
     }
 
-    return succeeded();
+    return failed_bool("Unknown completion mode %d", completion);
 }
 
 static failable parse_expression_on_want_operand(run_state *state) {
@@ -285,11 +284,10 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     }
 
     // detect if we finished (we may be a sub-expression)
-    bool finished = false;
-    failable completion_detection = detect_completion(tt, context, &finished);
+    failable_bool completion_detection = detect_completion(tt, context);
     if (completion_detection.failed)
         return failed("%s", completion_detection.err_msg);
-    if (finished) {
+    if (completion_detection.result) {
         resolve_pending_higher_precedence_operators(operator_precedence(OP_SENTINEL));
         *state = FINISHED;
         return succeeded();
