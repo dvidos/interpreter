@@ -14,7 +14,9 @@
         "failable.h": "c",
         "parser.h": "c",
         "stack.h": "c",
-        "containable.h": "c"
+        "containable.h": "c",
+        "strbuff.h": "c",
+        "operator.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -17,6 +17,7 @@ sequential *list_sequential(list *l);
 bool lists_are_equal(list *a, list *b);
 
 
+
 STRONGLY_TYPED_FAILABLE_DECLARATION(list);
 
 #endif

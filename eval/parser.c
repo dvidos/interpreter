@@ -544,7 +544,6 @@ bool parser_self_diagnostics() {
             ),
             new_terminal_expression(OP_NUMERIC_VAL, "1")
     )))) all_passed = false;
-
     
     return all_passed;
 }

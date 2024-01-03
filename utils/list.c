@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include "containable.h"
 #include "list.h"
 
 typedef struct list_entry {
@@ -77,14 +78,22 @@ bool lists_are_equal(list *a, list *b) {
         return false;
 
     // compare items, if they are values, use values_are_same()
-    for (int i = 0; i < a->length; i++) {
-        // must find to get a "compare" or "equals" function.
+    struct list_entry *entry_a = a->head;
+    struct list_entry *entry_b = b->head;
+    while (entry_a != NULL && entry_b != NULL) {
+        bool equal;
+        if (is_containable_instance(entry_a->item) && is_containable_instance(entry_b->item)) {
+            equal = containables_are_equal(entry_a->item, entry_b->item);
+        } else {
+            equal = entry_a->item == entry_b->item;
+        }
+        if (!equal)
+            return false;
+        entry_a = entry_a->next;
+        entry_b = entry_b->next;
     }
 
     return true;
 }
 
-
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(list);
-
-

@@ -20,5 +20,4 @@ bool is_containable_instance(void *pointer);
 bool containables_are_equal(void *pointer_a, void *pointer_b);
 const char *containable_to_string(void *pointer);
 
-
 #endif

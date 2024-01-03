@@ -2,9 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 #include "../utils/failable.h"
+#include "../utils/containable.h"
+#include "../utils/strbuff.h"
 #include "expression.h"
 
 struct expression {
+    containable *containable;
     operator op;
     int operand_count;
     union {
@@ -29,9 +32,14 @@ struct expression {
     } per_type;
 };
 
+#define FUNC_ARGS_OPERAND_COUNT    999
 
 expression *new_terminal_expression(operator op, const char *data) {
     expression *e = malloc(sizeof(expression));
+    e->containable = new_containable("expression",
+        (are_equal_func)expressions_are_equal,
+        (to_string_func)expression_to_string
+    );
     e->op = op;
     e->operand_count = 0;
     e->per_type.terminal.data = data;
@@ -68,6 +76,7 @@ expression *new_ternary_expression(operator op, expression *op1, expression *op2
 expression *new_func_args_expression(list *args) {
     expression *e = malloc(sizeof(expression));
     e->op = OP_FUNC_ARGS;
+    e->operand_count = FUNC_ARGS_OPERAND_COUNT;
     e->per_type.func_args.list = args;
     return e;
 }
@@ -77,7 +86,7 @@ static void expression_print_indented(expression *e, FILE *stream, char *prefix,
         fprintf(stream, "%s", prefix);
     
     fprintf(stream, "%s(", operator_str(e->op));
-    if (e->op == OP_FUNC_ARGS) {
+    if (e->operand_count == FUNC_ARGS_OPERAND_COUNT) {
         sequential *s = list_sequential(e->per_type.func_args.list);
         int num = 0;
         while (s != NULL) {
@@ -126,15 +135,9 @@ bool expressions_are_equal(expression *a, expression *b) {
         return false;
     if (a->operand_count != b->operand_count)
         return false;
-    if (a->op == OP_FUNC_ARGS) {
-        if (list_length(a->per_type.func_args.list) != list_length(b->per_type.func_args.list))
+    if (a->operand_count == FUNC_ARGS_OPERAND_COUNT) {
+        if (!lists_are_equal(a->per_type.func_args.list, b->per_type.func_args.list))
             return false;
-        for (int i = 0; i < list_length(a->per_type.func_args.list); i++) {
-            expression *exp_a = list_get(a->per_type.func_args.list, i);
-            expression *exp_b = list_get(b->per_type.func_args.list, i);
-            if (!expressions_are_equal(exp_a, exp_b))
-                return false;
-        }
     } else if (a->operand_count == 0) {
         if (strcmp(a->per_type.terminal.data, b->per_type.terminal.data) != 0)
             return false;
@@ -158,6 +161,38 @@ bool expressions_are_equal(expression *a, expression *b) {
     return true;
 }
 
+const char *expression_to_string(expression *e) {
+    strbuff *s = new_strbuff();
+    
+    strbuff_catf(s, "%s(", operator_str(e->op));
+    if (e->operand_count == FUNC_ARGS_OPERAND_COUNT) {
+        sequential *seq = list_sequential(e->per_type.func_args.list);
+        int num = 0;
+        while (seq != NULL) {
+            if (num++ > 0)
+                strbuff_cat(s, ", ");
+            strbuff_cat(s, expression_to_string((expression *)seq->data));
+            seq = seq->next;
+        }
+    } else if (e->operand_count == 0) {
+        strbuff_catf(s, "\"%s\"", e->per_type.terminal.data);
+    } else if (e->operand_count == 1) {
+        strbuff_cat(s, expression_to_string(e->per_type.unary.operand));
+    } else if (e->operand_count == 2) {
+        strbuff_cat(s, expression_to_string(e->per_type.binary.left));
+        strbuff_cat(s, ", ");
+        strbuff_cat(s, expression_to_string(e->per_type.binary.right));
+    } else if (e->operand_count == 3) {
+        strbuff_cat(s, expression_to_string(e->per_type.ternary.op1));
+        strbuff_cat(s, ", ");
+        strbuff_cat(s, expression_to_string(e->per_type.ternary.op2));
+        strbuff_cat(s, ", ");
+        strbuff_cat(s, expression_to_string(e->per_type.ternary.op3));
+    }
+    strbuff_catc(s, ')');
+
+    return strbuff_charptr(s);
+}
 
 failable_value execute_expression(expression *expr, dict *values) {
     // depending on whether it's a unary, binary, ternary expression,
