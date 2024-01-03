@@ -235,6 +235,25 @@ static failable parse_expression_on_want_operand(run_state *state) {
     return failed("Unexpected token type %s, was expecting prefix, operand, or lparen", token_type_str(tt));
 }
 
+static failable_list parse_function_arguments_expressions() {
+    list *args = new_list();
+
+    // if empty args, there will be nothing to parse
+    if (token_get_type(peek_token()) == T_RPAREN) {
+        get_token_and_advance();
+        return ok_list(args);
+    }
+
+    while (token_get_type(last_token) != T_RPAREN) {
+        failable_expression parse_arg = parse_expression(CM_FUNC_ARGS);
+        if (parse_arg.failed)
+            return failed_list("%s", parse_arg.err_msg);
+        list_add(args, parse_arg.result);
+    }
+    
+    return ok_list(args);
+}
+
 static failable parse_expression_on_have_operand(run_state *state, completion_mode context) {
     // read a token   
     token *t = get_token_and_advance();
@@ -254,6 +273,19 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         resolve_pending_higher_precedence_operators(operator_precedence(op));
         push_operator_for_later(op);
         *state = WANT_OPERAND;
+        return succeeded();
+    }
+
+    // handle function calls, operand is function name or address
+    if (tt == T_LPAREN) {
+        failable_list arg_expressions = parse_function_arguments_expressions();
+        if (arg_expressions.failed)
+            return failed("%s", arg_expressions.err_msg);
+        push_expression(new_func_args_expression(arg_expressions.result));
+
+        resolve_pending_higher_precedence_operators(operator_precedence(OP_FUNC_CALL));
+        push_operator_for_later(OP_FUNC_CALL);
+        *state = HAVE_OPERAND;
         return succeeded();
     }
 
@@ -432,36 +464,27 @@ static bool use_case_passes(const char *code, bool expect_failure, list *expecte
 bool parser_self_diagnostics() {
     bool all_passed = true;
 
-    if (!use_case_passes(NULL, false, list_of(0)))
-        all_passed = false;
-
-    if (!use_case_passes("", false, list_of(0)))
-        all_passed = false;
-    
-    if (!use_case_passes("+", true, list_of(0)))
-        all_passed = false;
-    
-    if (!use_case_passes("a+", true, list_of(0)))
-        all_passed = false;
-    
-
+    if (!use_case_passes(NULL, false, list_of(0))) all_passed = false;
+    if (!use_case_passes("",   false, list_of(0))) all_passed = false;
+    if (!use_case_passes("+",  true,  list_of(0))) all_passed = false;
+    if (!use_case_passes("a+", true,  list_of(0))) all_passed = false;
 
     if (!use_case_passes("a+1", false, list_of(1,
         new_binary_expression(OP_ADDITION, 
-            new_terminal_expression(OP_SYMBOL_VALUE, "a"),
-            new_terminal_expression(OP_NUMBER_VALUE, "1")
+            new_terminal_expression(OP_SYMBOL, "a"),
+            new_terminal_expression(OP_NUMERIC_VAL, "1")
         )
     ))) all_passed = false;
 
     if (!use_case_passes("1+2*3+4", false, list_of(1,
         new_binary_expression(OP_ADDITION, 
-            new_terminal_expression(OP_NUMBER_VALUE, "1"),
+            new_terminal_expression(OP_NUMERIC_VAL, "1"),
             new_binary_expression(OP_ADDITION, 
                 new_binary_expression(OP_MULTIPLICATION, 
-                    new_terminal_expression(OP_NUMBER_VALUE, "2"),
-                    new_terminal_expression(OP_NUMBER_VALUE, "3")
+                    new_terminal_expression(OP_NUMERIC_VAL, "2"),
+                    new_terminal_expression(OP_NUMERIC_VAL, "3")
                 ),
-                new_terminal_expression(OP_NUMBER_VALUE, "4")
+                new_terminal_expression(OP_NUMERIC_VAL, "4")
             )
         )
     ))) all_passed = false;
@@ -469,15 +492,59 @@ bool parser_self_diagnostics() {
     if (!use_case_passes("(1+2)*(3+4)", false, list_of(1,
         new_binary_expression(OP_MULTIPLICATION, 
             new_binary_expression(OP_ADDITION, 
-                new_terminal_expression(OP_NUMBER_VALUE, "1"),
-                new_terminal_expression(OP_NUMBER_VALUE, "2")
+                new_terminal_expression(OP_NUMERIC_VAL, "1"),
+                new_terminal_expression(OP_NUMERIC_VAL, "2")
             ),
             new_binary_expression(OP_ADDITION, 
-                new_terminal_expression(OP_NUMBER_VALUE, "3"),
-                new_terminal_expression(OP_NUMBER_VALUE, "4")
+                new_terminal_expression(OP_NUMERIC_VAL, "3"),
+                new_terminal_expression(OP_NUMERIC_VAL, "4")
             )
         )
     ))) all_passed = false;
 
+    if (!use_case_passes("time(",    true, list_of(0))) all_passed = false;
+    if (!use_case_passes("time(,",   true, list_of(0))) all_passed = false;
+    if (!use_case_passes("time(1,",  true, list_of(0))) all_passed = false;
+    if (!use_case_passes("time(1,2", true, list_of(0))) all_passed = false;
+
+    if (!use_case_passes("time()", false, list_of(1,
+        new_binary_expression(OP_FUNC_CALL,
+            new_terminal_expression(OP_SYMBOL, "time"),
+            new_func_args_expression(list_of(0))
+        )
+    ))) all_passed = false;
+
+    if (!use_case_passes("round(3.14)", false, list_of(1,
+        new_binary_expression(OP_FUNC_CALL,
+            new_terminal_expression(OP_SYMBOL, "round"),
+            new_func_args_expression(list_of(1,
+                new_terminal_expression(OP_NUMERIC_VAL, "3.14")
+            ))
+        )
+    ))) all_passed = false;
+
+    if (!use_case_passes("round(3.14, 2)", false, list_of(1,
+        new_binary_expression(OP_FUNC_CALL,
+            new_terminal_expression(OP_SYMBOL, "round"),
+            new_func_args_expression(list_of(2,
+                new_terminal_expression(OP_NUMERIC_VAL, "3.14"),
+                new_terminal_expression(OP_NUMERIC_VAL, "2")
+            ))
+        )
+    ))) all_passed = false;
+
+    if (!use_case_passes("pow(8, 2) + 1", false, list_of(1,
+        new_binary_expression(OP_ADDITION,
+            new_binary_expression(OP_FUNC_CALL,
+                new_terminal_expression(OP_SYMBOL, "pow"),
+                new_func_args_expression(list_of(2,
+                    new_terminal_expression(OP_NUMERIC_VAL, "8"),
+                    new_terminal_expression(OP_NUMERIC_VAL, "2")
+                ))
+            ),
+            new_terminal_expression(OP_NUMERIC_VAL, "1")
+    )))) all_passed = false;
+
+    
     return all_passed;
 }

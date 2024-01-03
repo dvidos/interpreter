@@ -12,6 +12,7 @@ expression *new_terminal_expression(operator op, const char *data);
 expression *new_unary_expression(operator op, expression *operand);
 expression *new_binary_expression(operator op, expression *left, expression *right);
 expression *new_ternary_expression(operator op, expression *op1, expression *op2, expression *op3);
+expression *new_func_args_expression(list *args);
 
 void expression_print(expression *e, FILE *stream, char *prefix, bool single_line);
 void expression_print_list(list *expressions, FILE *stream, char *prefix, bool single_lines);

@@ -23,6 +23,9 @@ struct expression {
             struct expression *op2;
             struct expression *op3;
         } ternary;
+        struct func_args {
+            list *list;
+        } func_args;
     } per_type;
 };
 
@@ -61,12 +64,28 @@ expression *new_ternary_expression(operator op, expression *op1, expression *op2
     return e;
 }
 
+expression *new_func_args_expression(list *args) {
+    expression *e = malloc(sizeof(expression));
+    e->op = OP_FUNC_ARGS;
+    e->per_type.func_args.list = args;
+    return e;
+}
+
 static void expression_print_indented(expression *e, FILE *stream, char *prefix, bool single_line, int level) {
     if (level == 0)
         fprintf(stream, "%s", prefix);
     
     fprintf(stream, "%s(", operator_str(e->op));
-    if (e->operand_count == 0) {
+    if (e->op == OP_FUNC_ARGS) {
+        sequential *s = list_sequential(e->per_type.func_args.list);
+        int num = 0;
+        while (s != NULL) {
+            if (num++ > 0)
+                fprintf(stream, ", ");
+            expression_print_indented((expression *)s->data, stream, "", single_line, level + 1);
+            s = s->next;
+        }
+    } else if (e->operand_count == 0) {
         fprintf(stream, "\"%s\"", e->per_type.terminal.data);
     } else if (e->operand_count == 1) {
         expression_print_indented(e->per_type.unary.operand, stream, "", single_line, level + 1);
@@ -106,7 +125,10 @@ bool expressions_are_equal(expression *a, expression *b) {
         return false;
     if (a->operand_count != b->operand_count)
         return false;
-    if (a->operand_count == 0) {
+    if (a->op == OP_FUNC_ARGS) {
+        if (!lists_are_equal(a->per_type.func_args.list, b->per_type.func_args.list))
+            return false;
+    } else if (a->operand_count == 0) {
         if (strcmp(a->per_type.terminal.data, b->per_type.terminal.data) != 0)
             return false;
     } else if (a->operand_count == 1) {

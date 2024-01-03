@@ -13,20 +13,22 @@ struct op_info {
 
 // first entries more precedent than later entries
 static struct op_info operators_flat_list[] = {
-    { OP_SYMBOL_VALUE,     0,   1, T_IDENTIFIER,       OPERAND,   "SYMBOL_VALUE" },
-    { OP_NUMBER_VALUE,     0,   1, T_NUMBER_LITERAL,   OPERAND,   "NUMBER_VALUE" },
-    { OP_ADDITION,         2,   4, T_PLUS,             INFIX,     "ADDITION" },
+    { OP_SYMBOL,           0,   1, T_IDENTIFIER,       OPERAND,   "SYMBOL" },
+    { OP_NUMERIC_VAL,      0,   1, T_NUMBER_LITERAL,   OPERAND,   "NUMBER" },
+    { OP_ADDITION,         2,   5, T_PLUS,             INFIX,     "ADD" },
     { OP_POSITIVE_NUM,     1,   1, T_PLUS,             PREFIX,    "POSITIVE_NUM" },
-    { OP_SUBTRACTION,      2,   4, T_MINUS,            INFIX,     "SUBTRACTION" },
+    { OP_SUBTRACTION,      2,   5, T_MINUS,            INFIX,     "SUB" },
     { OP_NEGATIVE_NUM,     1,   1, T_MINUS,            PREFIX,    "NEGATIVE_NUM" },
-    { OP_MULTIPLICATION,   2,   2, T_ASTERISK,         INFIX,     "MULTIPLICATION" },
-    { OP_DIVISION,         2,   2, T_FWD_SLASH,        INFIX,     "DIVISION" },
+    { OP_MULTIPLICATION,   2,   4, T_ASTERISK,         INFIX,     "MULTIPLY" },
+    { OP_DIVISION,         2,   4, T_FWD_SLASH,        INFIX,     "DIVIDE" },
     { OP_BINARY_AND,       2,   1, T_AMPERSAND,        INFIX,     "BINARY_AND" },
     { OP_BINARY_OR,        2,   1, T_PIPE,             INFIX,     "BINARY_OR" },
     { OP_BINARY_NOT,       1,   1, T_TIDLE,            PREFIX,    "BINARY_NOT" },
     { OP_LOGICAL_AND,      2,   1, T_DOUBLE_AMPERSAND, INFIX,     "LOGICAL_AND" },
     { OP_LOGICAL_OR,       2,   1, T_DOUBLE_PIPE,      INFIX,     "LOGICAL_OR" },
     { OP_LOGICAL_NOT,      1,   1, T_EXCLAMATION,      PREFIX,    "LOGICAL_NOT" },
+    { OP_FUNC_CALL,        2,   2, T_UNKNOWN,          INFIX,     "CALL" },
+    { OP_FUNC_ARGS,        0,   1, T_UNKNOWN,          INFIX,     "ARGS" },
     { OP_SENTINEL,         0, 999, T_UNKNOWN,          OPERAND,   "SENTINEL" },
 };
 

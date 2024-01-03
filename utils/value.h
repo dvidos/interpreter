@@ -6,6 +6,8 @@
 
 typedef struct value value;
 
+bool is_value(void *pointer);
+
 value *new_null_value();
 value *new_bool_value(bool b);
 value *new_int_value(int i);
@@ -22,6 +24,8 @@ bool value_as_bool(value *v);
 int value_as_int(value *v);
 float value_as_float(value *v);
 const char *value_as_str(value *v);
+
+bool values_are_same(value *a, value *b);
 
 
 STRONGLY_TYPED_FAILABLE_DECLARATION(value);

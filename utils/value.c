@@ -15,7 +15,10 @@ typedef enum value_type {
     // other: array of, dict of, function
 } value_type;
 
+#define VALUE_MAGIC_NUMBER  0x374b6216
+
 struct value {
+    int magic_number;
     value_type type;
     union {
         bool b;
@@ -29,9 +32,14 @@ struct value {
     char *str_repr;
 };
 
+bool is_value(void *pointer) {
+    return ((value *)pointer)->magic_number == VALUE_MAGIC_NUMBER;
+}
+
 value *new_null_value() {
     value *v = malloc(sizeof(value));
     memset(v, 0, sizeof(value));
+    v->magic_number = VALUE_MAGIC_NUMBER;
     v->type = VT_NULL;
     return v;
 }
@@ -39,6 +47,7 @@ value *new_null_value() {
 value *new_bool_value(bool b) {
     value *v = malloc(sizeof(value));
     memset(v, 0, sizeof(value));
+    v->magic_number = VALUE_MAGIC_NUMBER;
     v->type = VT_BOOL;
     v->per_type.b = b;
     return v;
@@ -47,6 +56,7 @@ value *new_bool_value(bool b) {
 value *new_int_value(int i) {
     value *v = malloc(sizeof(value));
     memset(v, 0, sizeof(value));
+    v->magic_number = VALUE_MAGIC_NUMBER;
     v->type = VT_INT;
     v->per_type.i = i;
     return v;
@@ -55,6 +65,7 @@ value *new_int_value(int i) {
 value *new_float_value(float f) {
     value *v = malloc(sizeof(value));
     memset(v, 0, sizeof(value));
+    v->magic_number = VALUE_MAGIC_NUMBER;
     v->type = VT_FLOAT;
     v->per_type.f = f;
     return v;
@@ -63,6 +74,7 @@ value *new_float_value(float f) {
 value *new_str_value(char *p) {
     value *v = malloc(sizeof(value));
     memset(v, 0, sizeof(value));
+    v->magic_number = VALUE_MAGIC_NUMBER;
     v->type = VT_STR;
     v->per_type.s.len = strlen(p);
     v->per_type.s.ptr = malloc(v->per_type.s.len + 1);

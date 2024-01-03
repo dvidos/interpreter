@@ -169,5 +169,6 @@ bool run_unit_tests() {
     if (!parser_self_diagnostics())
         tests_failed = true;
 
+    printf("Tests %s\n", tests_failed ? "failed" : "passed");
     return tests_failed;
 }

@@ -64,6 +64,26 @@ sequential *list_sequential(list *l) {
     return (sequential *)l->head;
 }
 
+bool lists_are_equal(list *a, list *b) {
+    if (a == NULL && b == NULL)
+        return true;
+    if ((a == NULL && b != NULL) || (a != NULL && b == NULL))
+        return false;
+    if (a == b)
+        return true;
+    
+    if (a->length != b->length)
+        return false;
+
+    // compare items, if they are values, use values_are_same()
+    for (int i = 0; i < a->length; i++) {
+        void *ptr_a = list_get(a, i);
+        void *ptr_b = list_get(b, i);
+    }
+
+    return true;
+}
+
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(list);
 

@@ -14,8 +14,8 @@ enum op_position {
 enum operator {
     OP_UNKNOWN,
 
-    OP_SYMBOL_VALUE,
-    OP_NUMBER_VALUE,
+    OP_SYMBOL,
+    OP_NUMERIC_VAL,
     OP_STRING_VALUE,
     OP_LOGICAL_VALUE,
 
@@ -35,6 +35,8 @@ enum operator {
     OP_BINARY_NOT, // unary
 
     OP_SHORTHAND_IF, // ternary, and actually bouble infix!
+    OP_FUNC_CALL, // left=function name or address, right=func_args
+    OP_FUNC_ARGS, // a list of zero or more call arguments
 
     OP_SENTINEL, // lowest priority
     OP_MAX_VALUE // to discover the size of the enum
