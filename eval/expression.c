@@ -102,7 +102,7 @@ expression *new_ternary_op_expression(operator op, expression *op1, expression *
 }
 
 expression *new_func_args_expression(list *args) {
-    expression *e = new_expression(ET_FUNC_ARGS, OP_FUNC_ARGS);
+    expression *e = new_expression(ET_FUNC_ARGS, OP_UNKNOWN);
     e->per_type.func_args.list = args;
     return e;
 }
