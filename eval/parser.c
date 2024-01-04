@@ -269,15 +269,6 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         return succeeded();
     }
 
-    // if infix, push it for resolving later, and go back to want-operand
-    if (is_token_infix_operator(tt)) {
-        operator op = get_token_infix_operator(tt);
-        resolve_pending_higher_precedence_operators(operator_precedence(op));
-        push_operator_for_later(op);
-        *state = WANT_OPERAND;
-        return succeeded();
-    }
-
     // handle function calls, operand is function name or address
     if (tt == T_LPAREN) {
         failable_list arg_expressions = parse_function_arguments_expressions();
@@ -288,6 +279,15 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         resolve_pending_higher_precedence_operators(operator_precedence(OP_FUNC_CALL));
         push_operator_for_later(OP_FUNC_CALL);
         *state = HAVE_OPERAND;
+        return succeeded();
+    }
+
+    // if infix, push it for resolving later, and go back to want-operand
+    if (is_token_infix_operator(tt)) {
+        operator op = get_token_infix_operator(tt);
+        resolve_pending_higher_precedence_operators(operator_precedence(op));
+        push_operator_for_later(op);
+        *state = WANT_OPERAND;
         return succeeded();
     }
 
