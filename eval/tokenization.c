@@ -65,42 +65,6 @@ static char *collect_string_literal(const char *code, int len, int *pos, char op
     return data;
 }
 
-struct char_token_type {
-    char *str;
-    token_type type;
-};
-
-static struct char_token_type char_token_types[] = {
-    { "(",  T_LPAREN },
-    { ")",  T_RPAREN },
-    { "[",  T_LSQBRACKET },
-    { "]",  T_RSQBRACKET },
-    { "+",  T_PLUS },
-    { "-",  T_MINUS },
-    { "*",  T_ASTERISK },
-    { "/",  T_FWD_SLASH },
-    { "//", T_DOUBLE_SLASH },
-    { ";",  T_SEMICOLON },
-    { "~",  T_TIDLE },
-    { "!",  T_EXCLAMATION },
-    { "!=", T_EXCLAMATION_EQUAL },
-    { "=",  T_EQUAL },
-    { "==", T_DOUBLE_EQUAL },
-    { "->", T_ARROW },
-    { ".",  T_DOT },
-    { ",",  T_COMMA },
-    { "&",  T_AMPERSAND },
-    { "&&", T_DOUBLE_AMPERSAND },
-    { "|",  T_PIPE },
-    { "||", T_DOUBLE_PIPE },
-    { "<",  T_SMALLER },
-    { "<<", T_DOUBLE_SMALLER },
-    { "<=", T_SMALLER_EQUAL },
-    { ">",  T_LARGER },
-    { ">>", T_DOUBLE_LARGER },
-    { ">=", T_LARGER_EQUAL },
-};
-
 typedef struct tokens_trie_node {
     struct tokens_trie_node *children[128];
     token_type type;
@@ -108,10 +72,10 @@ typedef struct tokens_trie_node {
 
 static tokens_trie_node *tokens_trie_root = NULL;
 
-static void place_token_in_tokens_trie(char *token_str, token_type type) {
+static void place_token_in_tokens_trie(const char *parse_chars, token_type type) {
     tokens_trie_node *curr = tokens_trie_root;
-    for (int i = 0; i < strlen(token_str); i++) {
-        char c = token_str[i];
+    for (int i = 0; i < strlen(parse_chars); i++) {
+        char c = parse_chars[i];
         if (curr->children[c] == NULL) {
             tokens_trie_node *child = malloc(sizeof(tokens_trie_node));
             memset(child, 0, sizeof(tokens_trie_node));
@@ -125,10 +89,11 @@ static void place_token_in_tokens_trie(char *token_str, token_type type) {
 void initialize_char_tokens_trie() {
     tokens_trie_root = malloc(sizeof(tokens_trie_node));
     memset(tokens_trie_root, 0, sizeof(tokens_trie_node));
-
-    for (int i = 0; i < sizeof(char_token_types)/sizeof(char_token_types[0]); i++) {
-        struct char_token_type *info = &char_token_types[i];
-        place_token_in_tokens_trie(info->str, info->type);
+    for (int tt = 0; tt < T_MAX_VALUE; tt++) {
+        const char *parse_chars = token_type_parse_chars(tt);
+        if (parse_chars == NULL || strlen(parse_chars) == 0)
+            continue;
+        place_token_in_tokens_trie(parse_chars, tt);
     }
 }
 

@@ -41,6 +41,21 @@ typedef enum token_type {
     T_ARROW,  // "->"
     T_DOT,
     T_COMMA,
+    T_DOUBLE_PLUS,
+    T_DOUBLE_MINUS,
+    T_PERCENT,
+    T_CARET,
+    T_QUESTION,
+    T_PLUS_EQUAL,
+    T_MINUS_EQUAL,
+    T_STAR_EQUAL,
+    T_SLASH_EQUAL,
+    T_PERCENT_EQUAL,
+    T_DBL_LARGER_EQUAL,
+    T_DBL_SMALLER_EQUAL,
+    T_AMPERSAND_EQUAL,
+    T_PIPE_EQUAL,
+    T_CARET_EQUAL,
 
     T_END, // the last token of the stream
     T_MAX_VALUE // max value for the sizing of the enum
@@ -55,6 +70,7 @@ token_type token_get_type(token *t);
 const char *token_get_data(token *t);
 
 const char *token_type_str(token_type type);
+const char *token_type_parse_chars(token_type type);
 void token_print(token *t, FILE *stream, char *prefix);
 void token_print_list(list *tokens, FILE *stream, char *prefix);
 bool tokens_are_equal(token *a, token *b);

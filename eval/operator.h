@@ -14,76 +14,50 @@ enum op_position {
 enum operator {
     OP_UNKNOWN,
 
-    OP_ADDITION,
-    OP_SUBTRACTION,
-    OP_MULTIPLICATION,
-    OP_DIVISION,
-    OP_POSITIVE_NUM,
-    OP_NEGATIVE_NUM,
-
-    OP_LOGICAL_AND,
-    OP_LOGICAL_OR,
-    OP_LOGICAL_NOT,
-
-    OP_BINARY_AND,
-    OP_BINARY_OR,
-    OP_BINARY_NOT, // unary
-
-    OP_SHORTHAND_IF, // ternary, and actually bouble infix!
-    OP_FUNC_CALL, // left=function name or address, right=func_args
-
-
-
-    // OP_FUNC_CALL,          // a()
-    // OP_ARRAY_SUBSCRIPT,    // a[b]
-    // OP_STRUCT_MEMBER_PTR,  // a->b
-    // OP_STRUCT_MEMBER_REF,  // a.b
-    // OP_POST_INC,           // a++
-    // OP_POST_DEC,           // a--
-    // OP_POSITIVE_NUM,       // +123
-    // OP_NEGATIVE_NUM,       // -123
-    // OP_LOGICAL_NOT,        // !a
-    // OP_BITWISE_NOT,        // ~a
-    // OP_PRE_INC,            // ++a
-    // OP_PRE_DEC,            // --a
-    // OP_TYPE_CAST,          // (b)a
-    // OP_POINTED_VALUE,      // *a
-    // OP_ADDRESS_OF,         // &a
-    // OP_SIZE_OF,            // sizeof(a) or sizeof a
-    // OP_MULTIPLY,           // *
-    // OP_DIVIDE,             // /
-    // OP_MODULO,             // %
-    // OP_ADD,                // +
-    // OP_SUBTRACT,           // -
-    // OP_LSHIFT,             // <<
-    // OP_RSHIFT,             // >>
-    // OP_LESS_THAN,          // <
-    // OP_LESS_EQUAL,         // <=
-    // OP_GREATER_THAN,       // >
-    // OP_GREATER_EQUAL,      // >=
-    // OP_EQUAL,              // ==
-    // OP_NOT_EQUAL,          // !=
-    // OP_BITWISE_AND,        // &
-    // OP_BITWISE_OR,         // |
-    // OP_BITWISE_XOR,        // ^
-    // OP_LOGICAL_AND,        // &&
-    // OP_LOGICAL_OR,         // ||
-    // OP_CONDITIONAL,        // a ? b : c
-    // OP_ASSIGNMENT,         // =
-    // OP_ADD_ASSIGN,         // +=
-    // OP_SUB_ASSIGN,         // -=
-    // OP_MUL_ASSIGN,         // *=
-    // OP_DIV_ASSIGN,         // /=
-    // OP_MOD_ASSIGN,         // %=
-    // OP_RSH_ASSIGN,         // >>=
-    // OP_LSH_ASSIGN,         // <<=
-    // OP_AND_ASSIGN,         // &=
-    // OP_OR_ASSIGN,          // |=
-    // OP_XOR_ASSIGN,         // ^=
-    // OP_COMMA,              // a, b, 
-
-
-
+    OP_FUNC_CALL,          // a()
+    OP_ARRAY_SUBSCRIPT,    // a[b]
+    OP_STRUCT_MEMBER_PTR,  // a->b
+    OP_STRUCT_MEMBER_REF,  // a.b
+    OP_POST_INC,           // a++
+    OP_POST_DEC,           // a--
+    OP_POSITIVE_NUM,       // +123
+    OP_NEGATIVE_NUM,       // -123
+    OP_LOGICAL_NOT,        // !a
+    OP_BITWISE_NOT,        // ~a
+    OP_PRE_INC,            // ++a
+    OP_PRE_DEC,            // --a
+    OP_POINTED_VALUE,      // *a
+    OP_ADDRESS_OF,         // &a
+    OP_MULTIPLY,           // *
+    OP_DIVIDE,             // /
+    OP_MODULO,             // %
+    OP_ADD,                // +
+    OP_SUBTRACT,           // -
+    OP_LSHIFT,             // <<
+    OP_RSHIFT,             // >>
+    OP_LESS_THAN,          // <
+    OP_LESS_EQUAL,         // <=
+    OP_GREATER_THAN,       // >
+    OP_GREATER_EQUAL,      // >=
+    OP_EQUAL,              // ==
+    OP_NOT_EQUAL,          // !=
+    OP_BITWISE_AND,        // &
+    OP_BITWISE_OR,         // |
+    OP_BITWISE_XOR,        // ^
+    OP_LOGICAL_AND,        // &&
+    OP_LOGICAL_OR,         // ||
+    OP_CONDITIONAL,        // a ? b : c
+    OP_ASSIGNMENT,         // =
+    OP_ADD_ASSIGN,         // +=
+    OP_SUB_ASSIGN,         // -=
+    OP_MUL_ASSIGN,         // *=
+    OP_DIV_ASSIGN,         // /=
+    OP_MOD_ASSIGN,         // %=
+    OP_RSH_ASSIGN,         // >>=
+    OP_LSH_ASSIGN,         // <<=
+    OP_AND_ASSIGN,         // &=
+    OP_OR_ASSIGN,          // |=
+    OP_XOR_ASSIGN,         // ^=
 
     OP_SENTINEL, // lowest priority
     OP_MAX_VALUE // to discover the size of the enum

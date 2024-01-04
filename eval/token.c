@@ -2,6 +2,67 @@
 #include <string.h>
 #include "token.h"
 
+struct token_info {
+    token_type type;
+    const char *parse_chars;
+    const char *debug_str;
+};
+
+static struct token_info token_infos[] = {
+    { T_UNKNOWN,            "",    "UNKNOWN" },
+    { T_IDENTIFIER,         "",    "IDENTIFIER" },
+    { T_NUMBER_LITERAL,     "",    "NUMBER_LITERAL" },
+    { T_STRING_LITERAL,     "",    "STRING_LITERAL" },
+    { T_BOOLEAN_LITERAL,    "",    "BOOLEAN_LITERAL" },
+
+    { T_LPAREN,             "(",   "LPAREN" },
+    { T_RPAREN,             ")",   "RPAREN" },
+    { T_LSQBRACKET,         "[",   "LSQBRACKET" },
+    { T_RSQBRACKET,         "]",   "RSQBRACKET" },
+    { T_SEMICOLON,          ";",   "SEMICOLON" },
+    { T_PLUS,               "+",   "PLUS" },
+    { T_MINUS,              "-",   "MINUS" },
+    { T_ASTERISK,           "*",   "ASTERISK" },
+    { T_FWD_SLASH,          "/",   "FWD_SLASH" },
+    { T_DOUBLE_SLASH,       "//",  "DOUBLE_SLASH" },
+    { T_PIPE,               "|",   "PIPE" },
+    { T_DOUBLE_PIPE,        "||",  "DOUBLE_PIPE" },
+    { T_AMPERSAND,          "&",   "AMPERSAND" },
+    { T_DOUBLE_AMPERSAND,   "&&",  "DOUBLE_AMPERSAND" },
+    { T_TIDLE,              "~",   "TIDLE" },
+    { T_EXCLAMATION,        "!",   "EXCLAMATION" },
+    { T_EXCLAMATION_EQUAL,  "!=",  "EXCLAMATION_EQUAL" },
+    { T_EQUAL,              "=",   "EQUAL" },
+    { T_DOUBLE_EQUAL,       "==",  "DOUBLE_EQUAL" },
+    { T_LARGER_EQUAL,       ">=",  "LARGER_EQUAL" },
+    { T_LARGER,             ">",   "LARGER" },
+    { T_DOUBLE_LARGER,      ">>",  "DOUBLE_LARGER" },
+    { T_SMALLER_EQUAL,      "<=",  "SMALLER_EQUAL" },
+    { T_SMALLER,            "<",   "SMALLER" },
+    { T_DOUBLE_SMALLER,     "<<",  "DOUBLE_SMALLER" },
+    { T_ARROW,              "->",  "ARROW" },
+    { T_DOT,                ".",   "DOT" },
+    { T_COMMA,              ",",   "COMMA" },
+    { T_DOUBLE_PLUS,        "++",  "DOUBLE_PLUS" },
+    { T_DOUBLE_MINUS,       "--",  "DOUBLE_MINUS" },
+    { T_PERCENT,            "%",   "PERCENT" },
+    { T_CARET,              "^",   "CARET" },
+    { T_QUESTION,           "?",   "QUESTION" },
+    { T_PLUS_EQUAL,         "+=",  "PLUS_EQUAL" },
+    { T_MINUS_EQUAL,        "-=",  "MINUS_EQUAL" },
+    { T_STAR_EQUAL,         "*=",  "STAR_EQUAL" },
+    { T_SLASH_EQUAL,        "/=",  "SLASH_EQUAL" },
+    { T_PERCENT_EQUAL,      "%=",  "PERCENT_EQUAL" },
+    { T_DBL_LARGER_EQUAL,   ">>=", "DBL_LARGER_EQUAL" },
+    { T_DBL_SMALLER_EQUAL,  "<<=", "DBL_SMALLER_EQUAL" },
+    { T_AMPERSAND_EQUAL,    "&=",  "AMPERSAND_EQUAL" },
+    { T_PIPE_EQUAL,         "|=",  "PIPE_EQUAL" },
+    { T_CARET_EQUAL,        "^=",  "CARET_EQUAL" },
+    
+    { T_END,                "",    "END" },
+    { T_MAX_VALUE,          "",    "MAX_VALUE" },
+};
+
 struct token {
     token_type type;
     const char *data; // e.g. identifier or number
@@ -30,44 +91,19 @@ inline const char *token_get_data(token *t) {
 }
 
 const char *token_type_str(token_type type) {
-    switch (type) {
-        case T_UNKNOWN: return "T_UNKNOWN";
-        case T_IDENTIFIER: return "T_IDENTIFIER";
-        case T_NUMBER_LITERAL: return "T_NUMBER_LITERAL";
-        case T_STRING_LITERAL: return "T_STRING_LITERAL";
-        case T_BOOLEAN_LITERAL: return "T_BOOLEAN_LITERAL";
-        case T_LPAREN: return "T_LPAREN";
-        case T_RPAREN: return "T_RPAREN";
-        case T_LSQBRACKET: return "T_LSQBRACKET";
-        case T_RSQBRACKET: return "T_RSQBRACKET";
-        case T_SEMICOLON: return "T_SEMICOLON";
-        case T_PLUS: return "T_PLUS";
-        case T_MINUS: return "T_MINUS";
-        case T_ASTERISK: return "T_ASTERISK";
-        case T_FWD_SLASH: return "T_FWD_SLASH";
-        case T_DOUBLE_SLASH: return "T_DOUBLE_SLASH";
-        case T_PIPE: return "T_PIPE";
-        case T_DOUBLE_PIPE: return "T_DOUBLE_PIPE";
-        case T_AMPERSAND: return "T_AMPERSAND";
-        case T_DOUBLE_AMPERSAND: return "T_DOUBLE_AMPERSAND";
-        case T_TIDLE: return "T_TIDLE";
-        case T_EXCLAMATION: return "T_EXCLAMATION";
-        case T_EXCLAMATION_EQUAL: return "T_EXCLAMATION_EQUAL";
-        case T_EQUAL: return "T_EQUAL";
-        case T_DOUBLE_EQUAL: return "T_DOUBLE_EQUAL";
-        case T_LARGER_EQUAL: return "T_LARGER_EQUAL";
-        case T_LARGER: return "T_LARGER";
-        case T_DOUBLE_LARGER: return "T_DOUBLE_LARGER";
-        case T_SMALLER_EQUAL: return "T_SMALLER_EQUAL";
-        case T_SMALLER: return "T_SMALLER";
-        case T_DOUBLE_SMALLER: return "T_DOUBLE_SMALLER";
-        case T_ARROW: return "T_ARROW";
-        case T_DOT: return "T_DOT";
-        case T_COMMA: return "T_COMMA";
-        case T_END: return "T_END";
+    for (int i = 0; i < sizeof(token_infos)/sizeof(token_infos[0]); i++) {
+        if (token_infos[i].type == type)
+            return token_infos[i].debug_str;
     }
+    return "(unknown)";
+}
 
-    return "(unknown type)";
+const char *token_type_parse_chars(token_type type) {
+    for (int i = 0; i < sizeof(token_infos)/sizeof(token_infos[0]); i++) {
+        if (token_infos[i].type == type)
+            return token_infos[i].parse_chars;
+    }
+    return "";
 }
 
 void token_print(token *t, FILE *stream, char *prefix) {

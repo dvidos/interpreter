@@ -471,17 +471,17 @@ bool parser_self_diagnostics() {
     if (!use_case_passes("a+", true,  list_of(0))) all_passed = false;
 
     if (!use_case_passes("a+1", false, list_of(1,
-        new_binary_op_expression(OP_ADDITION, 
+        new_binary_op_expression(OP_ADD, 
             new_identifier_expression("a"),
             new_numeric_literal_expression("1")
         )
     ))) all_passed = false;
 
     if (!use_case_passes("1+2*3+4", false, list_of(1,
-        new_binary_op_expression(OP_ADDITION, 
+        new_binary_op_expression(OP_ADD, 
             new_numeric_literal_expression("1"),
-            new_binary_op_expression(OP_ADDITION, 
-                new_binary_op_expression(OP_MULTIPLICATION, 
+            new_binary_op_expression(OP_ADD, 
+                new_binary_op_expression(OP_MULTIPLY, 
                     new_numeric_literal_expression("2"),
                     new_numeric_literal_expression("3")
                 ),
@@ -491,12 +491,12 @@ bool parser_self_diagnostics() {
     ))) all_passed = false;
 
     if (!use_case_passes("(1+2)*(3+4)", false, list_of(1,
-        new_binary_op_expression(OP_MULTIPLICATION, 
-            new_binary_op_expression(OP_ADDITION, 
+        new_binary_op_expression(OP_MULTIPLY, 
+            new_binary_op_expression(OP_ADD, 
                 new_numeric_literal_expression("1"),
                 new_numeric_literal_expression("2")
             ),
-            new_binary_op_expression(OP_ADDITION, 
+            new_binary_op_expression(OP_ADD, 
                 new_numeric_literal_expression("3"),
                 new_numeric_literal_expression("4")
             )
@@ -535,7 +535,7 @@ bool parser_self_diagnostics() {
     ))) all_passed = false;
 
     if (!use_case_passes("pow(8, 2) + 1", false, list_of(1,
-        new_binary_op_expression(OP_ADDITION,
+        new_binary_op_expression(OP_ADD,
             new_binary_op_expression(OP_FUNC_CALL,
                 new_identifier_expression("pow"),
                 new_func_args_expression(list_of(2,
