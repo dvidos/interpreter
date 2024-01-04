@@ -166,7 +166,7 @@ bool run_unit_tests() {
 
     if (!tokenizer_self_diagnostics())
         tests_failed = true;
-    if (!parser_self_diagnostics())
+    if (!parser_self_diagnostics(false))
         tests_failed = true;
 
     printf("Tests %s\n", tests_failed ? "failed" : "passed");

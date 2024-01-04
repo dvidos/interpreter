@@ -19,9 +19,10 @@ strbuff *new_strbuff() {
     return s;
 }
 
-static void ensure_capacity(strbuff *s, int extra_length) {
-    if (s->length + extra_length + 1 >= s->capacity) {
-        s->capacity *= 2;
+static void ensure_capacity(strbuff *s, int len_needed) {
+    if (s->capacity < s->length + len_needed + 1) {
+        while (s->capacity < s->length + len_needed + 1)
+            s->capacity *= 2;
         s->buffer = realloc(s->buffer, s->capacity);
     }
 }

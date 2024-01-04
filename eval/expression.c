@@ -146,13 +146,13 @@ const char *expression_to_string(expression *e) {
     strbuff *s = new_strbuff();
     
     if (e->type == ET_IDENTIFIER) {
-        strbuff_catf(s, "%s", e->per_type.terminal.data);
+        strbuff_catf(s, "IDENTIFIER(\"%s\")", e->per_type.terminal.data);
     } else if (e->type == ET_NUMERIC_LITERAL) {
-        strbuff_catf(s, "%s", e->per_type.terminal.data);
+        strbuff_catf(s, "NUMBER(\"%s\")", e->per_type.terminal.data);
     } else if (e->type == ET_STRING_LITERAL) {
-        strbuff_catf(s, "\"%s\"", e->per_type.terminal.data);
+        strbuff_catf(s, "STRING(\"%s\")", e->per_type.terminal.data);
     } else if (e->type == ET_BOOLEAN_LITERAL) {
-        strbuff_catf(s, "%s", e->per_type.terminal.data);
+        strbuff_catf(s, "BOOLEAN(%s)", e->per_type.terminal.data);
     } else if (e->type == ET_UNARRY_OP) {
         strbuff_catf(s, "%s(", operator_str(e->op));
         strbuff_cat(s, expression_to_string(e->per_type.unary.operand));

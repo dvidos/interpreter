@@ -22,7 +22,7 @@ failable_value evaluate(const char *code, dict *arguments) {
     if (tokenization.failed)
         return failed_value("Tokenization failed: %s", tokenization.err_msg);
     
-    failable_list parsing = parse_tokens_into_expressions(tokenization.result);
+    failable_list parsing = parse_tokens_into_expressions(tokenization.result, false);
     if (parsing.failed)
         return failed_value("Parsing failed: %s", parsing.err_msg);
 

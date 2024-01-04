@@ -43,7 +43,7 @@ static struct op_info operators_flat_list[] = {
     { OP_GREATER_THAN,        6, T_LARGER,            INFIX,   "GREATER_THAN" },  // >
     { OP_GREATER_EQUAL,       6, T_LARGER_EQUAL,      INFIX,   "GREATER_EQUAL" },  // >=
 
-    { OP_EQUAL,               7, T_EQUAL,             INFIX,   "EQUAL" },  // ==
+    { OP_EQUAL,               7, T_DOUBLE_EQUAL,      INFIX,   "EQUAL" },  // ==
     { OP_NOT_EQUAL,           7, T_EXCLAMATION_EQUAL, INFIX,   "NOT_EQUAL" },  // !=
     { OP_BITWISE_AND,         8, T_AMPERSAND,         INFIX,   "BITWISE_AND" },  // &
     { OP_BITWISE_XOR,         9, T_CARET,             INFIX,   "BITWISE_XOR" },  // ^
