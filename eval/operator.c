@@ -45,10 +45,11 @@ static struct op_info operators_flat_list[] = {
 
     { OP_EQUAL,               7, T_DOUBLE_EQUAL,      INFIX,   "EQUAL" },  // ==
     { OP_NOT_EQUAL,           7, T_EXCLAMATION_EQUAL, INFIX,   "NOT_EQUAL" },  // !=
+    
     { OP_BITWISE_AND,         8, T_AMPERSAND,         INFIX,   "BITWISE_AND" },  // &
     { OP_BITWISE_XOR,         9, T_CARET,             INFIX,   "BITWISE_XOR" },  // ^
-
     { OP_BITWISE_OR,         10, T_PIPE,              INFIX,   "BITWISE_OR" },  // |
+
     { OP_LOGICAL_AND,        11, T_DOUBLE_AMPERSAND,  INFIX,   "LOGICAL_AND" },  // &&
     { OP_LOGICAL_OR,         12, T_DOUBLE_PIPE,       INFIX,   "LOGICAL_OR" },  // ||
     { OP_CONDITIONAL,        13, T_QUESTION,          INFIX,   "CONDITIONAL" },  // a ? b : c

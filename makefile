@@ -12,6 +12,7 @@ FILES = \
 	eval/operator.c \
 	eval/expression.c \
 	eval/parser.c \
+	eval/execution.c \
 	eval/eval.c \
 	tests.c
 

@@ -19,13 +19,9 @@ expression *new_ternary_op_expression(operator op, expression *op1, expression *
 expression *new_func_args_expression(list *args);
 
 
-
-
 const char *expression_to_string(expression *e);
 bool expressions_are_equal(expression *a, expression *b);
-
-failable_value execute_expression(expression *expr, dict *values);
-
+failable_value expression_evaluate(expression *expr, dict *values);
 
 STRONGLY_TYPED_FAILABLE_DECLARATION(expression);
 

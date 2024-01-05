@@ -5,6 +5,7 @@
 #include "../utils/containable.h"
 #include "../utils/strbuff.h"
 #include "expression.h"
+#include "execution.h"
 
 typedef enum expression_type {
     ET_IDENTIFIER,
@@ -12,7 +13,7 @@ typedef enum expression_type {
     ET_STRING_LITERAL,
     ET_BOOLEAN_LITERAL,
     
-    ET_UNARRY_OP,
+    ET_UNARY_OP,
     ET_BINARY_OP,
     ET_TERNARY_OP,
     ET_FUNC_ARGS
@@ -81,7 +82,7 @@ expression *new_boolean_literal_expression(const char *data) {
 }
 
 expression *new_unary_op_expression(operator op, expression *operand) {
-    expression *e = new_expression(ET_UNARRY_OP, op);
+    expression *e = new_expression(ET_UNARY_OP, op);
     e->per_type.unary.operand = operand;
     return e;
 }
@@ -119,7 +120,7 @@ bool expressions_are_equal(expression *a, expression *b) {
     if (a->type == ET_IDENTIFIER || a->type == ET_NUMERIC_LITERAL || a->type == ET_STRING_LITERAL || a->type == ET_BOOLEAN_LITERAL) {
         if (strcmp(a->per_type.terminal.data, b->per_type.terminal.data) != 0)
             return false;
-    } else if (a->type == ET_UNARRY_OP) {
+    } else if (a->type == ET_UNARY_OP) {
         if (!expressions_are_equal(a->per_type.unary.operand, b->per_type.unary.operand))
             return false;
     } else if (a->type == ET_BINARY_OP) {
@@ -153,7 +154,7 @@ const char *expression_to_string(expression *e) {
         strbuff_catf(s, "STRING(\"%s\")", e->per_type.terminal.data);
     } else if (e->type == ET_BOOLEAN_LITERAL) {
         strbuff_catf(s, "BOOLEAN(%s)", e->per_type.terminal.data);
-    } else if (e->type == ET_UNARRY_OP) {
+    } else if (e->type == ET_UNARY_OP) {
         strbuff_catf(s, "%s(", operator_str(e->op));
         strbuff_cat(s, expression_to_string(e->per_type.unary.operand));
         strbuff_catc(s, ')');
@@ -187,12 +188,65 @@ const char *expression_to_string(expression *e) {
     return strbuff_charptr(s);
 }
 
-failable_value execute_expression(expression *expr, dict *values) {
-    // depending on whether it's a unary, binary, ternary expression,
-    // evaluate deeper nodes first, then evaluate self.
-    // have to apply conversions as needed (e.g. int to string etc)
+failable_value expression_evaluate(expression *expr, dict *values) {
+    failable_value evaluation;
+    value *v1, *v2, *v3;
 
-    return failed_value("execute_expression() is not implemented yet!");
+    switch (expr->type) {
+        case ET_IDENTIFIER:
+            return ok_value(dict_get(values, expr->per_type.terminal.data));
+        case ET_NUMERIC_LITERAL:
+            return ok_value(new_int_value(atoi(expr->per_type.terminal.data)));
+        case ET_STRING_LITERAL:
+            return ok_value(new_str_value(expr->per_type.terminal.data));
+        case ET_BOOLEAN_LITERAL:
+            return ok_value(new_bool_value(strcmp(expr->per_type.terminal.data, "true") == 0));
+
+        case ET_UNARY_OP:
+            evaluation = expression_evaluate(expr->per_type.unary.operand, values);
+            if (evaluation.failed)
+                return failed_value(evaluation.err_msg);
+            return execute_unary_operation(expr->op, evaluation.result, values);
+
+        case ET_BINARY_OP:
+            evaluation = expression_evaluate(expr->per_type.binary.left, values);
+            if (evaluation.failed)
+                return failed_value(evaluation.err_msg);
+            v1 = evaluation.result;
+            evaluation = expression_evaluate(expr->per_type.binary.right, values);
+            if (evaluation.failed)
+                return failed_value(evaluation.err_msg);
+            v2 = evaluation.result;
+            return execute_binary_operation(expr->op, v1, v2, values);
+
+        case ET_TERNARY_OP:
+            evaluation = expression_evaluate(expr->per_type.ternary.op1, values);
+            if (evaluation.failed)
+                return failed_value(evaluation.err_msg);
+            v1 = evaluation.result;
+            evaluation = expression_evaluate(expr->per_type.ternary.op2, values);
+            if (evaluation.failed)
+                return failed_value(evaluation.err_msg);
+            v2 = evaluation.result;
+            evaluation = expression_evaluate(expr->per_type.ternary.op3, values);
+            if (evaluation.failed)
+                return failed_value(evaluation.err_msg);
+            v3 = evaluation.result;
+            return execute_ternary_operation(expr->op, v1, v2, v3, values);
+
+        case ET_FUNC_ARGS:
+            // maybe we should evaluate all the expressions in the list, to make a list of values
+            list *expr_values = new_list();
+            for (sequential *seq = list_sequential(expr->per_type.func_args.list); seq != NULL; seq = seq->next) {
+                evaluation = expression_evaluate(seq->data, values);
+                if (evaluation.failed)
+                    return failed_value("%s", evaluation.err_msg);
+                list_add(expr_values, evaluation.result);
+            }
+            return ok_value(new_list_value(expr_values));
+    }
+
+    return failed_value("Unsupported expression type %d", expr->type);
 }
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(expression);

@@ -9,6 +9,8 @@
 #include "tokenization.h"
 #include "parser.h"
 #include "eval.h"
+#include "execution.h"
+
 
 void initialize_evaluator() {
     initialize_char_tokens_trie();
@@ -29,7 +31,7 @@ failable_value evaluate(const char *code, dict *arguments) {
     value *result = new_value();
     for (sequential *s = list_sequential(parsing.result); s != NULL; s = s->next) {
         expression *expr = (expression *)s->data;
-        failable_value execution = execute_expression(expr, arguments);
+        failable_value execution = expression_evaluate(expr, arguments);
         if (execution.failed)
             return failed_value("Execution failed: %s", execution.err_msg);
         

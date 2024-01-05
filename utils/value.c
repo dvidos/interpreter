@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include "containable.h"
 #include "value.h"
 
 
@@ -12,10 +13,12 @@ typedef enum value_type {
     VT_INT,
     VT_FLOAT,
     VT_STR,
+    VT_LIST,
     // other: array of, dict of, function
 } value_type;
 
 struct value {
+    containable *containable;
     value_type type;
     union {
         bool b;
@@ -25,13 +28,17 @@ struct value {
             char *ptr;
             int len;
         } s;
+        list *lst;
     } per_type;
-    char *str_repr;
+    const char *str_repr;
 };
 
 value *new_value() {
     value *v = malloc(sizeof(value));
     memset(v, 0, sizeof(value));
+    v->containable = new_containable("value", 
+        (are_equal_func)values_are_same, 
+        (to_string_func)value_to_string);
     v->type = VT_NULL;
     return v;
 }
@@ -57,12 +64,19 @@ value *new_float_value(float f) {
     return v;
 }
 
-value *new_str_value(char *p) {
+value *new_str_value(const char *p) {
     value *v = new_value();
     v->type = VT_STR;
     v->per_type.s.len = strlen(p);
     v->per_type.s.ptr = malloc(v->per_type.s.len + 1);
     strcpy(v->per_type.s.ptr, p);
+    return v;
+}
+
+value *new_list_value(list *l) {
+    value *v = new_value();
+    v->type = VT_LIST;
+    v->per_type.lst = l;
     return v;
 }
 
@@ -86,6 +100,10 @@ bool value_is_str(value *v) {
     return v->type == VT_STR;
 }
 
+bool value_is_list(value *v) {
+    return v->type == VT_LIST;
+}
+
 bool value_as_bool(value *v) {
     switch (v->type) {
         case VT_NULL:
@@ -101,6 +119,8 @@ bool value_as_bool(value *v) {
                 strcmp(v->per_type.s.ptr, "true") == 0 || 
                 strcmp(v->per_type.s.ptr, "1") == 0
             );
+        case VT_LIST:
+            return v->per_type.lst != NULL && list_length(v->per_type.lst) > 0;
         default:
             return false;
     }
@@ -118,6 +138,8 @@ int value_as_int(value *v) {
             return (int)v->per_type.f;
         case VT_STR:
             return atoi(v->per_type.s.ptr);
+        case VT_LIST:
+            return v->per_type.lst == NULL ? 0 : list_length(v->per_type.lst);
         default:
             return false;
     }
@@ -135,6 +157,8 @@ float value_as_float(value *v) {
             return v->per_type.f;
         case VT_STR:
             return atof(v->per_type.s.ptr);
+        case VT_LIST:
+            return v->per_type.lst == NULL ? 0.0 : (float)list_length(v->per_type.lst);
         default:
             return false;
     }
@@ -149,19 +173,44 @@ const char *value_as_str(value *v) {
         case VT_INT:
             if (v->str_repr == NULL) {
                 v->str_repr = malloc(64);
-                memset(v->str_repr, 0, 64);
-                snprintf(v->str_repr, 64, "%d", v->per_type.i);
+                memset((char *)v->str_repr, 0, 64);
+                snprintf((char *)v->str_repr, 64, "%d", v->per_type.i);
             }
             return v->str_repr;
         case VT_FLOAT:
             if (v->str_repr == NULL) {
                 v->str_repr = malloc(64);
-                memset(v->str_repr, 0, 64);
-                snprintf(v->str_repr, 64, "%f", v->per_type.f);
+                memset((char *)v->str_repr, 0, 64);
+                snprintf((char *)v->str_repr, 64, "%f", v->per_type.f);
             }
             return v->str_repr;
         case VT_STR:
             return v->per_type.s.ptr;
+        case VT_LIST:
+            if (v->str_repr == NULL) {
+                if (v->per_type.lst != NULL)
+                    v->str_repr = list_to_string(v->per_type.lst, ", ");
+            }
+            return v->str_repr;
+        default:
+            return NULL;
+    }
+}
+
+list *value_as_list(value *v) {
+    switch (v->type) {
+        case VT_NULL:
+            return NULL;
+        case VT_BOOL:
+            return list_of(1, v);
+        case VT_INT:
+            return list_of(1, v);
+        case VT_FLOAT:
+            return list_of(1, v);
+        case VT_STR:
+            return list_of(1, v);
+        case VT_LIST:
+            return v->per_type.lst;
         default:
             return NULL;
     }
@@ -192,11 +241,18 @@ bool values_are_same(value *a, value *b) {
             if (a->per_type.s.len != b->per_type.s.len)
                 return false;
             return memcmp(a->per_type.s.ptr, b->per_type.s.ptr, a->per_type.s.len) == 0;
+        case VT_LIST:
+            return lists_are_equal(a->per_type.lst, b->per_type.lst);
+
         // for other types, we should implement is_dict_equal() etc.
     }
 
     // we shouldn't get here...
     return false;
+}
+
+const char *value_to_string(value *v) {
+    return value_as_str(v);
 }
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(value);
