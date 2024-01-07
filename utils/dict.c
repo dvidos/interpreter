@@ -46,10 +46,18 @@ void dict_set(dict *d, const char *key, void *item) {
         d->count += 1;
     } else {
         dict_entry *e = d->entries_array[slot];
-        while (e->next != NULL)
+        while (e != NULL) {
+            if (strcmp(e->key, key) == 0) {
+                e->item = item;
+                return;
+            }
+            if (e->next == NULL) {
+                e->next = entry;
+                d->count += 1;
+                return;
+            }
             e = e->next;
-        e->next = entry;
-        d->count += 1;
+        }
     }
 }
 

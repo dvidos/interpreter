@@ -91,7 +91,7 @@ static failable_value modify_and_store(expression *lvalue, enum modify_and_store
     int b = value_as_int(operand);
     int c;
     switch (op) {
-        case MAS_NO_MOD: c = a; break;
+        case MAS_NO_MOD: c = b; break;
         case MAS_ADD: c = a + b; break;
         case MAS_SUB: c = a - b; break;
         case MAS_MUL: c = a * b; break;
@@ -324,6 +324,12 @@ static failable_value calculate_binary_operation(operator op, value *v1, value *
                 return ok_value(new_int_value(value_as_int(v1) * value_as_int(v2)));
             if (value_is_float(v1))
                 return ok_value(new_float_value(value_as_float(v1) * value_as_float(v2)));
+            if (value_is_str(v1) && value_is_int(v2)) {
+                strbuff *tmp = new_strbuff();
+                for (int i = 0; i < value_as_int(v2); i++)
+                    strbuff_cat(tmp, value_as_str(v1));
+                return ok_value(new_str_value(strbuff_charptr(tmp)));
+            }
             return failed_value("multiplication is only supported in int/float types");
 
         case OP_DIVIDE:

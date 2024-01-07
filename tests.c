@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "utils/failable.h"
 #include "utils/dict.h"
 #include "utils/value.h"
@@ -90,18 +91,23 @@ static void verify_evaluation_ib(char *expression, int a, bool expected_result) 
     assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
 }
 
+static void verify_evaluation_s(char *expression, char *expected_result) {
+    dict *values = new_dict(10);
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(strcmp(value_as_str(evaluation.result), expected_result) == 0, expression);
+}
+
+static void verify_evaluation_ss(char *expression, char *a, char *expected_result) {
+    dict *values = new_dict(10);
+    dict_set(values, "a", new_str_value(a));
+    failable_value evaluation = evaluate(expression, values);
+    if (evaluation.failed) { fail(evaluation.err_msg); return; }
+    assert_msg(strcmp(value_as_str(evaluation.result), expected_result) == 0, expression);
+}
+
 bool run_unit_tests() {
     tests_failed = false;
-
-    /* Requirements:
-        - constants (null, 0, 1, -2, 3.14, 'asdf', true / false)
-        - addition, division, subtraction, multiplication
-        - &&, ||
-        - logical negation: "!false"
-        - parentheses (e.g. "(1+2)*(3+4)" vs "1+(2*3)+4")
-        - comparisons: ==, !=, <=, <, >=, >
-        - predefined functions: if(cond, true, false), mod(10, 3), left(s, 3)
-    */
 
     verify_evaluation_null(NULL);
     verify_evaluation_null("");
@@ -143,12 +149,20 @@ bool run_unit_tests() {
     verify_evaluation_i("1 + 2 * 3 + 4", 11);
     verify_evaluation_i("1 + (2 * 3) + 4", 11);
     verify_evaluation_i("(1 + 2) * (3 + 4)", 21);
+    verify_evaluation_i("3;", 3);
+    verify_evaluation_i("3; 5;", 5);
+    verify_evaluation_i("3;6", 6);
 
     verify_evaluation_ii("a", 4, 4);
     verify_evaluation_ii("a + 1", 4, 5);
     verify_evaluation_ii("a - 1", 4, 3);
     verify_evaluation_ii("a * 2", 4, 8);
     verify_evaluation_ii("a / 2", 4, 2);
+    verify_evaluation_ii("a / 3", 10, 3);
+    verify_evaluation_ii("a++ + 3", 3, 6);
+    verify_evaluation_ii("++a + 3", 3, 7);
+    verify_evaluation_ii("a++; a", 5, 6);
+    verify_evaluation_ii("a = a + 1; a", 5, 6);
 
     verify_evaluation_ib("a > 5", 8, true);
     verify_evaluation_ib("a > 5", 5, false);
@@ -161,10 +175,13 @@ bool run_unit_tests() {
     verify_evaluation_ib("a != 5", 5, false);
     verify_evaluation_ib("a != 5", 6, true);
 
-    // verify_evaluation_iii("if(a >  5, b, 1)",  5, 2, 8);
-    // verify_evaluation_iii("if(a >= 5, b, 1)", 5, 2, 2);
-    // verify_evaluation_iii("if(a == 5, b, 1)", 5, 3, 3);
-    // verify_evaluation_iii("if(a != 5, b, 1)", 5, 4, 1);
+    verify_evaluation_s("''", "");
+    verify_evaluation_s("'hello'", "hello");
+    verify_evaluation_ss("a", "hello", "hello");
+    verify_evaluation_ss("a + ' there'", "hello", "hello there");
+    verify_evaluation_ss("a * 3", "-", "---");
+
+
 
     if (!tokenizer_self_diagnostics())
         tests_failed = true;
