@@ -34,7 +34,7 @@ typedef enum completion_mode { CM_NORMAL, CM_SUB_EXPRESSION, CM_FUNC_ARGS } comp
 
 static stack *operators_stack;
 static stack *expressions_stack;
-static sequential *tokens_sequential;
+static iterator *tokens_iterator;
 static token *last_token;
 static token *end_token;
 static failable_expression parse_expression(completion_mode completion, bool verbose);
@@ -42,21 +42,20 @@ static failable_expression parse_expression(completion_mode completion, bool ver
 
 static token* get_token_and_advance() {
     // get token, advance to next position, so we can peek.
-    if (tokens_sequential == NULL)
+    if (!tokens_iterator->valid(tokens_iterator))
         return end_token;
     
-    token *t = (token *)tokens_sequential->data;
-    tokens_sequential = tokens_sequential->next;
-    last_token = t;
-    return t;
+    last_token = tokens_iterator->curr(tokens_iterator);
+    tokens_iterator->next(tokens_iterator);
+    return last_token;
 }
 
 static token* peek_token() {
     // get token, but don't advance to next position
-    if (tokens_sequential == NULL)
+    if (!tokens_iterator->valid(tokens_iterator))
         return end_token;
     
-    return (token *)tokens_sequential->data;
+    return tokens_iterator->curr(tokens_iterator);
 }
 
 static inline operator get_token_prefix_operator(token_type tt) {
@@ -114,11 +113,9 @@ static inline operator pop_top_operator() {
 
 static void print_operators_stack(FILE *stream, char *prefix) {
     fprintf(stream, "%sOperators stack (%d)\n", prefix, stack_length(operators_stack));
-    sequential *seq = stack_sequential(operators_stack);
     int i = stack_length(operators_stack) - 1;
-    while (seq != NULL) {
-        fprintf(stream, "%s    %d: %s\n", prefix, i--, operator_str((operator)seq->data));
-        seq = seq->next;
+    for_stack(operators_stack, it, void, ptr) {
+        fprintf(stream, "%s    %d: %s\n", prefix, i--, operator_str((operator)ptr));
     }
 }
 
@@ -399,13 +396,14 @@ static failable_expression parse_expression(completion_mode context, bool verbos
 failable_list parse_tokens_into_expressions(list *tokens, bool verbose) {
     operators_stack = new_stack();
     expressions_stack = new_stack();
-    tokens_sequential = list_sequential(tokens);
+    tokens_iterator = list_iterator(tokens);
     end_token = new_token(T_END);
     last_token = new_token(T_UNKNOWN);
 
     // there may be more than one expressions, parse them as long as we have tokens
     list *expressions = new_list();
-    while (tokens_sequential != NULL && token_get_type(peek_token()) != T_END) {
+    tokens_iterator->reset(tokens_iterator);
+    while (tokens_iterator->valid(tokens_iterator) && token_get_type(tokens_iterator->curr(tokens_iterator)) != T_END) {
         failable_expression parsing = parse_expression(CM_NORMAL, verbose);
         if (parsing.failed)
             return failed_list("%s", parsing.err_msg);

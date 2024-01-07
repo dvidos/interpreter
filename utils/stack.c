@@ -53,9 +53,53 @@ void *stack_pop(stack *s) {
     return item;
 }
 
-sequential *stack_sequential(stack *s) {
-    return (sequential *)s->head;
+
+typedef struct stack_iterator_private_data {
+    stack *stack;
+    stack_entry *curr_entry;
+} stack_iterator_private_data;
+static void *stack_iterator_reset(iterator *it) {
+    stack_iterator_private_data *pd = (stack_iterator_private_data *)it->private_data;
+    pd->curr_entry = pd->stack->head; // can be NULL if stack is empty
+    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
 }
+static bool stack_iterator_valid(iterator *it) {
+    stack_iterator_private_data *pd = (stack_iterator_private_data *)it->private_data;
+    return pd->curr_entry != NULL;
+}
+static void *stack_iterator_next(iterator *it) {
+    stack_iterator_private_data *pd = (stack_iterator_private_data *)it->private_data;
+    if (pd->curr_entry != NULL)
+        pd->curr_entry = pd->curr_entry->next;
+    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
+}
+static void *stack_iterator_curr(iterator *it) {
+    stack_iterator_private_data *pd = (stack_iterator_private_data *)it->private_data;
+    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
+}
+static void *stack_iterator_peek(iterator *it) {
+    stack_iterator_private_data *pd = (stack_iterator_private_data *)it->private_data;
+    if (pd->curr_entry == NULL || pd->curr_entry->next == NULL)
+        return NULL;
+    return pd->curr_entry->next->item;
+}
+iterator *stack_iterator(stack *s) {
+    stack_iterator_private_data *pd = malloc(sizeof(stack_iterator_private_data));
+    pd->stack = s;
+    pd->curr_entry = NULL;
+    iterator *it = malloc(sizeof(iterator));
+    it->reset = stack_iterator_reset;
+    it->valid = stack_iterator_valid;
+    it->next = stack_iterator_next;
+    it->curr = stack_iterator_curr;
+    it->peek = stack_iterator_peek;
+    it->private_data = pd;
+    return it;
+}
+
+
+
+
 
 const char *stack_to_string(stack *s, const char *separator) {
     strbuff *sb = new_strbuff();

@@ -130,14 +130,12 @@ static failable_value retrieve_value(expression *e, dict *values) {
         case ET_BOOLEAN_LITERAL:
             return ok_value(new_bool_value(strcmp(td, "true") == 0));
         case ET_FUNC_ARGS:
+            list *arg_expressions = expression_get_func_args(e);
             list *arg_values = new_list();
-            sequential *seq = list_sequential(expression_get_func_args(e));
-            while (seq != NULL) {
-                execution = execute_expression(seq->data, values);
-                if (execution.failed)
-                    return failed_value("%s", execution.err_msg);
+            for_list(arg_expressions, args_iterator, expression, arg_exp) {
+                execution = execute_expression(arg_exp, values);
+                if (execution.failed) return failed_value("%s", execution.err_msg);
                 list_add(arg_values, execution.result);
-                seq = seq->next;
             }
             return ok_value(new_list_value(arg_values));
         

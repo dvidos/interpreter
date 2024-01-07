@@ -20,6 +20,11 @@ bool dicts_are_equal(dict *a, dict *b);
 const char *dict_to_string(dict *l, const char *key_value_separator, const char *entries_separator);
 
 
+#define for_dict(dict_var, iter_var, item_type, item_var)  \
+    iterator *iter_var = dict_iterator(dict_var); \
+    for_iterator(iter_var, item_type, item_var)
+
+
 STRONGLY_TYPED_FAILABLE_DECLARATION(dict);
 
 #endif

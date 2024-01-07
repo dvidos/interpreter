@@ -22,12 +22,5 @@ struct iterator {
          item_var = iter_var->next(iter_var) \
     )
 
-#define for_list(list_var, iter_var, item_type, item_var)  \
-    iterator *iter_var = list_iterator(list_var); \
-    for_iterator(iter_var, item_type, item_var)
-
-#define for_dict(dict_var, iter_var, item_type, item_var)  \
-    iterator *iter_var = dict_iterator(dict_var); \
-    for_iterator(iter_var, item_type, item_var)
 
 #endif

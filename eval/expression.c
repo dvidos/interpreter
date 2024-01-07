@@ -195,13 +195,10 @@ const char *expression_to_string(expression *e) {
         strbuff_catc(s, ')');
     } else if (e->type == ET_FUNC_ARGS) {
         strbuff_catf(s, "[", operator_str(e->op));
-        sequential *seq = list_sequential(e->per_type.func_args.list);
         int num = 0;
-        while (seq != NULL) {
-            if (num++ > 0)
-                strbuff_cat(s, ", ");
-            strbuff_cat(s, expression_to_string((expression *)seq->data));
-            seq = seq->next;
+        for_list(e->per_type.func_args.list, it, expression, arg_exp) {
+            if (num++ > 0) strbuff_cat(s, ", ");
+            strbuff_cat(s, expression_to_string(arg_exp));
         }
         strbuff_catc(s, ']');
     }

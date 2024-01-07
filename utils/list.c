@@ -76,10 +76,6 @@ void list_set(list *l, int index, void *item) {
         e->item = item;
 }
 
-sequential *list_sequential(list *l) {
-    return (sequential *)l->head;
-}
-
 typedef struct list_iterator_private_data {
     list *list;
     list_entry *curr_entry;

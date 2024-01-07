@@ -121,8 +121,8 @@ void token_print(token *t, FILE *stream, char *prefix) {
 }
 
 void token_print_list(list *tokens, FILE *stream, char *prefix) {
-    for (sequential *s = list_sequential(tokens); s != NULL; s = s->next) {
-        token_print((token *)s->data, stream, prefix);
+    for_list(tokens, it, token, t) {
+        token_print(t, stream, prefix);
         fprintf(stream, "\n");
     }
 }
