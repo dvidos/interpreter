@@ -82,32 +82,43 @@ sequential *list_sequential(list *l) {
 
 typedef struct list_iterator_private_data {
     list *list;
-    list_entry *last_entry;
+    list_entry *curr_entry;
 } list_iterator_private_data;
 static void *list_iterator_reset(iterator *it) {
     list_iterator_private_data *pd = (list_iterator_private_data *)it->private_data;
-    pd->last_entry = pd->list->head; // can be NULL if list is empty
-    return pd->last_entry == NULL ? NULL : pd->last_entry->item;
+    pd->curr_entry = pd->list->head; // can be NULL if list is empty
+    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
 }
 static bool list_iterator_valid(iterator *it) {
     list_iterator_private_data *pd = (list_iterator_private_data *)it->private_data;
-    return pd->last_entry != NULL;
+    return pd->curr_entry != NULL;
 }
 static void *list_iterator_next(iterator *it) {
     list_iterator_private_data *pd = (list_iterator_private_data *)it->private_data;
-    if (pd->last_entry != NULL) {
-        pd->last_entry = pd->last_entry->next;
-    }
-    return pd->last_entry == NULL ? NULL : pd->last_entry->item;
+    if (pd->curr_entry != NULL)
+        pd->curr_entry = pd->curr_entry->next;
+    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
+}
+static void *list_iterator_curr(iterator *it) {
+    list_iterator_private_data *pd = (list_iterator_private_data *)it->private_data;
+    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
+}
+static void *list_iterator_peek(iterator *it) {
+    list_iterator_private_data *pd = (list_iterator_private_data *)it->private_data;
+    if (pd->curr_entry == NULL || pd->curr_entry->next == NULL)
+        return NULL;
+    return pd->curr_entry->next->item;
 }
 iterator *list_iterator(list *l) {
     list_iterator_private_data *pd = malloc(sizeof(list_iterator_private_data));
     pd->list = l;
-    pd->last_entry = NULL;
+    pd->curr_entry = NULL;
     iterator *it = malloc(sizeof(iterator));
     it->reset = list_iterator_reset;
     it->valid = list_iterator_valid;
     it->next = list_iterator_next;
+    it->curr = list_iterator_curr;
+    it->peek = list_iterator_peek;
     it->private_data = pd;
     return it;
 }

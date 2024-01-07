@@ -59,10 +59,6 @@ static token* peek_token() {
     return (token *)tokens_sequential->data;
 }
 
-static token* peek_last_token() {
-        return last_token;
-}
-
 static inline operator get_token_prefix_operator(token_type tt) {
     return get_operator_by_token_type_and_position(tt, PREFIX);
 }

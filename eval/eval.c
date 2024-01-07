@@ -29,13 +29,12 @@ failable_value evaluate(const char *code, dict *arguments) {
         return failed_value("Parsing failed: %s", parsing.err_msg);
 
     value *result = new_value();
-    for (sequential *s = list_sequential(parsing.result); s != NULL; s = s->next) {
-        expression *expr = (expression *)s->data;
+    for_list(parsing.result, results_iterator, expression, expr) {
         failable_value execution = execute_expression(expr, arguments);
         if (execution.failed)
             return failed_value("Execution failed: %s", execution.err_msg);
         
-        // if many expressions, the last status is kept and returned.
+        // if many expressions, the last result is kept and returned.
         result = execution.result;
     }
 
