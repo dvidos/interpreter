@@ -64,6 +64,7 @@ static struct op_info operators_flat_list[] = {
     { OP_LSH_ASSIGN,         14, T_DBL_SMALLER_EQUAL, INFIX,   "LSH_ASSIGN" },  // <<=
     { OP_AND_ASSIGN,         14, T_AMPERSAND_EQUAL,   INFIX,   "AND_ASSIGN" },  // &=
     { OP_OR_ASSIGN,          14, T_PIPE_EQUAL,        INFIX,   "OR_ASSIGN" },   // |=
+    
     { OP_XOR_ASSIGN,         14, T_CARET_EQUAL,       INFIX,   "XOR_ASSIGN" },  // ^=
     { OP_SENTINEL,          999, T_UNKNOWN,           POS_UNKNOWN, "SENTINEL" },
 };

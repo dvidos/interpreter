@@ -7,18 +7,6 @@
 #include "expression.h"
 #include "execution.h"
 
-typedef enum expression_type {
-    ET_IDENTIFIER,
-    ET_NUMERIC_LITERAL,
-    ET_STRING_LITERAL,
-    ET_BOOLEAN_LITERAL,
-    
-    ET_UNARY_OP,
-    ET_BINARY_OP,
-    ET_TERNARY_OP,
-    ET_FUNC_ARGS
-} expression_type;
-
 struct expression {
     containable *containable;
     expression_type type;
@@ -27,18 +15,11 @@ struct expression {
         struct terminal {
             const char *data;
         } terminal;
-        struct unary {
-            struct expression *operand;
-        } unary;
-        struct binary {
-            struct expression *left;
-            struct expression *right;
-        } binary;
         struct ternary {
+            struct expression *op0;
             struct expression *op1;
             struct expression *op2;
-            struct expression *op3;
-        } ternary;
+        } operation;
         struct func_args {
             list *list;
         } func_args;
@@ -83,22 +64,22 @@ expression *new_boolean_literal_expression(const char *data) {
 
 expression *new_unary_op_expression(operator op, expression *operand) {
     expression *e = new_expression(ET_UNARY_OP, op);
-    e->per_type.unary.operand = operand;
+    e->per_type.operation.op0 = operand;
     return e;
 }
 
 expression *new_binary_op_expression(operator op, expression *left, expression *right) {
     expression *e = new_expression(ET_BINARY_OP, op);
-    e->per_type.binary.left = left;
-    e->per_type.binary.right = right;
+    e->per_type.operation.op0 = left;
+    e->per_type.operation.op1 = right;
     return e;
 }
 
-expression *new_ternary_op_expression(operator op, expression *op1, expression *op2, expression *op3) {
+expression *new_ternary_op_expression(operator op, expression *op0, expression *op1, expression *op2) {
     expression *e = new_expression(ET_TERNARY_OP, op);
-    e->per_type.ternary.op1 = op1;
-    e->per_type.ternary.op2 = op2;
-    e->per_type.ternary.op3 = op3;
+    e->per_type.operation.op0 = op0;
+    e->per_type.operation.op1 = op1;
+    e->per_type.operation.op2 = op2;
     return e;
 }
 
@@ -106,6 +87,46 @@ expression *new_func_args_expression(list *args) {
     expression *e = new_expression(ET_FUNC_ARGS, OP_UNKNOWN);
     e->per_type.func_args.list = args;
     return e;
+}
+
+expression_type expression_get_type(expression *e) {
+    return e->type;
+}
+
+operator expression_get_operator(expression *e) {
+    return e->op;
+}
+
+int expression_get_operands_count(expression *e) {
+    switch (e->type) {
+        case ET_IDENTIFIER:      // fallthrough
+        case ET_NUMERIC_LITERAL: // fallthrough
+        case ET_STRING_LITERAL:  // fallthrough
+        case ET_BOOLEAN_LITERAL: // fallthrough
+        case ET_FUNC_ARGS:
+            return 0;
+        case ET_UNARY_OP:        return 1;
+        case ET_BINARY_OP:       return 2;
+        case ET_TERNARY_OP:      return 3;
+        default: return 0;
+    }
+}
+
+const char *expression_get_terminal_data(expression *e) {
+    return e->per_type.terminal.data;
+}
+
+expression *expression_get_operand(expression *e, int index) {
+    switch (index) {
+        case 0: return e->per_type.operation.op0;
+        case 1: return e->per_type.operation.op1;
+        case 2: return e->per_type.operation.op2;
+        default: return 0;
+    }
+}
+
+list *expression_get_func_args(expression *e) {
+    return e->per_type.func_args.list;
 }
 
 bool expressions_are_equal(expression *a, expression *b) {
@@ -121,19 +142,19 @@ bool expressions_are_equal(expression *a, expression *b) {
         if (strcmp(a->per_type.terminal.data, b->per_type.terminal.data) != 0)
             return false;
     } else if (a->type == ET_UNARY_OP) {
-        if (!expressions_are_equal(a->per_type.unary.operand, b->per_type.unary.operand))
+        if (!expressions_are_equal(a->per_type.operation.op0, b->per_type.operation.op0))
             return false;
     } else if (a->type == ET_BINARY_OP) {
-        if (!expressions_are_equal(a->per_type.binary.left, b->per_type.binary.left))
+        if (!expressions_are_equal(a->per_type.operation.op0, b->per_type.operation.op0))
             return false;
-        if (!expressions_are_equal(a->per_type.binary.right, b->per_type.binary.right))
+        if (!expressions_are_equal(a->per_type.operation.op1, b->per_type.operation.op1))
             return false;
     } else if (a->type == ET_TERNARY_OP) {
-        if (!expressions_are_equal(a->per_type.ternary.op1, b->per_type.ternary.op1))
+        if (!expressions_are_equal(a->per_type.operation.op0, b->per_type.operation.op0))
             return false;
-        if (!expressions_are_equal(a->per_type.ternary.op2, b->per_type.ternary.op2))
+        if (!expressions_are_equal(a->per_type.operation.op1, b->per_type.operation.op1))
             return false;
-        if (!expressions_are_equal(a->per_type.ternary.op3, b->per_type.ternary.op3))
+        if (!expressions_are_equal(a->per_type.operation.op2, b->per_type.operation.op2))
             return false;
     } else if (a->type == ET_FUNC_ARGS) {
         if (!lists_are_equal(a->per_type.func_args.list, b->per_type.func_args.list))
@@ -156,21 +177,21 @@ const char *expression_to_string(expression *e) {
         strbuff_catf(s, "BOOLEAN(%s)", e->per_type.terminal.data);
     } else if (e->type == ET_UNARY_OP) {
         strbuff_catf(s, "%s(", operator_str(e->op));
-        strbuff_cat(s, expression_to_string(e->per_type.unary.operand));
+        strbuff_cat(s, expression_to_string(e->per_type.operation.op0));
         strbuff_catc(s, ')');
     } else if (e->type == ET_BINARY_OP) {
         strbuff_catf(s, "%s(", operator_str(e->op));
-        strbuff_cat(s, expression_to_string(e->per_type.binary.left));
+        strbuff_cat(s, expression_to_string(e->per_type.operation.op0));
         strbuff_cat(s, ", ");
-        strbuff_cat(s, expression_to_string(e->per_type.binary.right));
+        strbuff_cat(s, expression_to_string(e->per_type.operation.op1));
         strbuff_catc(s, ')');
     } else if (e->type == ET_TERNARY_OP) {
         strbuff_catf(s, "%s(", operator_str(e->op));
-        strbuff_cat(s, expression_to_string(e->per_type.ternary.op1));
+        strbuff_cat(s, expression_to_string(e->per_type.operation.op0));
         strbuff_cat(s, ", ");
-        strbuff_cat(s, expression_to_string(e->per_type.ternary.op2));
+        strbuff_cat(s, expression_to_string(e->per_type.operation.op1));
         strbuff_cat(s, ", ");
-        strbuff_cat(s, expression_to_string(e->per_type.ternary.op3));
+        strbuff_cat(s, expression_to_string(e->per_type.operation.op2));
         strbuff_catc(s, ')');
     } else if (e->type == ET_FUNC_ARGS) {
         strbuff_catf(s, "[", operator_str(e->op));
@@ -186,67 +207,6 @@ const char *expression_to_string(expression *e) {
     }
 
     return strbuff_charptr(s);
-}
-
-failable_value expression_evaluate(expression *expr, dict *values) {
-    failable_value evaluation;
-    value *v1, *v2, *v3;
-
-    switch (expr->type) {
-        case ET_IDENTIFIER:
-            return ok_value(dict_get(values, expr->per_type.terminal.data));
-        case ET_NUMERIC_LITERAL:
-            return ok_value(new_int_value(atoi(expr->per_type.terminal.data)));
-        case ET_STRING_LITERAL:
-            return ok_value(new_str_value(expr->per_type.terminal.data));
-        case ET_BOOLEAN_LITERAL:
-            return ok_value(new_bool_value(strcmp(expr->per_type.terminal.data, "true") == 0));
-
-        case ET_UNARY_OP:
-            evaluation = expression_evaluate(expr->per_type.unary.operand, values);
-            if (evaluation.failed)
-                return failed_value(evaluation.err_msg);
-            return execute_unary_operation(expr->op, evaluation.result, values);
-
-        case ET_BINARY_OP:
-            evaluation = expression_evaluate(expr->per_type.binary.left, values);
-            if (evaluation.failed)
-                return failed_value(evaluation.err_msg);
-            v1 = evaluation.result;
-            evaluation = expression_evaluate(expr->per_type.binary.right, values);
-            if (evaluation.failed)
-                return failed_value(evaluation.err_msg);
-            v2 = evaluation.result;
-            return execute_binary_operation(expr->op, v1, v2, values);
-
-        case ET_TERNARY_OP:
-            evaluation = expression_evaluate(expr->per_type.ternary.op1, values);
-            if (evaluation.failed)
-                return failed_value(evaluation.err_msg);
-            v1 = evaluation.result;
-            evaluation = expression_evaluate(expr->per_type.ternary.op2, values);
-            if (evaluation.failed)
-                return failed_value(evaluation.err_msg);
-            v2 = evaluation.result;
-            evaluation = expression_evaluate(expr->per_type.ternary.op3, values);
-            if (evaluation.failed)
-                return failed_value(evaluation.err_msg);
-            v3 = evaluation.result;
-            return execute_ternary_operation(expr->op, v1, v2, v3, values);
-
-        case ET_FUNC_ARGS:
-            // maybe we should evaluate all the expressions in the list, to make a list of values
-            list *expr_values = new_list();
-            for (sequential *seq = list_sequential(expr->per_type.func_args.list); seq != NULL; seq = seq->next) {
-                evaluation = expression_evaluate(seq->data, values);
-                if (evaluation.failed)
-                    return failed_value("%s", evaluation.err_msg);
-                list_add(expr_values, evaluation.result);
-            }
-            return ok_value(new_list_value(expr_values));
-    }
-
-    return failed_value("Unsupported expression type %d", expr->type);
 }
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(expression);

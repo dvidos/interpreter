@@ -63,6 +63,19 @@ void *list_get(list *l, int index) {
     return e == NULL ? NULL : e->item;
 }
 
+void list_set(list *l, int index, void *item) {
+    // make sure this position is indexable
+    while (l->length < index)
+        list_add(l, NULL);
+        
+    // walk and set
+    list_entry *e = l->head;
+    while (index-- > 0 && e != NULL)
+        e = e->next;
+    if (e != NULL)
+        e->item = item;
+}
+
 sequential *list_sequential(list *l) {
     return (sequential *)l->head;
 }

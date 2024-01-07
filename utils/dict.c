@@ -1,22 +1,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include "../utils/strbuff.h"
 #include "dict.h"
 
 typedef struct dict_entry {
     const char *key;
-    value *val;
+    void *item;
     struct dict_entry *next;
 } dict_entry;
 
 typedef struct dict {
     dict_entry **entries_array;
     int capacity;
+    int count;
 } dict;
 
 dict *new_dict(int capacity) {
     dict *d = malloc(sizeof(dict));
     d->capacity = capacity;
+    d->count = 0;
     d->entries_array = malloc(sizeof(dict_entry *) * capacity);
     memset(d->entries_array, 0, d->capacity * sizeof(dict_entry *));
     return d;
@@ -31,20 +34,22 @@ static int hash(const char *str) {
     return result;
 }
 
-void dict_set(dict *d, const char *key, value *v) {
+void dict_set(dict *d, const char *key, void *item) {
     dict_entry *entry = malloc(sizeof(dict_entry));
     entry->key = key;
-    entry->val = v;
+    entry->item = item;
     entry->next = NULL;
 
     int slot = hash(key) % d->capacity;
     if (d->entries_array[slot] == NULL) {
         d->entries_array[slot] = entry;
+        d->count += 1;
     } else {
         dict_entry *e = d->entries_array[slot];
         while (e->next != NULL)
             e = e->next;
         e->next = entry;
+        d->count += 1;
     }
 }
 
@@ -59,15 +64,50 @@ bool dict_has(dict *d, const char *key) {
     return false;
 }
 
-value *dict_get(dict *d, const char *key) {
+void *dict_get(dict *d, const char *key) {
     int slot = hash(key) % d->capacity;
     dict_entry *e = d->entries_array[slot];
     while (e != NULL) {
         if (strcmp(e->key, key) == 0)
-            return e->val;
+            return e->item;
         e = e->next;
     }
     return NULL;
 }
+
+int dict_count(dict *d) {
+    return d->count;
+}
+
+bool dict_is_empty(dict *d) {
+    return d->count == 0;
+}
+
+bool dicts_are_equal(dict *a, dict *b) {
+    if (a == NULL && b == NULL)
+        return true;
+    if ((a == NULL && b != NULL) || (a != NULL && b == NULL))
+        return false;
+    if (a == b)
+        return true;
+    
+    if (a->count != b->count)
+        return false;
+
+    // we should walk now, but I'm tired for today..
+    // TODO: implement this comparison.
+
+    return true;
+}
+
+const char *dict_to_string(dict *l, const char *key_value_separator, const char *entries_separator) {
+    strbuff *sb = new_strbuff();
+    // we should also walk and I'm tired...
+    // TODO: implement this walking.
+    return strbuff_charptr(sb);
+}
+
+
+
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(dict);

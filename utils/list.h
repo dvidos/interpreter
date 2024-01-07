@@ -13,6 +13,7 @@ list *list_of(int items, ...);
 int   list_length(list *l);
 void  list_add(list *l, void *item);
 void *list_get(list *l, int index);
+void  list_set(list *l, int index, void *item);
 sequential *list_sequential(list *l);
 bool lists_are_equal(list *a, list *b);
 const char *list_to_string(list *l, const char *separator);
