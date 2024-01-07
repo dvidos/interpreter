@@ -80,6 +80,39 @@ sequential *list_sequential(list *l) {
     return (sequential *)l->head;
 }
 
+typedef struct list_iterator_private_data {
+    list *list;
+    list_entry *last_entry;
+} list_iterator_private_data;
+static void *list_iterator_reset(iterator *it) {
+    list_iterator_private_data *pd = (list_iterator_private_data *)it->private_data;
+    pd->last_entry = pd->list->head; // can be NULL if list is empty
+    return pd->last_entry == NULL ? NULL : pd->last_entry->item;
+}
+static bool list_iterator_valid(iterator *it) {
+    list_iterator_private_data *pd = (list_iterator_private_data *)it->private_data;
+    return pd->last_entry != NULL;
+}
+static void *list_iterator_next(iterator *it) {
+    list_iterator_private_data *pd = (list_iterator_private_data *)it->private_data;
+    if (pd->last_entry != NULL) {
+        pd->last_entry = pd->last_entry->next;
+    }
+    return pd->last_entry == NULL ? NULL : pd->last_entry->item;
+}
+iterator *list_iterator(list *l) {
+    list_iterator_private_data *pd = malloc(sizeof(list_iterator_private_data));
+    pd->list = l;
+    pd->last_entry = NULL;
+    iterator *it = malloc(sizeof(iterator));
+    it->reset = list_iterator_reset;
+    it->valid = list_iterator_valid;
+    it->next = list_iterator_next;
+    it->private_data = pd;
+    return it;
+}
+
+
 bool lists_are_equal(list *a, list *b) {
     if (a == NULL && b == NULL)
         return true;

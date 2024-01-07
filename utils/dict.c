@@ -83,6 +83,57 @@ bool dict_is_empty(dict *d) {
     return d->count == 0;
 }
 
+
+typedef struct dict_iterator_private_data {
+    dict *dict;
+    int last_slot;
+    dict_entry *last_entry;
+} dict_iterator_private_data;
+static void *dict_iterator_reset(iterator *it) {
+    dict_iterator_private_data *pd = (dict_iterator_private_data *)it->private_data;
+    if (pd->dict->count == 0) {
+        pd->last_slot = -1;
+        pd->last_entry = NULL;
+    } else {
+        pd->last_slot = 0;
+        while (pd->dict->entries_array[pd->last_slot] == NULL)
+            pd->last_slot += 1;
+        pd->last_entry = pd->dict->entries_array[pd->last_slot];
+    }
+    return pd->last_entry == NULL ? NULL : pd->last_entry->item;
+}
+static bool dict_iterator_valid(iterator *it) {
+    dict_iterator_private_data *pd = (dict_iterator_private_data *)it->private_data;
+    return pd->last_entry != NULL;
+}
+static void *dict_iterator_next(iterator *it) {
+    dict_iterator_private_data *pd = (dict_iterator_private_data *)it->private_data;
+    if (pd->last_entry->next != NULL) { // next in chain
+        pd->last_entry = pd->last_entry->next;
+    } else { // next slot in array
+        pd->last_slot += 1;
+        while (pd->last_slot < pd->dict->capacity && pd->dict->entries_array[pd->last_slot] == NULL)
+            pd->last_slot += 1;
+        
+        pd->last_entry = (pd->last_slot >= pd->dict->capacity) ? NULL :
+            pd->dict->entries_array[pd->last_slot];
+    }
+    return pd->last_entry == NULL ? NULL : pd->last_entry->item;
+}
+iterator *dict_iterator(dict *d) {
+    dict_iterator_private_data *pd = malloc(sizeof(dict_iterator_private_data));
+    pd->dict = d;
+    pd->last_slot = -1;
+    pd->last_entry = NULL;
+    iterator *it = malloc(sizeof(iterator));
+    it->reset = dict_iterator_reset;
+    it->valid = dict_iterator_valid;
+    it->next = dict_iterator_next;
+    it->private_data = pd;
+    return it;
+}
+
+
 bool dicts_are_equal(dict *a, dict *b) {
     if (a == NULL && b == NULL)
         return true;
