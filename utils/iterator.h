@@ -5,7 +5,7 @@ typedef struct iterator iterator;
 
 struct iterator {
     void *(*reset)(iterator *it); // for: reset to first and return that first item
-    bool (*valid)(iterator *it);  // for: was last reset()/next() value valid?
+    bool (*valid)(iterator *it);  // for: was last reset()/next() result valid?
     void *(*next)(iterator *it);  // for: advance to next and get that next item
     void *(*curr)(iterator *it);  // return the current (last returned) item
     void *(*peek)(iterator *it);  // return the next, without advancing to it.
