@@ -154,8 +154,6 @@ iterator *dict_iterator(dict *d);
 iterator *stack_iterator(stack *s);
 ```
 
-
-
 ## Containable
 
 Containable is a way to unlock polymorphic behavior for contained items, without the 
@@ -177,6 +175,49 @@ containable *new_containable(const char *struct_name,
 bool is_containable_instance(void *pointer);
 bool containables_are_equal(void *pointer_a, void *pointer_b);
 const char *containable_to_string(void *pointer);
+```
+
+# Variant
+
+To emulate the ability to convey a value, the `variant` is provided.
+It allows to store ints, floats, boolean literals, strings, lists and dictionaries.
+It enables json format manipulation. It supports containable and can be contained
+in the containers. The values of a variant are immutable.
+
+To create a new variant:
+
+```c
+variant *new_variant();
+variant *new_bool_variant(bool b);
+variant *new_int_variant(int i);
+variant *new_float_variant(float f);
+variant *new_str_variant(const char *p);
+variant *new_list_variant(list *l);
+variant *new_dict_variant(dict *d);
+```
+
+To verify the encapsulated value type:
+
+```c
+bool variant_is_null(variant *v);
+bool variant_is_bool(variant *v);
+bool variant_is_int(variant *v);
+bool value_is_float(variant *v);
+bool value_is_str(variant *v);
+bool variant_is_list(variant *v);
+bool variant_is_dict(variant *v);
+```
+
+To retrieve the encapsulated value, with auto conversion, if the requested type 
+is not the same as the encapsulated type:
+
+```c
+bool variant_as_bool(variant *v);
+int variant_as_int(variant *v);
+float variant_as_float(variant *v);
+const char *variant_as_str(variant *v);
+list *variant_as_list(variant *v);
+dict *variant_as_dict(variant *v);
 ```
 
 # String working

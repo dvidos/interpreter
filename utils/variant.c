@@ -37,7 +37,7 @@ struct variant {
 variant *new_variant() {
     variant *v = malloc(sizeof(variant));
     memset(v, 0, sizeof(variant));
-    v->containable = new_containable("value", 
+    v->containable = new_containable("variant", 
         (are_equal_func)variants_are_same, 
         (to_string_func)variant_to_string);
     v->type = VT_NULL;
