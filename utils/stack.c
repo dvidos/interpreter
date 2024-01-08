@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "containable.h"
-#include "strbuff.h"
+#include "strbld.h"
 #include "stack.h"
 
 typedef struct stack_entry {
@@ -102,18 +102,18 @@ iterator *stack_iterator(stack *s) {
 
 
 const char *stack_to_string(stack *s, const char *separator) {
-    strbuff *sb = new_strbuff();
+    strbld *sb = new_strbld();
     stack_entry *e = s->head;
     while (e != NULL) {
         if (e != s->head)
-            strbuff_cat(sb, separator);
+            strbld_cat(sb, separator);
         
         if (is_containable_instance(e->item))
-            strbuff_cat(sb, containable_to_string(e->item));
+            strbld_cat(sb, containable_to_string(e->item));
         else
-            strbuff_catf(sb, "@0x%p", e->item);
+            strbld_catf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
-    return strbuff_charptr(sb);
+    return strbld_charptr(sb);
 }

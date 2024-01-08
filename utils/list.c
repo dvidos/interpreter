@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "containable.h"
-#include "strbuff.h"
+#include "strbld.h"
 #include "list.h"
 
 typedef struct list_entry {
@@ -151,20 +151,20 @@ bool lists_are_equal(list *a, list *b) {
 }
 
 const char *list_to_string(list *l, const char *separator) {
-    strbuff *s = new_strbuff();
+    strbld *sb = new_strbld();
     list_entry *e = l->head;
     while (e != NULL) {
         if (e != l->head)
-            strbuff_cat(s, separator);
+            strbld_cat(sb, separator);
         
         if (is_containable_instance(e->item))
-            strbuff_cat(s, containable_to_string(e->item));
+            strbld_cat(sb, containable_to_string(e->item));
         else
-            strbuff_catf(s, "@0x%p", e->item);
+            strbld_catf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
-    return strbuff_charptr(s);
+    return strbld_charptr(sb);
 }
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(list);

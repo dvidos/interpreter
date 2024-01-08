@@ -227,10 +227,10 @@ for adding to a string, without caring about buffer size: it auto expands
 to always have sufficient capacity. Functions include:
 
 ```c
-strbuff *new_strbuff();
-void strbuff_cat(strbuff *s, const char *str);
-void strbuff_catc(strbuff *s, char chr);
-void strbuff_catf(strbuff *s, char *fmt, ...);
+strbld *new_strbld();
+void strbld_cat(strbld *sb, const char *str);
+void strbld_catc(strbld *sb, char chr);
+void strbld_catf(strbld *sb, char *fmt, ...);
 
-const char *strbuff_charptr(strbuff *s); // get a strz pointer
+const char *strbld_charptr(strbld *sb); // get a strz pointer
 ```

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/strbuff.h"
+#include "../utils/strbld.h"
 #include "dict.h"
 
 typedef struct dict_entry {
@@ -175,10 +175,10 @@ bool dicts_are_equal(dict *a, dict *b) {
 }
 
 const char *dict_to_string(dict *l, const char *key_value_separator, const char *entries_separator) {
-    strbuff *sb = new_strbuff();
+    strbld *sb = new_strbld();
     // we should also walk and I'm tired...
     // TODO: implement this walking.
-    return strbuff_charptr(sb);
+    return strbld_charptr(sb);
 }
 
 

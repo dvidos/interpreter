@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "../utils/strbuff.h"
+#include "../utils/strbld.h"
 #include "../utils/failable.h"
 #include "../utils/list.h"
 #include "../utils/stack.h"
@@ -136,9 +136,9 @@ static void print_expressions_stack(FILE *stream, char *prefix) {
     if (stack_empty(expressions_stack)) {
         fprintf(stream, "%s    (empty)\n", prefix);
     } else {
-        strbuff *separator_sb = new_strbuff();
-        strbuff_catf(separator_sb, "\n%s    ", prefix);
-        const char *str = stack_to_string(expressions_stack, strbuff_charptr(separator_sb));
+        strbld *separator_sb = new_strbld();
+        strbld_catf(separator_sb, "\n%s    ", prefix);
+        const char *str = stack_to_string(expressions_stack, strbld_charptr(separator_sb));
         fprintf(stream, "%s    %s\n", prefix, str);
     }
 }

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "execution.h"
-#include "../utils/strbuff.h"
+#include "../utils/strbld.h"
 
 // used for pre/post increment/decrement
 static expression *one = NULL;
@@ -325,10 +325,10 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
             if (value_is_float(v1))
                 return ok_variant(new_float_variant(variant_as_float(v1) * variant_as_float(v2)));
             if (value_is_str(v1) && variant_is_int(v2)) {
-                strbuff *tmp = new_strbuff();
+                strbld *tmp = new_strbld();
                 for (int i = 0; i < variant_as_int(v2); i++)
-                    strbuff_cat(tmp, variant_as_str(v1));
-                return ok_variant(new_str_variant(strbuff_charptr(tmp)));
+                    strbld_cat(tmp, variant_as_str(v1));
+                return ok_variant(new_str_variant(strbld_charptr(tmp)));
             }
             return failed_variant("multiplication is only supported in int/float types");
 
@@ -350,10 +350,10 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
             if (value_is_float(v1))
                 return ok_variant(new_float_variant(variant_as_float(v1) + variant_as_float(v2)));
             if (value_is_str(v1)) {
-                strbuff *sb = new_strbuff();
-                strbuff_cat(sb, variant_as_str(v1));
-                strbuff_cat(sb, variant_as_str(v2));
-                return ok_variant(new_str_variant(strbuff_charptr(sb)));
+                strbld *sb = new_strbld();
+                strbld_cat(sb, variant_as_str(v1));
+                strbld_cat(sb, variant_as_str(v2));
+                return ok_variant(new_str_variant(strbld_charptr(sb)));
             }
             return failed_variant("addition is only supported in int, float, string types");
 
