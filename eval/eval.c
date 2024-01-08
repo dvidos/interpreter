@@ -18,25 +18,25 @@ void initialize_evaluator() {
 }
 
 
-failable_value evaluate(const char *code, dict *arguments) {
+failable_variant evaluate(const char *code, dict *arguments) {
 
     failable_list tokenization = parse_code_into_tokens(code);
     if (tokenization.failed)
-        return failed_value("Tokenization failed: %s", tokenization.err_msg);
+        return failed_variant("Tokenization failed: %s", tokenization.err_msg);
     
     failable_list parsing = parse_tokens_into_expressions(tokenization.result, false);
     if (parsing.failed)
-        return failed_value("Parsing failed: %s", parsing.err_msg);
+        return failed_variant("Parsing failed: %s", parsing.err_msg);
 
-    value *result = new_value();
+    variant *result = new_variant();
     for_list(parsing.result, results_iterator, expression, expr) {
-        failable_value execution = execute_expression(expr, arguments);
+        failable_variant execution = execute_expression(expr, arguments);
         if (execution.failed)
-            return failed_value("Execution failed: %s", execution.err_msg);
+            return failed_variant("Execution failed: %s", execution.err_msg);
         
         // if many expressions, the last result is kept and returned.
         result = execution.result;
     }
 
-    return ok_value(result);
+    return ok_variant(result);
 }

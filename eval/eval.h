@@ -1,11 +1,11 @@
 #ifndef _EVAL_H
 #define _EVAL_H
 
-#include "../utils/value.h"
+#include "../utils/variant.h"
 #include "../utils/dict.h"
 
 void initialize_evaluator();
-failable_value evaluate(const char *code, dict *arguments);
+failable_variant evaluate(const char *code, dict *arguments);
 
 
 #endif

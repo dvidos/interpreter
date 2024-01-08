@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "containable.h"
-#include "value.h"
+#include "variant.h"
 
 
 typedef enum value_type {
@@ -17,7 +17,7 @@ typedef enum value_type {
     VT_DICT,
 } value_type;
 
-struct value {
+struct variant {
     containable *containable;
     value_type type;
     union {
@@ -34,39 +34,39 @@ struct value {
     const char *str_repr;
 };
 
-value *new_value() {
-    value *v = malloc(sizeof(value));
-    memset(v, 0, sizeof(value));
+variant *new_variant() {
+    variant *v = malloc(sizeof(variant));
+    memset(v, 0, sizeof(variant));
     v->containable = new_containable("value", 
-        (are_equal_func)values_are_same, 
-        (to_string_func)value_to_string);
+        (are_equal_func)variants_are_same, 
+        (to_string_func)variant_to_string);
     v->type = VT_NULL;
     return v;
 }
 
-value *new_bool_value(bool b) {
-    value *v = new_value();
+variant *new_bool_variant(bool b) {
+    variant *v = new_variant();
     v->type = VT_BOOL;
     v->per_type.b = b;
     return v;
 }
 
-value *new_int_value(int i) {
-    value *v = new_value();
+variant *new_int_variant(int i) {
+    variant *v = new_variant();
     v->type = VT_INT;
     v->per_type.i = i;
     return v;
 }
 
-value *new_float_value(float f) {
-    value *v = new_value();
+variant *new_float_variant(float f) {
+    variant *v = new_variant();
     v->type = VT_FLOAT;
     v->per_type.f = f;
     return v;
 }
 
-value *new_str_value(const char *p) {
-    value *v = new_value();
+variant *new_str_variant(const char *p) {
+    variant *v = new_variant();
     v->type = VT_STR;
     v->per_type.s.len = strlen(p);
     v->per_type.s.ptr = malloc(v->per_type.s.len + 1);
@@ -74,49 +74,49 @@ value *new_str_value(const char *p) {
     return v;
 }
 
-value *new_list_value(list *l) {
-    value *v = new_value();
+variant *new_list_variant(list *l) {
+    variant *v = new_variant();
     v->type = VT_LIST;
     v->per_type.lst = l;
     return v;
 }
 
-value *new_dict_value(dict *d) {
-    value *v = new_value();
+variant *new_dict_variant(dict *d) {
+    variant *v = new_variant();
     v->type = VT_DICT;
     v->per_type.dct = d;
     return v;
 }
 
-bool value_is_null(value *v) {
+bool variant_is_null(variant *v) {
     return v->type == VT_NULL;
 }
 
-bool value_is_bool(value *v) {
+bool variant_is_bool(variant *v) {
     return v->type == VT_BOOL;
 }
 
-bool value_is_int(value *v) {
+bool variant_is_int(variant *v) {
     return v->type == VT_INT;
 }
 
-bool value_is_float(value *v) {
+bool value_is_float(variant *v) {
     return v->type == VT_FLOAT;
 }
 
-bool value_is_str(value *v) {
+bool value_is_str(variant *v) {
     return v->type == VT_STR;
 }
 
-bool value_is_list(value *v) {
+bool variant_is_list(variant *v) {
     return v->type == VT_LIST;
 }
 
-bool value_is_dict(value *v) {
+bool variant_is_dict(variant *v) {
     return v->type == VT_DICT;
 }
 
-bool value_as_bool(value *v) {
+bool variant_as_bool(variant *v) {
     switch (v->type) {
         case VT_NULL:
             return false;
@@ -140,7 +140,7 @@ bool value_as_bool(value *v) {
     }
 }
 
-int value_as_int(value *v) {
+int variant_as_int(variant *v) {
     switch (v->type) {
         case VT_NULL:
             return 0;
@@ -161,7 +161,7 @@ int value_as_int(value *v) {
     }
 }
 
-float value_as_float(value *v) {
+float variant_as_float(variant *v) {
     switch (v->type) {
         case VT_NULL:
             return 0.0;
@@ -182,7 +182,7 @@ float value_as_float(value *v) {
     }
 }
 
-const char *value_as_str(value *v) {
+const char *variant_as_str(variant *v) {
     switch (v->type) {
         case VT_NULL:
             return NULL;
@@ -221,7 +221,7 @@ const char *value_as_str(value *v) {
     }
 }
 
-list *value_as_list(value *v) {
+list *variant_as_list(variant *v) {
     switch (v->type) {
         case VT_NULL:
             return NULL;
@@ -243,7 +243,7 @@ list *value_as_list(value *v) {
     }
 }
 
-dict *value_as_dict(value *v) {
+dict *variant_as_dict(variant *v) {
     switch (v->type) {
         case VT_NULL:
             return NULL;
@@ -264,7 +264,7 @@ dict *value_as_dict(value *v) {
     }
 }
 
-bool values_are_same(value *a, value *b) {
+bool variants_are_same(variant *a, variant *b) {
     if (a == NULL && b == NULL)
         return true;
     if ((a == NULL && b != NULL) || (a != NULL && b == NULL))
@@ -301,8 +301,8 @@ bool values_are_same(value *a, value *b) {
     return false;
 }
 
-const char *value_to_string(value *v) {
-    return value_as_str(v);
+const char *variant_to_string(variant *v) {
+    return variant_as_str(v);
 }
 
-STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(value);
+STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(variant);

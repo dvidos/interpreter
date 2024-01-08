@@ -22,10 +22,10 @@ Functionality could include:
   * Initial value from string-based representation
   * ability to be converted in any type (number, boolean etc)
 * A dictionaty type
-  * Keys will be strings, values will be variants
+  * Keys will be strings, values will be ~~variants~~ anything
   * Can be used to emulate objects
 * An array type
-  * Values will be variants
+  * Values will be ~~variants~~ anything
 * Iterators over dictionaries and arrays
 * Templating language / macros
 * ...eventually, if we add function calls, this becomes an interpreter...?

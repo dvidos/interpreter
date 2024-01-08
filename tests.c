@@ -5,7 +5,7 @@
 #include <string.h>
 #include "utils/failable.h"
 #include "utils/dict.h"
-#include "utils/value.h"
+#include "utils/variant.h"
 #include "eval/eval.h"
 #include "eval/tokenization.h"
 #include "eval/parser.h"
@@ -30,80 +30,80 @@ static bool tests_failed;
 
 static void verify_evaluation_null(char *expression) {
     dict *values = new_dict(10);
-    failable_value evaluation = evaluate(expression, values);
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(value_is_null(evaluation.result), expression);
+    assert_msg(variant_is_null(evaluation.result), expression);
 }
 
 static void verify_evaluation_b(char *expression, bool expected_result) {
     dict *values = new_dict(10);
-    failable_value evaluation = evaluate(expression, values);
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
+    assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_bb(char *expression, bool a, bool expected_result) {
     dict *values = new_dict(10);
-    dict_set(values, "a", new_bool_value(a));
-    failable_value evaluation = evaluate(expression, values);
+    dict_set(values, "a", new_bool_variant(a));
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
+    assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_bbb(char *expression, bool a, bool b, bool expected_result) {
     dict *values = new_dict(10);
-    dict_set(values, "a", new_bool_value(a));
-    dict_set(values, "b", new_bool_value(b));
-    failable_value evaluation = evaluate(expression, values);
+    dict_set(values, "a", new_bool_variant(a));
+    dict_set(values, "b", new_bool_variant(b));
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
+    assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_i(char *expression, int expected_result) {
     dict *values = new_dict(10);
-    failable_value evaluation = evaluate(expression, values);
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(value_as_int(evaluation.result) == expected_result, expression);
+    assert_msg(variant_as_int(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_ii(char *expression, int a, int expected_result) {
     dict *values = new_dict(10);
-    dict_set(values, "a", new_int_value(a));
-    failable_value evaluation = evaluate(expression, values);
+    dict_set(values, "a", new_int_variant(a));
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(value_as_int(evaluation.result) == expected_result, expression);
+    assert_msg(variant_as_int(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_iii(char *expression, int a, int b, int expected_result) {
     dict *values = new_dict(10);
-    dict_set(values, "a", new_int_value(a));
-    dict_set(values, "b", new_int_value(b));
-    failable_value evaluation = evaluate(expression, values);
+    dict_set(values, "a", new_int_variant(a));
+    dict_set(values, "b", new_int_variant(b));
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(value_as_int(evaluation.result) == expected_result, expression);
+    assert_msg(variant_as_int(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_ib(char *expression, int a, bool expected_result) {
     dict *values = new_dict(10);
-    dict_set(values, "a", new_int_value(a));
-    failable_value evaluation = evaluate(expression, values);
+    dict_set(values, "a", new_int_variant(a));
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(value_as_bool(evaluation.result) == expected_result, expression);
+    assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_s(char *expression, char *expected_result) {
     dict *values = new_dict(10);
-    failable_value evaluation = evaluate(expression, values);
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(strcmp(value_as_str(evaluation.result), expected_result) == 0, expression);
+    assert_msg(strcmp(variant_as_str(evaluation.result), expected_result) == 0, expression);
 }
 
 static void verify_evaluation_ss(char *expression, char *a, char *expected_result) {
     dict *values = new_dict(10);
-    dict_set(values, "a", new_str_value(a));
-    failable_value evaluation = evaluate(expression, values);
+    dict_set(values, "a", new_str_variant(a));
+    failable_variant evaluation = evaluate(expression, values);
     if (evaluation.failed) { fail(evaluation.err_msg); return; }
-    assert_msg(strcmp(value_as_str(evaluation.result), expected_result) == 0, expression);
+    assert_msg(strcmp(variant_as_str(evaluation.result), expected_result) == 0, expression);
 }
 
 bool run_unit_tests() {

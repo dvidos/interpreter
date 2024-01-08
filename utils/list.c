@@ -131,7 +131,7 @@ bool lists_are_equal(list *a, list *b) {
     if (a->length != b->length)
         return false;
 
-    // compare items, if they are values, use values_are_same()
+    // compare items, if they are values, use variants_are_same()
     struct list_entry *entry_a = a->head;
     struct list_entry *entry_b = b->head;
     while (entry_a != NULL && entry_b != NULL) {
