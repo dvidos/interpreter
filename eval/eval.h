@@ -6,6 +6,7 @@
 
 void initialize_evaluator();
 failable_variant evaluate(const char *code, dict *arguments);
+bool evaluator_self_diagnostics();
 
 
 #endif

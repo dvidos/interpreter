@@ -1,5 +1,6 @@
 FILES = \
 	main.c \
+	utils/testing.c \
 	utils/failable.c \
 	utils/containable.c \
 	utils/strbld.c \

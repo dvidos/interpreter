@@ -28,5 +28,3 @@ int main() {
     // actual functionality here
     return 0;
 }
-
-

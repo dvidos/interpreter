@@ -17,7 +17,9 @@
         "containable.h": "c",
         "strbuff.h": "c",
         "operator.h": "c",
-        "execution.h": "c"
+        "execution.h": "c",
+        "testing.h": "c",
+        "stdbool.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

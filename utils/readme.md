@@ -51,6 +51,8 @@ if (calculation.failed)
 thing_needed = calculation.result;
 ````
 
+Ideas for further development include additional context (e.g. error information),
+as well as preserving a call stack, by utilizing a macro that uses `__FILE__` and `__LINE__`.
 
 # Containers
 
