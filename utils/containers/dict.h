@@ -2,8 +2,8 @@
 #define _DICT_H
 
 #include <stdbool.h>
-#include "failable.h"
-#include "iterator.h"
+#include "../failable.h"
+#include "../iterator.h"
 
 typedef struct dict dict;
 

@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 #include "failable.h"
-#include "list.h"
-#include "dict.h"
+#include "containers/list.h"
+#include "containers/dict.h"
 
 typedef struct variant variant;
 

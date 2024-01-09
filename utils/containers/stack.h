@@ -2,7 +2,7 @@
 #define _STACK_H
 
 #include <stdbool.h>
-#include "iterator.h"
+#include "../iterator.h"
 
 typedef struct stack stack;
 

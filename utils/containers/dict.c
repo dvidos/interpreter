@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/strbld.h"
+#include "../strbld.h"
 #include "dict.h"
 
 typedef struct dict_entry {

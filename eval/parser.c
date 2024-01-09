@@ -3,8 +3,8 @@
 #include <string.h>
 #include "../utils/strbld.h"
 #include "../utils/failable.h"
-#include "../utils/list.h"
-#include "../utils/stack.h"
+#include "../utils/containers/list.h"
+#include "../utils/containers/stack.h"
 #include "parser.h"
 #include "token.h"
 #include "operator.h"

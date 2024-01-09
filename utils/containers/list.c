@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "containable.h"
-#include "strbld.h"
+#include "../strbld.h"
 #include "list.h"
 
 typedef struct list_entry {

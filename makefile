@@ -2,12 +2,12 @@ FILES = \
 	main.c \
 	utils/testing.c \
 	utils/failable.c \
-	utils/containable.c \
+	utils/containers/containable.c \
+	utils/containers/dict.c \
+	utils/containers/list.c \
+	utils/containers/stack.c \
 	utils/strbld.c \
 	utils/variant.c \
-	utils/dict.c \
-	utils/list.c \
-	utils/stack.c \
 	eval/token.c \
 	eval/tokenization.c \
 	eval/operator.c \

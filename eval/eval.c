@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include "../utils/testing.h"
 #include "../utils/failable.h"
-#include "../utils/list.h"
-#include "../utils/stack.h"
+#include "../utils/containers/list.h"
+#include "../utils/containers/stack.h"
 #include "expression.h"
 #include "token.h"
 #include "tokenization.h"

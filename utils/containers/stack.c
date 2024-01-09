@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "containable.h"
-#include "strbld.h"
+#include "../strbld.h"
 #include "stack.h"
 
 typedef struct stack_entry {
