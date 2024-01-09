@@ -1,5 +1,5 @@
-#ifndef _VALUE_H
-#define _VALUE_H
+#ifndef _VARIANT_H
+#define _VARIANT_H
 
 #include <stdbool.h>
 #include "failable.h"
@@ -8,7 +8,7 @@
 
 typedef struct variant variant;
 
-variant *new_variant();
+variant *new_null_variant();
 variant *new_bool_variant(bool b);
 variant *new_int_variant(int i);
 variant *new_float_variant(float f);
@@ -19,8 +19,8 @@ variant *new_dict_variant(dict *d);
 bool variant_is_null(variant *v);
 bool variant_is_bool(variant *v);
 bool variant_is_int(variant *v);
-bool value_is_float(variant *v);
-bool value_is_str(variant *v);
+bool variant_is_float(variant *v);
+bool variant_is_str(variant *v);
 bool variant_is_list(variant *v);
 bool variant_is_dict(variant *v);
 
@@ -35,5 +35,7 @@ bool variants_are_same(variant *a, variant *b);
 const char *variant_to_string(variant *v);
 
 STRONGLY_TYPED_FAILABLE_DECLARATION(variant);
+
+bool variant_self_diagnostics();
 
 #endif

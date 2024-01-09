@@ -241,7 +241,7 @@ failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant 
             case COMP_EQ: return ok_variant(new_bool_variant(i1 == i2));
             case COMP_NE: return ok_variant(new_bool_variant(i1 != i2));
         }
-    } else if (value_is_float(v1) && value_is_float(v2)) {
+    } else if (variant_is_float(v1) && variant_is_float(v2)) {
         float f1 = variant_as_float(v1);
         float f2 = variant_as_float(v2);
         switch (cmp) {
@@ -252,7 +252,7 @@ failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant 
             case COMP_EQ: return ok_variant(new_bool_variant(f1 == f2));
             case COMP_NE: return ok_variant(new_bool_variant(f1 != f2));
         }
-    } else if (value_is_str(v1) && value_is_str(v2)) {
+    } else if (variant_is_str(v1) && variant_is_str(v2)) {
         int c = strcmp(variant_as_str(v1), variant_as_str(v2));
         switch (cmp) {
             case COMP_GT: return ok_variant(new_bool_variant(c >  0));
@@ -286,14 +286,14 @@ failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant 
 static failable_variant calculate_unary_operation(operator op, variant *value, dict *values) {
     switch (op) {
         case OP_POSITIVE_NUM:
-            if (variant_is_int(value) || value_is_float(value))
+            if (variant_is_int(value) || variant_is_float(value))
                 return ok_variant(value);
             return failed_variant("positive num only works for int / float values");
 
         case OP_NEGATIVE_NUM:
             if (variant_is_int(value))
                 return ok_variant(new_int_variant(variant_as_int(value) * -1));
-            if (value_is_float(value))
+            if (variant_is_float(value))
                 return ok_variant(new_float_variant(variant_as_float(value) * -1));
             return failed_variant("negative num only works for int / float values");
 
@@ -322,9 +322,9 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
         case OP_MULTIPLY:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) * variant_as_int(v2)));
-            if (value_is_float(v1))
+            if (variant_is_float(v1))
                 return ok_variant(new_float_variant(variant_as_float(v1) * variant_as_float(v2)));
-            if (value_is_str(v1) && variant_is_int(v2)) {
+            if (variant_is_str(v1) && variant_is_int(v2)) {
                 strbld *tmp = new_strbld();
                 for (int i = 0; i < variant_as_int(v2); i++)
                     strbld_cat(tmp, variant_as_str(v1));
@@ -335,7 +335,7 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
         case OP_DIVIDE:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) / variant_as_int(v2)));
-            if (value_is_float(v1))
+            if (variant_is_float(v1))
                 return ok_variant(new_float_variant(variant_as_float(v1) / variant_as_float(v2)));
             return failed_variant("division is only supported in int/float types");
 
@@ -347,9 +347,9 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
         case OP_ADD:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) + variant_as_int(v2)));
-            if (value_is_float(v1))
+            if (variant_is_float(v1))
                 return ok_variant(new_float_variant(variant_as_float(v1) + variant_as_float(v2)));
-            if (value_is_str(v1)) {
+            if (variant_is_str(v1)) {
                 strbld *sb = new_strbld();
                 strbld_cat(sb, variant_as_str(v1));
                 strbld_cat(sb, variant_as_str(v2));
@@ -360,7 +360,7 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
         case OP_SUBTRACT:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) - variant_as_int(v2)));
-            if (value_is_float(v1))
+            if (variant_is_float(v1))
                 return ok_variant(new_float_variant(variant_as_float(v1) - variant_as_float(v2)));
             return failed_variant("subtraction is only supported in int/float types");
 

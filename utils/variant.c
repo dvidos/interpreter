@@ -5,9 +5,10 @@
 #include <stddef.h>
 #include "containers/containable.h"
 #include "variant.h"
+#include "testing.h"
 
 
-typedef enum value_type {
+typedef enum variant_type {
     VT_NULL,
     VT_BOOL,
     VT_INT,
@@ -15,11 +16,11 @@ typedef enum value_type {
     VT_STR,
     VT_LIST,
     VT_DICT,
-} value_type;
+} variant_type;
 
 struct variant {
     containable *containable;
-    value_type type;
+    variant_type type;
     union {
         bool b;
         int i;
@@ -34,7 +35,7 @@ struct variant {
     const char *str_repr;
 };
 
-variant *new_variant() {
+variant *new_null_variant() {
     variant *v = malloc(sizeof(variant));
     memset(v, 0, sizeof(variant));
     v->containable = new_containable("variant", 
@@ -45,28 +46,28 @@ variant *new_variant() {
 }
 
 variant *new_bool_variant(bool b) {
-    variant *v = new_variant();
+    variant *v = new_null_variant();
     v->type = VT_BOOL;
     v->per_type.b = b;
     return v;
 }
 
 variant *new_int_variant(int i) {
-    variant *v = new_variant();
+    variant *v = new_null_variant();
     v->type = VT_INT;
     v->per_type.i = i;
     return v;
 }
 
 variant *new_float_variant(float f) {
-    variant *v = new_variant();
+    variant *v = new_null_variant();
     v->type = VT_FLOAT;
     v->per_type.f = f;
     return v;
 }
 
 variant *new_str_variant(const char *p) {
-    variant *v = new_variant();
+    variant *v = new_null_variant();
     v->type = VT_STR;
     v->per_type.s.len = strlen(p);
     v->per_type.s.ptr = malloc(v->per_type.s.len + 1);
@@ -75,14 +76,14 @@ variant *new_str_variant(const char *p) {
 }
 
 variant *new_list_variant(list *l) {
-    variant *v = new_variant();
+    variant *v = new_null_variant();
     v->type = VT_LIST;
     v->per_type.lst = l;
     return v;
 }
 
 variant *new_dict_variant(dict *d) {
-    variant *v = new_variant();
+    variant *v = new_null_variant();
     v->type = VT_DICT;
     v->per_type.dct = d;
     return v;
@@ -100,11 +101,11 @@ bool variant_is_int(variant *v) {
     return v->type == VT_INT;
 }
 
-bool value_is_float(variant *v) {
+bool variant_is_float(variant *v) {
     return v->type == VT_FLOAT;
 }
 
-bool value_is_str(variant *v) {
+bool variant_is_str(variant *v) {
     return v->type == VT_STR;
 }
 
@@ -236,7 +237,7 @@ list *variant_as_list(variant *v) {
         case VT_LIST:
             return v->per_type.lst;
         case VT_DICT:
-            // should get values of the dict...
+            // should get values off the dict...
             return new_list();
         default:
             return NULL;
@@ -306,3 +307,29 @@ const char *variant_to_string(variant *v) {
 }
 
 STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(variant);
+
+// -----------------------------------------------------
+
+bool variant_self_diagnostics() {
+    variant *v = new_str_variant("15");
+    assert(variant_is_str(v));
+    assert(variants_are_same(v, new_str_variant("15")));
+    assert(!variants_are_same(v, new_int_variant(15))); // no auto conversion
+    assert(!variants_are_same(v, new_float_variant(15.0)));
+    assert(variant_as_int(v) == 15); // yes, forced conversion
+    assert(variant_as_float(v) == 15.0);
+
+    assert(variant_as_str(new_null_variant()) == NULL);
+    assert(strcmp(variant_as_str(new_str_variant("123")), "123") == 0);
+    assert(strcmp(variant_as_str(new_int_variant(123)), "123") == 0);
+    assert(strcmp(variant_as_str(new_float_variant(3.14)), "3.140000") == 0);
+    assert(strcmp(variant_as_str(new_bool_variant(true)), "true") == 0);
+
+    assert(variant_as_bool(new_str_variant("")) == false);
+    assert(variant_as_bool(new_str_variant("0")) == false);
+    assert(variant_as_bool(new_str_variant("1")) == true);
+    assert(variant_as_bool(new_str_variant("true")) == true);
+    assert(variant_as_bool(new_str_variant("false")) == false);
+    assert(variant_as_bool(new_int_variant(0)) == false);
+    assert(variant_as_bool(new_int_variant(1)) == true);
+}

@@ -29,7 +29,7 @@ failable_variant evaluate(const char *code, dict *arguments) {
     if (parsing.failed)
         return failed_variant("Parsing failed: %s", parsing.err_msg);
 
-    variant *result = new_variant();
+    variant *result = new_null_variant();
     for_list(parsing.result, results_iterator, expression, expr) {
         failable_variant execution = execute_expression(expr, arguments);
         if (execution.failed)
