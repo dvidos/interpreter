@@ -179,7 +179,7 @@ bool evaluator_self_diagnostics() {
     verify_evaluation_ii("++a + 3", 3, 7);
     verify_evaluation_ii("a++; a", 5, 6);
     verify_evaluation_ii("a = a + 1; a", 5, 6);
-
+    
     verify_evaluation_ib("a > 5", 8, true);
     verify_evaluation_ib("a > 5", 5, false);
     verify_evaluation_ib("a >= 5", 5, true);
@@ -190,6 +190,10 @@ bool evaluator_self_diagnostics() {
     verify_evaluation_ib("a == 5", 6, false);
     verify_evaluation_ib("a != 5", 5, false);
     verify_evaluation_ib("a != 5", 6, true);
+
+    verify_evaluation_ii("a > 4 ? 5 : 6", 8, 5);
+    verify_evaluation_ii("a > 4 ? 5 : 6", 2, 6);
+    verify_evaluation_ii("a > 4 ? a + 1 : a + 2", 8, 9);
 
     verify_evaluation_s("''", "");
     verify_evaluation_s("'hello'", "hello");

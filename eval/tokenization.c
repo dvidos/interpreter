@@ -142,7 +142,7 @@ static failable_token get_token_at_code_position(const char *code, int len, int 
             return ok_token(new_data_token(T_IDENTIFIER, data));
     }
     
-    return failed_token("Unrecognized token at pos %d ('%c')", *pos, code[*pos]);
+    return failed_token("Unrecognized token at pos %d ('%c')", (*pos)-1, code[(*pos)-1]);
 }
 
 failable_list parse_code_into_tokens(const char *code) {
@@ -158,7 +158,7 @@ failable_list parse_code_into_tokens(const char *code) {
     while (pos < len) {
         failable_token t = get_token_at_code_position(code, len, &pos);
         if (t.failed)
-            return failed_list("Cannot get token: %s", t);
+            return failed_list("Cannot get token: %s", t.err_msg);
         if (t.result == NULL)
             break;
         list_add(tokens, t.result);
@@ -234,7 +234,7 @@ bool tokenizer_self_diagnostics() {
     bool all_passed = true;
     
     // for each token, pass in expected type. for identifiers and literals, pass in data.
-    if (!use_case_passes(":", true, 0))
+    if (!use_case_passes("#", true, 0))
         all_passed = false;
     if (!use_case_passes(NULL, false, 1, T_END)) 
         all_passed = false;

@@ -23,7 +23,6 @@ static failable store_value(expression *lvalue, dict *values, variant *rvalue);
 
 static failable_variant calculate_unary_operation(operator op, variant *value, dict *values);
 static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, dict *values);
-static failable_variant calculate_ternary_operation(operator op, variant *v1, variant *v2, variant *v3, dict *values);
 static failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant *v2);
 
 
@@ -138,7 +137,17 @@ static failable_variant retrieve_value(expression *e, dict *values) {
                 list_add(arg_values, execution.result);
             }
             return ok_variant(new_list_variant(arg_values));
-        
+
+        case ET_EXPR_PAIR:
+            list *values_pair = new_list();
+            execution = execute_expression(expression_get_operand(e, 0), values);
+            if (execution.failed) return failed_variant("%s", execution.err_msg);
+            list_add(values_pair, execution.result);
+            execution = execute_expression(expression_get_operand(e, 1), values);
+            if (execution.failed) return failed_variant("%s", execution.err_msg);
+            list_add(values_pair, execution.result);
+            return ok_variant(new_list_variant(values_pair));
+
         case ET_UNARY_OP:
             op1 = expression_get_operand(e, 0);
             v1 = execute_expression(op1, values);
@@ -153,21 +162,6 @@ static failable_variant retrieve_value(expression *e, dict *values) {
             v2 = execute_expression(op2, values);
             if (v2.failed) return failed_variant("%s", v2.err_msg);
             return calculate_binary_operation(op, v1.result, v2.result, values);
-
-        case ET_TERNARY_OP:
-            switch (op) {
-                case OP_CONDITIONAL:
-                    op1 = expression_get_operand(e, 0);
-                    v1 = execute_expression(op1, values);
-                    if (v1.failed) return failed_variant("%s", v1.err_msg);
-                    if (v1.result) {
-                        op2 = expression_get_operand(e, 1);
-                        return execute_expression(op2, values);
-                    } else {
-                        op3 = expression_get_operand(e, 2);
-                        return execute_expression(op3, values);
-                    }
-            }
     }
 
     return failed_variant("Cannot retrieve value, unknown expr type / operator");
@@ -404,16 +398,20 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
             if (variant_is_bool(v1) && variant_is_bool(v2))
                 return ok_variant(new_bool_variant(variant_as_bool(v1) || variant_as_bool(v2)));
             return failed_variant("logical operations only supported in bool types");
+
+        case OP_SHORT_IF:
+            if (!variant_is_bool(v1))
+                return failed_variant("? operator requires boolean condition");
+            if (!variant_is_list(v2))
+                return failed_variant("? operator was expecting a pair (list) of arguments");
+            bool passed = variant_as_bool(v1);
+            list *values_pair = variant_as_list(v2);
+            if (list_length(values_pair) != 2)
+                return failed_variant("? operator was expecting exactly two arguments in the list");
+            return ok_variant(list_get(values_pair, passed ? 0 : 1));
+
     }
 
     return failed_variant("Unknown binary operator %s", operator_str(op));
 }
 
-static failable_variant calculate_ternary_operation(operator op, variant *v1, variant *v2, variant *v3, dict *values) {
-    switch (op) {
-        case OP_CONDITIONAL:
-            return ok_variant(variant_as_bool(v1) ? v2 : v3);
-    }
-
-    return failed_variant("Unknown ternary operator %s", operator_str(op));
-}

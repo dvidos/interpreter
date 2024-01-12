@@ -52,7 +52,7 @@ static struct op_info operators_flat_list[] = {
 
     { OP_LOGICAL_AND,        11, T_DOUBLE_AMPERSAND,  INFIX,   "LOGICAL_AND" },  // &&
     { OP_LOGICAL_OR,         12, T_DOUBLE_PIPE,       INFIX,   "LOGICAL_OR" },  // ||
-    { OP_CONDITIONAL,        13, T_QUESTION,          INFIX,   "CONDITIONAL" },  // a ? b : c
+    { OP_SHORT_IF,           13, T_QUESTION,          INFIX,   "SHORT_IF" },  // a ? b : c
 
     { OP_ASSIGNMENT,         14, T_EQUAL,             INFIX,   "ASSIGNMENT" },  // =
     { OP_ADD_ASSIGN,         14, T_PLUS_EQUAL,        INFIX,   "ADD_ASSIGN" },  // +=

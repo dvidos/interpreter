@@ -46,6 +46,7 @@ typedef enum token_type {
     T_PERCENT,
     T_CARET,
     T_QUESTION,
+    T_COLON,
     T_PLUS_EQUAL,
     T_MINUS_EQUAL,
     T_STAR_EQUAL,

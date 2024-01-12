@@ -6,6 +6,16 @@
 #include "containers/list.h"
 #include "containers/dict.h"
 
+typedef enum variant_type {
+    VT_NULL,
+    VT_BOOL,
+    VT_INT,
+    VT_FLOAT,
+    VT_STR,
+    VT_LIST,
+    VT_DICT,
+} variant_type;
+
 typedef struct variant variant;
 
 variant *new_null_variant();

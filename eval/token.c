@@ -48,6 +48,7 @@ static struct token_info token_infos[] = {
     { T_PERCENT,            "%",   "PERCENT" },
     { T_CARET,              "^",   "CARET" },
     { T_QUESTION,           "?",   "QUESTION" },
+    { T_COLON,              ":",   "COLON" },
     { T_PLUS_EQUAL,         "+=",  "PLUS_EQUAL" },
     { T_MINUS_EQUAL,        "-=",  "MINUS_EQUAL" },
     { T_STAR_EQUAL,         "*=",  "STAR_EQUAL" },

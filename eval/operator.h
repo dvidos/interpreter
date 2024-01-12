@@ -46,7 +46,7 @@ enum operator {
     OP_BITWISE_XOR,        // ^
     OP_LOGICAL_AND,        // &&
     OP_LOGICAL_OR,         // ||
-    OP_CONDITIONAL,        // a ? b : c
+    OP_SHORT_IF,        // a ? b : c
     OP_ASSIGNMENT,         // =
     OP_ADD_ASSIGN,         // +=
     OP_SUB_ASSIGN,         // -=

@@ -14,8 +14,8 @@ typedef enum expression_type {
     ET_BOOLEAN_LITERAL,
     ET_UNARY_OP,
     ET_BINARY_OP,
-    ET_TERNARY_OP,
-    ET_FUNC_ARGS
+    ET_FUNC_ARGS,
+    ET_EXPR_PAIR,
 } expression_type;
 
 typedef struct expression expression;
@@ -27,8 +27,8 @@ expression *new_boolean_literal_expression(const char *data);
 
 expression *new_unary_op_expression(operator op, expression *operand);
 expression *new_binary_op_expression(operator op, expression *left, expression *right);
-expression *new_ternary_op_expression(operator op, expression *op0, expression *op1, expression *op2);
 expression *new_func_args_expression(list *args);
+expression *new_pair_expression(expression *left, expression *right);
 
 expression_type expression_get_type(expression *e);
 operator expression_get_operator(expression *e);

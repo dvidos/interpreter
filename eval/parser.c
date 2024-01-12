@@ -29,7 +29,7 @@
 */
 
 typedef enum run_state { WANT_OPERAND, HAVE_OPERAND, FINISHED } run_state;
-typedef enum completion_mode { CM_NORMAL, CM_SUB_EXPRESSION, CM_FUNC_ARGS } completion_mode;
+typedef enum completion_mode { CM_NORMAL, CM_SUB_EXPRESSION, CM_FUNC_ARGS, CM_COLON } completion_mode;
 
 
 static stack *operators_stack;
@@ -161,10 +161,11 @@ static void make_one_expression_from_top_operator() {
     push_expression(new_expr);
 }
 
-static void resolve_pending_higher_precedence_operators(int precedence) {
+static void create_expressions_for_higher_operators_than(operator op) {
     // the operators stack always has the highest precedence ops at the top.
     // if we want to add a smaller precedence, we pop them into expressions
     // this assumes the use of the SENTINEL, the lowest priority operator
+    int precedence = operator_precedence(op);
     operator top_op = peek_top_operator();
     while (operator_precedence(top_op) < precedence) {
         make_one_expression_from_top_operator();
@@ -188,6 +189,8 @@ static failable_bool detect_completion(token_type curr_token, completion_mode co
         return ok_bool(curr_token == T_RPAREN);
     } else if (completion == CM_FUNC_ARGS) {
         return ok_bool(curr_token == T_RPAREN || curr_token == T_COMMA);
+    } else if (completion == CM_COLON) {
+        return ok_bool(curr_token == T_COLON);
     }
 
     return failed_bool("Unknown completion mode %d", completion);
@@ -197,15 +200,6 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     // read a token. If there are no more tokens, announce an error.
     token *t = get_token_and_advance();
     token_type tt = token_get_type(t);
-
-    // if the token is an prefix operator or an '(':
-    //     mark it as prefix and push it onto the operator stack
-    //     goto want_operand
-    // if the token is an operand (identifier or variable):
-    //     add it to the output queue
-    //     goto have_operand
-    // if the token is anything else, announce an error and stop. (**)    
-
 
     // handle prefix ops 
     if (is_token_prefix_operator(tt)) {
@@ -255,7 +249,20 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
     return ok_list(args);
 }
 
-static failable parse_expression_on_have_operand(run_state *state, completion_mode context, bool verbose) {
+failable_expression parse_shorthand_if_pair(bool verbose) {
+    failable_expression parsing = parse_expression(CM_COLON, verbose);
+    if (parsing.failed) return failed_expression("%s", parsing.err_msg);
+    expression *e1 = parsing.result;
+
+    parsing = parse_expression(CM_NORMAL, verbose);
+    if (parsing.failed) return failed_expression("%s", parsing.err_msg);
+    expression *e2 = parsing.result;
+
+    return ok_expression(new_pair_expression(e1, e2));
+}
+
+
+static failable parse_expression_on_have_operand(run_state *state, completion_mode completion, bool verbose) {
     // read a token   
     token *t = get_token_and_advance();
     token_type tt = token_get_type(t);
@@ -263,7 +270,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     // if postfix, push for later, and remain in state
     if (is_token_postfix_operator(tt)) {
         operator op = get_token_postfix_operator(tt);
-        resolve_pending_higher_precedence_operators(operator_precedence(op));
+        create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
         return succeeded();
     }
@@ -274,9 +281,19 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         if (arg_expressions.failed)
             return failed("%s", arg_expressions.err_msg);
         push_expression(new_func_args_expression(arg_expressions.result));
-
-        resolve_pending_higher_precedence_operators(operator_precedence(OP_FUNC_CALL));
+        create_expressions_for_higher_operators_than(OP_FUNC_CALL);
         push_operator_for_later(OP_FUNC_CALL);
+        *state = HAVE_OPERAND;
+        return succeeded();
+    }
+
+    if (tt == T_QUESTION) {
+        failable_expression if_parts = parse_shorthand_if_pair(verbose);
+        if (if_parts.failed)
+            return failed("%s", if_parts.err_msg);
+        create_expressions_for_higher_operators_than(OP_SHORT_IF);
+        push_operator_for_later(OP_SHORT_IF);
+        push_expression(if_parts.result);
         *state = HAVE_OPERAND;
         return succeeded();
     }
@@ -284,46 +301,22 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     // if infix, push it for resolving later, and go back to want-operand
     if (is_token_infix_operator(tt)) {
         operator op = get_token_infix_operator(tt);
-        resolve_pending_higher_precedence_operators(operator_precedence(op));
+        create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
         *state = WANT_OPERAND;
         return succeeded();
     }
 
     // detect if we finished (we may be a sub-expression)
-    failable_bool completion_detection = detect_completion(tt, context);
+    failable_bool completion_detection = detect_completion(tt, completion);
     if (completion_detection.failed)
         return failed("%s", completion_detection.err_msg);
     if (completion_detection.result) {
-        resolve_pending_higher_precedence_operators(operator_precedence(OP_SENTINEL));
+        create_expressions_for_higher_operators_than(OP_SENTINEL);
         *state = FINISHED;
         return succeeded();
     }
     
-    // if the token is a postfix operator:
-    //     mark it as postfix and add it to the output queue
-    //     goto have_operand.
-    // if there are no more tokens (or end-of-expression symbol):
-    //     pop all operators off the stack, adding each one to the output queue.
-    //     if a `(` is found on the stack, announce an error and stop.
-    // if the token is a ')':
-    //     while the top of the stack is not '(':
-    //     pop an operator off the stack and add it to the output queue
-    //     if the stack becomes empty, announce an error and stop.
-    //     if the '(' is marked infix, add a "call" operator to the output queue (*)
-    //     pop the '(' off the top of the stack
-    //     goto have_operand
-    // if the token is a ',':
-    //     while the top of the stack is not '(':
-    //     pop an operator off the stack and add it to the output queue
-    //     if the stack becomes empty, announce an error
-    //     goto want_operand
-    // if the token is an infix operator:
-    //     (see the wikipeda entry for precedence handling)
-    //     (normally, all prefix operators are considered to have higher precedence
-    //     than infix operators.)
-    //     got to want_operand
-    // otherwise, token is an operand. Announce an error
     return succeeded();
 }
 
@@ -353,20 +346,16 @@ static void print_debug_information(char *title, run_state state) {
         print_operators_stack(stderr, "    ");
 }
 
-static failable_expression parse_expression(completion_mode context, bool verbose) {
+static failable_expression parse_expression(completion_mode completion, bool verbose) {
     // re-entrable, for subexpressions.
-    // parse till we meet:
-    // - T_END, or, end of expression ';'
-    // - possible ternary chars: '?' or ':'
-    // - possible RPAREN, for parsing subexpression,
-    // - possible comma, for parsing function arguments.
+    // parse till we encounter the completion condition
 
     failable state_handling;
     run_state state = WANT_OPERAND;
     push_operator_for_later(OP_SENTINEL);
 
     if (verbose)
-        print_debug_information("parse_expression() loop", state);
+        print_debug_information("will enter parse_expression() loop", state);
     while (state != FINISHED) {
 
         switch (state) {
@@ -376,14 +365,14 @@ static failable_expression parse_expression(completion_mode context, bool verbos
                     return failed_expression("Failed on want operand: %s", state_handling.err_msg);
                 break;
             case HAVE_OPERAND:
-                state_handling = parse_expression_on_have_operand(&state, context, verbose);
+                state_handling = parse_expression_on_have_operand(&state, completion, verbose);
                 if (state_handling.failed)
                     return failed_expression("Failed on have operand: %s", state_handling.err_msg);
                 break;
         }
 
         if (verbose)
-            print_debug_information("parse_expression() loop", state);
+            print_debug_information("after one instanceparse_expression() loop", state);
     }
 
     if (peek_top_operator() != OP_SENTINEL)
@@ -577,6 +566,32 @@ bool parser_self_diagnostics(bool verbose) {
             ))
         )
     ), verbose)) all_passed = false;
+    
+    if (!use_case_passes("a ? b : c", false, list_of(1,
+        new_binary_op_expression(OP_SHORT_IF,
+            new_identifier_expression("a"),
+            new_pair_expression(
+                new_identifier_expression("b"),
+                new_identifier_expression("c")
+            )
+        )
+    ), verbose)) all_passed = false;
+
+    if (!use_case_passes("a > b ? c : d", false, list_of(1,
+        new_binary_op_expression(OP_SHORT_IF,
+            new_binary_op_expression(OP_GREATER_THAN,
+                new_identifier_expression("a"),
+                new_identifier_expression("b")
+            ),
+            new_pair_expression(
+                new_identifier_expression("c"),
+                new_identifier_expression("d")
+            )
+        )
+    ), verbose)) all_passed = false;
+
+    if (!use_case_passes("a ? b", true, list_of(0), verbose)) all_passed = false;
+    if (!use_case_passes("a ? b , c", true, list_of(0), verbose)) all_passed = false;
     
     return all_passed;
 }

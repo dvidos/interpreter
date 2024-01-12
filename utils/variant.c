@@ -8,16 +8,6 @@
 #include "testing.h"
 
 
-typedef enum variant_type {
-    VT_NULL,
-    VT_BOOL,
-    VT_INT,
-    VT_FLOAT,
-    VT_STR,
-    VT_LIST,
-    VT_DICT,
-} variant_type;
-
 struct variant {
     containable *containable;
     variant_type type;

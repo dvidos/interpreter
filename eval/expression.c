@@ -15,14 +15,17 @@ struct expression {
         struct terminal {
             const char *data;
         } terminal;
-        struct ternary {
+        struct operation {
             struct expression *op0;
             struct expression *op1;
-            struct expression *op2;
         } operation;
         struct func_args {
             list *list;
         } func_args;
+        struct pair {
+            struct expression *left;
+            struct expression *right;
+        } pair;
     } per_type;
 };
 
@@ -75,17 +78,16 @@ expression *new_binary_op_expression(operator op, expression *left, expression *
     return e;
 }
 
-expression *new_ternary_op_expression(operator op, expression *op0, expression *op1, expression *op2) {
-    expression *e = new_expression(ET_TERNARY_OP, op);
-    e->per_type.operation.op0 = op0;
-    e->per_type.operation.op1 = op1;
-    e->per_type.operation.op2 = op2;
-    return e;
-}
-
 expression *new_func_args_expression(list *args) {
     expression *e = new_expression(ET_FUNC_ARGS, OP_UNKNOWN);
     e->per_type.func_args.list = args;
+    return e;
+}
+
+expression *new_pair_expression(expression *left, expression *right) {
+    expression *e = new_expression(ET_EXPR_PAIR, OP_UNKNOWN);
+    e->per_type.pair.left = left;
+    e->per_type.pair.right = right;
     return e;
 }
 
@@ -104,10 +106,10 @@ int expression_get_operands_count(expression *e) {
         case ET_STRING_LITERAL:  // fallthrough
         case ET_BOOLEAN_LITERAL: // fallthrough
         case ET_FUNC_ARGS:
+        case ET_EXPR_PAIR:
             return 0;
         case ET_UNARY_OP:        return 1;
         case ET_BINARY_OP:       return 2;
-        case ET_TERNARY_OP:      return 3;
         default: return 0;
     }
 }
@@ -120,13 +122,16 @@ expression *expression_get_operand(expression *e, int index) {
     switch (index) {
         case 0: return e->per_type.operation.op0;
         case 1: return e->per_type.operation.op1;
-        case 2: return e->per_type.operation.op2;
         default: return 0;
     }
 }
 
 list *expression_get_func_args(expression *e) {
     return e->per_type.func_args.list;
+}
+
+expression *expression_get_pair_item(expression *e, bool left) {
+    return left ? e->per_type.pair.left : e->per_type.pair.right;
 }
 
 bool expressions_are_equal(expression *a, expression *b) {
@@ -149,15 +154,13 @@ bool expressions_are_equal(expression *a, expression *b) {
             return false;
         if (!expressions_are_equal(a->per_type.operation.op1, b->per_type.operation.op1))
             return false;
-    } else if (a->type == ET_TERNARY_OP) {
+    } else if (a->type == ET_FUNC_ARGS) {
+        if (!lists_are_equal(a->per_type.func_args.list, b->per_type.func_args.list))
+            return false;
+    } else if (a->type == ET_EXPR_PAIR) {
         if (!expressions_are_equal(a->per_type.operation.op0, b->per_type.operation.op0))
             return false;
         if (!expressions_are_equal(a->per_type.operation.op1, b->per_type.operation.op1))
-            return false;
-        if (!expressions_are_equal(a->per_type.operation.op2, b->per_type.operation.op2))
-            return false;
-    } else if (a->type == ET_FUNC_ARGS) {
-        if (!lists_are_equal(a->per_type.func_args.list, b->per_type.func_args.list))
             return false;
     }
 
@@ -185,22 +188,20 @@ const char *expression_to_string(expression *e) {
         strbld_cat(sb, ", ");
         strbld_cat(sb, expression_to_string(e->per_type.operation.op1));
         strbld_catc(sb, ')');
-    } else if (e->type == ET_TERNARY_OP) {
-        strbld_catf(sb, "%s(", operator_str(e->op));
-        strbld_cat(sb, expression_to_string(e->per_type.operation.op0));
-        strbld_cat(sb, ", ");
-        strbld_cat(sb, expression_to_string(e->per_type.operation.op1));
-        strbld_cat(sb, ", ");
-        strbld_cat(sb, expression_to_string(e->per_type.operation.op2));
-        strbld_catc(sb, ')');
     } else if (e->type == ET_FUNC_ARGS) {
-        strbld_catf(sb, "[", operator_str(e->op));
+        strbld_cat(sb, "ARGS(");
         int num = 0;
         for_list(e->per_type.func_args.list, it, expression, arg_exp) {
             if (num++ > 0) strbld_cat(sb, ", ");
             strbld_cat(sb, expression_to_string(arg_exp));
         }
-        strbld_catc(sb, ']');
+        strbld_catc(sb, ')');
+    } else if (e->type == ET_EXPR_PAIR) {
+        strbld_cat(sb, "PAIR(");
+        strbld_cat(sb, expression_to_string(e->per_type.operation.op0));
+        strbld_cat(sb, ", ");
+        strbld_cat(sb, expression_to_string(e->per_type.operation.op1));
+        strbld_catc(sb, ')');
     }
 
     return strbld_charptr(sb);
