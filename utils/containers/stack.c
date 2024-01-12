@@ -99,8 +99,6 @@ iterator *stack_iterator(stack *s) {
 
 
 
-
-
 const char *stack_to_string(stack *s, const char *separator) {
     strbld *sb = new_strbld();
     stack_entry *e = s->head;

@@ -47,14 +47,14 @@ failable_variant evaluate(const char *code, dict *arguments) {
 static void verify_evaluation_null(char *expression) {
     dict *values = new_dict(10);
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(variant_is_null(evaluation.result), expression);
 }
 
 static void verify_evaluation_b(char *expression, bool expected_result) {
     dict *values = new_dict(10);
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
@@ -62,7 +62,7 @@ static void verify_evaluation_bb(char *expression, bool a, bool expected_result)
     dict *values = new_dict(10);
     dict_set(values, "a", new_bool_variant(a));
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
@@ -71,14 +71,14 @@ static void verify_evaluation_bbb(char *expression, bool a, bool b, bool expecte
     dict_set(values, "a", new_bool_variant(a));
     dict_set(values, "b", new_bool_variant(b));
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_i(char *expression, int expected_result) {
     dict *values = new_dict(10);
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(variant_as_int(evaluation.result) == expected_result, expression);
 }
 
@@ -86,7 +86,7 @@ static void verify_evaluation_ii(char *expression, int a, int expected_result) {
     dict *values = new_dict(10);
     dict_set(values, "a", new_int_variant(a));
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(variant_as_int(evaluation.result) == expected_result, expression);
 }
 
@@ -95,7 +95,7 @@ static void verify_evaluation_iii(char *expression, int a, int b, int expected_r
     dict_set(values, "a", new_int_variant(a));
     dict_set(values, "b", new_int_variant(b));
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(variant_as_int(evaluation.result) == expected_result, expression);
 }
 
@@ -103,14 +103,14 @@ static void verify_evaluation_ib(char *expression, int a, bool expected_result) 
     dict *values = new_dict(10);
     dict_set(values, "a", new_int_variant(a));
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
 static void verify_evaluation_s(char *expression, char *expected_result) {
     dict *values = new_dict(10);
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(strcmp(variant_as_str(evaluation.result), expected_result) == 0, expression);
 }
 
@@ -118,7 +118,7 @@ static void verify_evaluation_ss(char *expression, char *a, char *expected_resul
     dict *values = new_dict(10);
     dict_set(values, "a", new_str_variant(a));
     failable_variant evaluation = evaluate(expression, values);
-    if (evaluation.failed) fail(evaluation.err_msg);
+    if (evaluation.failed) fail_test(evaluation.err_msg);
     assert_msg(strcmp(variant_as_str(evaluation.result), expected_result) == 0, expression);
 }
 

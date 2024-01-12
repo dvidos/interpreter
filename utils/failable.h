@@ -11,8 +11,8 @@ typedef struct failable {
         void *result;
         bool bool_result;
     };
-    const char *err_file;
-    int err_line;
+    const char *bad_file;
+    int bad_line;
 } failable;
 
 failable ok();
@@ -21,9 +21,8 @@ failable __failed(const char *file, int line, const char *err_msg_fmt, ...);
 
 
 /* Declares:
-   - struct   `failable_<type>`  with members: failed, err_msg, result
+   - struct   `failable_<type>`  alias to failable, for descriptive function declaration
    - function `ok_<type>()`      for returning failable with strongly typed result 
-   - function `failed_<type>()`  for returning failable with error message
 */
 #define STRONGLY_TYPED_FAILABLE_DECLARATION(type)  \
     typedef struct failable failable_##type; \
@@ -32,12 +31,10 @@ failable __failed(const char *file, int line, const char *err_msg_fmt, ...);
 
 /* Implements:
    - function `ok_<type>()`      for returning failable with strongly typed result 
-   - function `failed_<type>()`  for returning failable with error message
 */
 #define STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(type) \
     failable_##type ok_##type(type *result) { \
-        failable_##type s = { false, NULL, result }; \
-        return s; \
+        return (failable_##type){ false, NULL, result }; \
     }
 
 

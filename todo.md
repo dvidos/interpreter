@@ -1,7 +1,8 @@
 # todo
 
+* split parser - lexer into directories
 * implement function calling, for built-in functions, e.g.
-`length()`, `str()`, `int()`, `float()`, `substr()`, `indexof()` etc
+`length()`, `str()`, `int()`, `float()`, `substr()`, `index()` etc
 * implement control structures parsing, e.g.
 `if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
 * implement parsing of functions

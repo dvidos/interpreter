@@ -22,8 +22,8 @@ failable __failed(const char *file, int line, const char *err_msg_fmt, ...) {
     strcpy(p, buffer);
 
     s.err_msg = p;
-    s.err_file = file;
-    s.err_line = line;
+    s.bad_file = file;
+    s.bad_line = line;
     
     return s;
 }

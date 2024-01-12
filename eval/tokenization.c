@@ -8,7 +8,7 @@
 #include "token.h"
 
 
-static bool is_whilespace(char c) {
+static bool is_whitespace(char c) {
     return (c == ' ' || c == '\n' || c == '\r' || c == '\t');
 }
 
@@ -114,7 +114,7 @@ static token_type get_char_token_type(const char *code, int len, int *pos) {
 static failable_token get_token_at_code_position(const char *code, int len, int *pos) {
 
     // skip whitespacae
-    while (*pos < len && is_whilespace(code[*pos]))
+    while (*pos < len && is_whitespace(code[*pos]))
         (*pos) += 1;
     if (*pos >= len)
         return ok_token(NULL);
