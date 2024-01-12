@@ -7,11 +7,17 @@
 typedef struct failable {
     bool failed;
     const char *err_msg;
+    union {
+        void *result;
+        bool bool_result;
+    };
+    const char *err_file;
+    int err_line;
 } failable;
 
-failable succeeded();
-failable failed(const char *err_msg_fmt, ...);
-const char *_format_failable_err_msg_args(const char *err_msg_fmt, va_list args);
+failable ok();
+#define failed(fmt, ...)  __failed(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+failable __failed(const char *file, int line, const char *err_msg_fmt, ...);
 
 
 /* Declares:
@@ -20,9 +26,9 @@ const char *_format_failable_err_msg_args(const char *err_msg_fmt, va_list args)
    - function `failed_<type>()`  for returning failable with error message
 */
 #define STRONGLY_TYPED_FAILABLE_DECLARATION(type)  \
-    typedef struct failable_##type { bool failed; const char *err_msg; type *result; } failable_##type; \
-    failable_##type ok_##type(type *result); \
-    failable_##type failed_##type(const char *err_msg_fmt, ...);
+    typedef struct failable failable_##type; \
+    failable_##type ok_##type(type *result);
+
 
 /* Implements:
    - function `ok_<type>()`      for returning failable with strongly typed result 
@@ -32,24 +38,11 @@ const char *_format_failable_err_msg_args(const char *err_msg_fmt, va_list args)
     failable_##type ok_##type(type *result) { \
         failable_##type s = { false, NULL, result }; \
         return s; \
-    } \
-    failable_##type failed_##type(const char *err_msg_fmt, ...) { \
-        failable_##type s = { true, NULL, NULL }; \
-        va_list args; va_start(args, err_msg_fmt); \
-        s.err_msg = _format_failable_err_msg_args(err_msg_fmt, args); \
-        va_end(args); \
-        return s; \
     }
 
 
 
-typedef struct failable_bool {
-    bool failed;
-    const char *err_msg;
-    bool result;
-} failable_bool;
-
+typedef struct failable failable_bool;
 failable_bool ok_bool(bool result);
-failable_bool failed_bool(const char *err_msg_fmt, ...);
 
 #endif

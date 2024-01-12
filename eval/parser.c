@@ -182,7 +182,7 @@ static failable_bool detect_completion(token_type curr_token, completion_mode co
 
     // all other modes should not end prematurely.
     if (curr_token == T_END || curr_token == T_SEMICOLON)
-        return failed_bool("Unexpected end of expression (%s), when completion mode is %d", 
+        return failed("Unexpected end of expression (%s), when completion mode is %d", 
                 token_type_str(curr_token), completion);
     
     if (completion == CM_SUB_EXPRESSION) {
@@ -193,7 +193,7 @@ static failable_bool detect_completion(token_type curr_token, completion_mode co
         return ok_bool(curr_token == T_COLON);
     }
 
-    return failed_bool("Unknown completion mode %d", completion);
+    return failed("Unknown completion mode %d", completion);
 }
 
 static failable parse_expression_on_want_operand(run_state *state, bool verbose) {
@@ -205,7 +205,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     if (is_token_prefix_operator(tt)) {
         operator op = get_token_prefix_operator(tt);
         push_operator_for_later(op);
-        return succeeded();
+        return ok();
     }
 
     // handle sub-expressions, func cals are handled after having operand.
@@ -215,7 +215,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
             return failed("Subexpression failed: %s", sub_expression.err_msg);
         push_expression(sub_expression.result);
         *state = HAVE_OPERAND;
-        return succeeded();
+        return ok();
     }
 
     // handle operands
@@ -223,7 +223,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
         expression *e = get_operand_expression(tt, token_get_data(t));
         push_expression(e);
         *state = HAVE_OPERAND;
-        return succeeded();
+        return ok();
     }
 
     // nothing else should be expected here
@@ -242,7 +242,7 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
     while (token_get_type(last_token) != T_RPAREN) {
         failable_expression parse_arg = parse_expression(CM_FUNC_ARGS, verbose);
         if (parse_arg.failed)
-            return failed_list("%s", parse_arg.err_msg);
+            return failed("%s", parse_arg.err_msg);
         list_add(args, parse_arg.result);
     }
     
@@ -251,11 +251,11 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
 
 failable_expression parse_shorthand_if_pair(bool verbose) {
     failable_expression parsing = parse_expression(CM_COLON, verbose);
-    if (parsing.failed) return failed_expression("%s", parsing.err_msg);
+    if (parsing.failed) return failed("%s", parsing.err_msg);
     expression *e1 = parsing.result;
 
     parsing = parse_expression(CM_NORMAL, verbose);
-    if (parsing.failed) return failed_expression("%s", parsing.err_msg);
+    if (parsing.failed) return failed("%s", parsing.err_msg);
     expression *e2 = parsing.result;
 
     return ok_expression(new_pair_expression(e1, e2));
@@ -272,7 +272,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         operator op = get_token_postfix_operator(tt);
         create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
-        return succeeded();
+        return ok();
     }
 
     // handle function calls, operand is function name or address
@@ -284,7 +284,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         create_expressions_for_higher_operators_than(OP_FUNC_CALL);
         push_operator_for_later(OP_FUNC_CALL);
         *state = HAVE_OPERAND;
-        return succeeded();
+        return ok();
     }
 
     if (tt == T_QUESTION) {
@@ -295,7 +295,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         push_operator_for_later(OP_SHORT_IF);
         push_expression(if_parts.result);
         *state = HAVE_OPERAND;
-        return succeeded();
+        return ok();
     }
 
     // if infix, push it for resolving later, and go back to want-operand
@@ -304,20 +304,20 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
         *state = WANT_OPERAND;
-        return succeeded();
+        return ok();
     }
 
     // detect if we finished (we may be a sub-expression)
     failable_bool completion_detection = detect_completion(tt, completion);
     if (completion_detection.failed)
         return failed("%s", completion_detection.err_msg);
-    if (completion_detection.result) {
+    if (completion_detection.bool_result) {
         create_expressions_for_higher_operators_than(OP_SENTINEL);
         *state = FINISHED;
-        return succeeded();
+        return ok();
     }
     
-    return succeeded();
+    return ok();
 }
 
 static void print_debug_information(char *title, run_state state) {
@@ -362,12 +362,12 @@ static failable_expression parse_expression(completion_mode completion, bool ver
             case WANT_OPERAND:
                 state_handling = parse_expression_on_want_operand(&state, verbose);
                 if (state_handling.failed)
-                    return failed_expression("Failed on want operand: %s", state_handling.err_msg);
+                    return failed("Failed on want operand: %s", state_handling.err_msg);
                 break;
             case HAVE_OPERAND:
                 state_handling = parse_expression_on_have_operand(&state, completion, verbose);
                 if (state_handling.failed)
-                    return failed_expression("Failed on have operand: %s", state_handling.err_msg);
+                    return failed("Failed on have operand: %s", state_handling.err_msg);
                 break;
         }
 
@@ -376,7 +376,7 @@ static failable_expression parse_expression(completion_mode completion, bool ver
     }
 
     if (peek_top_operator() != OP_SENTINEL)
-        return failed_expression("Was expecting SENTINEL at the top of the queue");
+        return failed("Was expecting SENTINEL at the top of the queue");
     pop_top_operator();
 
     return ok_expression(pop_top_expression());
@@ -395,7 +395,7 @@ failable_list parse_tokens_into_expressions(list *tokens, bool verbose) {
     while (tokens_iterator->valid(tokens_iterator) && token_get_type(tokens_iterator->curr(tokens_iterator)) != T_END) {
         failable_expression parsing = parse_expression(CM_NORMAL, verbose);
         if (parsing.failed)
-            return failed_list("%s", parsing.err_msg);
+            return failed("%s", parsing.err_msg);
 
         list_add(expressions, parsing.result);
     }

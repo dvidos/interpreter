@@ -23,17 +23,17 @@ failable_variant evaluate(const char *code, dict *arguments) {
 
     failable_list tokenization = parse_code_into_tokens(code);
     if (tokenization.failed)
-        return failed_variant("Tokenization failed: %s", tokenization.err_msg);
+        return failed("Tokenization failed: %s", tokenization.err_msg);
     
     failable_list parsing = parse_tokens_into_expressions(tokenization.result, false);
     if (parsing.failed)
-        return failed_variant("Parsing failed: %s", parsing.err_msg);
+        return failed("Parsing failed: %s", parsing.err_msg);
 
     variant *result = new_null_variant();
     for_list(parsing.result, results_iterator, expression, expr) {
         failable_variant execution = execute_expression(expr, arguments);
         if (execution.failed)
-            return failed_variant("Execution failed: %s", execution.err_msg);
+            return failed("Execution failed: %s", execution.err_msg);
         
         // if many expressions, the last result is kept and returned.
         result = execution.result;
