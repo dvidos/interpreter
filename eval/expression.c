@@ -158,9 +158,9 @@ bool expressions_are_equal(expression *a, expression *b) {
         if (!lists_are_equal(a->per_type.func_args.list, b->per_type.func_args.list))
             return false;
     } else if (a->type == ET_EXPR_PAIR) {
-        if (!expressions_are_equal(a->per_type.operation.op0, b->per_type.operation.op0))
+        if (!expressions_are_equal(a->per_type.pair.left, b->per_type.pair.left))
             return false;
-        if (!expressions_are_equal(a->per_type.operation.op1, b->per_type.operation.op1))
+        if (!expressions_are_equal(a->per_type.pair.right, b->per_type.pair.right))
             return false;
     }
 
@@ -198,9 +198,9 @@ const char *expression_to_string(expression *e) {
         strbld_catc(sb, ')');
     } else if (e->type == ET_EXPR_PAIR) {
         strbld_cat(sb, "PAIR(");
-        strbld_cat(sb, expression_to_string(e->per_type.operation.op0));
+        strbld_cat(sb, expression_to_string(e->per_type.pair.left));
         strbld_cat(sb, ", ");
-        strbld_cat(sb, expression_to_string(e->per_type.operation.op1));
+        strbld_cat(sb, expression_to_string(e->per_type.pair.right));
         strbld_catc(sb, ')');
     }
 
