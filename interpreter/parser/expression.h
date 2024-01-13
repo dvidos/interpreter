@@ -20,6 +20,9 @@ typedef enum expression_type {
 
 typedef struct expression expression;
 
+extern contained_item_info *containing_expressions;
+
+
 expression *new_identifier_expression(const char *data);
 expression *new_numeric_literal_expression(const char *data);
 expression *new_string_literal_expression(const char *data);

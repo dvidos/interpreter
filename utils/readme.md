@@ -169,8 +169,8 @@ To make things easy, the following functions are all is needed:
 ```c
 // in the factory function of an item
 containable *new_containable(const char *struct_name, 
-    bool (*are_equal_func)(void *pointer_a, void *pointer_b), 
-    const char *(*to_string_func)(void *pointer)
+    bool (are_equal_func)(void *pointer_a, void *pointer_b), 
+    const char *(to_string_func)(void *pointer)
 );
 
 // in the containers, to perform functionality

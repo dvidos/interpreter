@@ -14,22 +14,24 @@ typedef struct list {
     int length;
     list_entry *head;
     list_entry *tail;
+    contained_item_info *contained_item_info;
 } list;
 
 
-list *new_list() {
+list *new_list(contained_item_info *contained_item_info) {
     list *l = malloc(sizeof(list));
     l->length = 0;
     l->head = NULL;
     l->tail = NULL;
+    l->contained_item_info = contained_item_info;
     return l;
 }
 
-list *list_of(int items, ...) {
-    list *l = new_list();
+list *list_of(contained_item_info *contained_item_info, int items_count, ...) {
+    list *l = new_list(contained_item_info);
     va_list args;
-    va_start(args, items);
-    while (items-- > 0)
+    va_start(args, items_count);
+    while (items_count-- > 0)
         list_add(l, va_arg(args, void *));
     va_end(args);
     return l;
@@ -131,7 +133,7 @@ bool lists_are_equal(list *a, list *b) {
     if (a->length != b->length)
         return false;
 
-    // compare items, if they are values, use variants_are_same()
+    // compare items, if they are values, use variants_are_equal()
     struct list_entry *entry_a = a->head;
     struct list_entry *entry_b = b->head;
     while (entry_a != NULL && entry_b != NULL) {

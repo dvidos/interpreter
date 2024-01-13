@@ -3,12 +3,13 @@
 
 #include "../failable.h"
 #include "../iterator.h"
+#include "containable.h"
 
 
 typedef struct list list;
 
-list *new_list();
-list *list_of(int items, ...);
+list *new_list(contained_item_info *contained_item_info);
+list *list_of(contained_item_info *contained_item_info, int items, ...);
 
 int   list_length(list *l);
 void  list_add(list *l, void *item);

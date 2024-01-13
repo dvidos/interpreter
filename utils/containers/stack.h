@@ -6,6 +6,7 @@
 
 typedef struct stack stack;
 
+//stack *new_stack(contained_item_info *contained_item_info);
 stack *new_stack();
 
 int   stack_length(stack *s);

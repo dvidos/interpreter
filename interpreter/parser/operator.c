@@ -119,3 +119,12 @@ op_position operator_position(operator op) {
 const char *operator_str(operator op) {
     return op_infos_per_operator[op].name;
 }
+
+bool operators_are_equal(operator a, operator b) {
+    return a == b;
+}
+
+contained_item_info *containing_operators = &(contained_item_info){
+    .are_equal = (are_equal_func)operators_are_equal,
+    .to_string = (to_string_func)operator_str
+};

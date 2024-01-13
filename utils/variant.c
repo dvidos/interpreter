@@ -25,11 +25,17 @@ struct variant {
     const char *str_repr;
 };
 
+contained_item_info *containing_variants = &(contained_item_info){
+    .are_equal = (are_equal_func)variants_are_equal,
+    .to_string = (to_string_func)variant_to_string
+};
+
+
 variant *new_null_variant() {
     variant *v = malloc(sizeof(variant));
     memset(v, 0, sizeof(variant));
     v->containable = new_containable("variant", 
-        (are_equal_func)variants_are_same, 
+        (are_equal_func)variants_are_equal, 
         (to_string_func)variant_to_string);
     v->type = VT_NULL;
     return v;
@@ -217,18 +223,18 @@ list *variant_as_list(variant *v) {
         case VT_NULL:
             return NULL;
         case VT_BOOL:
-            return list_of(1, v);
+            return list_of(containing_variants, 1, v);
         case VT_INT:
-            return list_of(1, v);
+            return list_of(containing_variants, 1, v);
         case VT_FLOAT:
-            return list_of(1, v);
+            return list_of(containing_variants, 1, v);
         case VT_STR:
-            return list_of(1, v);
+            return list_of(containing_variants, 1, v);
         case VT_LIST:
             return v->per_type.lst;
         case VT_DICT:
-            // should get values off the dict...
-            return new_list();
+            // TODO: should get values off the dict...
+            return new_list(NULL);
         default:
             return NULL;
     }
@@ -259,7 +265,7 @@ variant_type variant_get_type(variant *v) {
     return v->type;
 }
 
-bool variants_are_same(variant *a, variant *b) {
+bool variants_are_equal(variant *a, variant *b) {
     if (a == NULL && b == NULL)
         return true;
     if ((a == NULL && b != NULL) || (a != NULL && b == NULL))
@@ -307,9 +313,9 @@ STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(variant);
 bool variant_self_diagnostics() {
     variant *v = new_str_variant("15");
     assert(variant_is_str(v));
-    assert(variants_are_same(v, new_str_variant("15")));
-    assert(!variants_are_same(v, new_int_variant(15))); // no auto conversion
-    assert(!variants_are_same(v, new_float_variant(15.0)));
+    assert(variants_are_equal(v, new_str_variant("15")));
+    assert(!variants_are_equal(v, new_int_variant(15))); // no auto conversion
+    assert(!variants_are_equal(v, new_float_variant(15.0)));
     assert(variant_as_int(v) == 15); // yes, forced conversion
     assert(variant_as_float(v) == 15.0);
 

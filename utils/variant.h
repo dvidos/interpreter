@@ -42,11 +42,15 @@ const char *variant_as_str(variant *v);
 list *variant_as_list(variant *v);
 dict *variant_as_dict(variant *v);
 
-bool variants_are_same(variant *a, variant *b);
+bool variants_are_equal(variant *a, variant *b);
 const char *variant_to_string(variant *v);
 
 STRONGLY_TYPED_FAILABLE_DECLARATION(variant);
 
 bool variant_self_diagnostics();
+
+extern contained_item_info *containing_variants;
+
+
 
 #endif

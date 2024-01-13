@@ -95,7 +95,7 @@ static failable_variant retrieve_value(expression *e, dict *values, dict *callab
             return ok_variant(new_bool_variant(strcmp(td, "true") == 0));
         case ET_FUNC_ARGS:
             list *arg_expressions = expression_get_func_args(e);
-            list *arg_values = new_list();
+            list *arg_values = new_list(containing_variants);
             for_list(arg_expressions, args_iterator, expression, arg_exp) {
                 execution = execute_expression(arg_exp, values, callables);
                 if (execution.failed) return failed("%s", execution.err_msg);
@@ -104,7 +104,7 @@ static failable_variant retrieve_value(expression *e, dict *values, dict *callab
             return ok_variant(new_list_variant(arg_values));
 
         case ET_EXPR_PAIR:
-            list *values_pair = new_list();
+            list *values_pair = new_list(containing_variants);
             execution = execute_expression(expression_get_operand(e, 0), values, callables);
             if (execution.failed) return failed("%s", execution.err_msg);
             list_add(values_pair, execution.result);

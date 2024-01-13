@@ -40,6 +40,7 @@ bool run_self_diagnostics(bool verbose) {
 struct options {
     bool verbose;
     bool show_help;
+    bool run_unit_tests;
     bool show_built_in_functions;
     bool execute_expression;
     char *expression;
@@ -64,6 +65,9 @@ void parse_options(int argc, char *argv[]) {
                     options.execute_script = true;
                     options.script_filename = argv[++i];
                     break;
+                case 'u':
+                    options.run_unit_tests = true;
+                    break;
             }
         }
     }
@@ -77,6 +81,7 @@ void show_help() {
     printf("  -e <expression>     Interpret and execute the expression\n");
     printf("  -b                  Show built in functions\n");
     printf("  -v                  Be verbose\n");
+    printf("  -u                  Run self diagnostics (unit tests)\n");
     printf("  -h                  Show this help message\n");
 }
 
@@ -101,15 +106,13 @@ void execute_script(const char *filename) {
 int main(int argc, char *argv[]) {
     initialize_interpreter();
 
-    if (!run_self_diagnostics(false)) {
-        printf("Self diagnostics failed, aborting...\n");
-        return 1;
-    }
-    
     parse_options(argc, argv);
 
     if (options.show_help) {
         show_help();
+    } else if (options.run_unit_tests) {
+        if (!run_self_diagnostics(true))
+            return 1;
     } else if (options.show_built_in_functions) {
         printf("Built-in functions:\n");
         print_built_in_funcs_list();

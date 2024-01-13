@@ -10,6 +10,13 @@ struct token_info {
     const char *debug_str;
 };
 
+contained_item_info *containing_tokens = &(contained_item_info){
+    .are_equal = (are_equal_func)tokens_are_equal,
+    .to_string = (to_string_func)token_to_string,
+    .hash = NULL
+};
+
+
 static struct token_info token_infos[] = {
     { T_UNKNOWN,            "",    "UNKNOWN" },
     { T_IDENTIFIER,         "",    "IDENTIFIER" },

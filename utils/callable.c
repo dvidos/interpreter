@@ -1,5 +1,11 @@
 #include <stdlib.h>
+#include <string.h>
 #include "callable.h"
+
+contained_item_info *containing_callables = &(contained_item_info){
+    .are_equal = (are_equal_func)callables_are_equal,
+    .to_string = (to_string_func)callable_description
+};
 
 struct callable {
     const char *name;
@@ -25,6 +31,24 @@ const char *callable_name(callable *c) {
 const char *callable_description(callable *c) {
     return c->description;
 }
+
+bool callables_are_equal(callable *a, callable *b) {
+    if (a == NULL && b == NULL) return true;
+    if ((a == NULL && b != NULL) || (a != NULL && b == NULL)) return false;
+    if (a == b) return true;
+
+    if (strcmp(a->name, b->name) != 0)
+        return false;
+    if (strcmp(a->description, b->description) != 0)
+        return false;
+    if (list_length(a->arg_types) != list_length(b->arg_types))
+        return false;
+    if (a->ret_type != b->ret_type)
+        return false;
+    
+    return true;
+}
+
 
 failable_variant callable_call(callable *c, list *arguments) {
     // assume we verify argument types.

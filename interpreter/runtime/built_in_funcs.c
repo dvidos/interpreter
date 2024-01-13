@@ -17,7 +17,7 @@ static dict *built_in_funcs_dict = NULL;
 #define BUILT_IN_CALLABLE(description, name, ret_type, args_cnt, ...)  \
     static failable_variant name ## _func_body(list *arguments); \
     static inline callable *built_in_ ## name () { \
-        return new_callable(#name, description, name ## _func_body, list_of(args_cnt, ## __VA_ARGS__), ret_type); \
+        return new_callable(#name, description, name ## _func_body, list_of(NULL, args_cnt, ## __VA_ARGS__), ret_type); \
     } \
     static failable_variant name ## _func_body(list *args)
 
@@ -68,7 +68,7 @@ static inline void add_callable(callable *c) {
     dict_set(built_in_funcs_dict, callable_name(c), c);
 }
 void initialize_built_in_funcs_table() {
-    built_in_funcs_list = new_list();
+    built_in_funcs_list = new_list(containing_callables);
     built_in_funcs_dict = new_dict(16);
 
     add_callable(built_in_substr());

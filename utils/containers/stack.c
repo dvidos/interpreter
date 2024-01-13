@@ -13,11 +13,13 @@ typedef struct stack_entry {
 typedef struct stack {
     int length;
     stack_entry *head;
+    contained_item_info *contained_item_info;
 } stack;
 
 
 stack *new_stack() {
     stack *s = malloc(sizeof(stack));
+    // s->contained_item_info = contained_item_info;
     s->length = 0;
     s->head = NULL;
     return s;

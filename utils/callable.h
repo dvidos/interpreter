@@ -17,6 +17,8 @@ callable *new_callable(const char *name, const char *description, callable_func 
 const char *callable_name(callable *c);
 const char *callable_description(callable *c);
 failable_variant callable_call(callable *c, list *arguments);
+bool callables_are_equal(callable *a, callable *b);
 
+extern contained_item_info *containing_callables;
 
 #endif

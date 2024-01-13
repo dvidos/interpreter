@@ -231,7 +231,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 }
 
 static failable_list parse_function_arguments_expressions(bool verbose) {
-    list *args = new_list();
+    list *args = new_list(containing_expressions);
 
     // if empty args, there will be nothing to parse
     if (token_get_type(peek_token()) == T_RPAREN) {
@@ -390,7 +390,7 @@ failable_list parse_tokens_into_expressions(list *tokens, bool verbose) {
     last_token = new_token(T_UNKNOWN);
 
     // there may be more than one expressions, parse them as long as we have tokens
-    list *expressions = new_list();
+    list *expressions = new_list(containing_expressions);
     tokens_iterator->reset(tokens_iterator);
     while (tokens_iterator->valid(tokens_iterator) && token_get_type(tokens_iterator->curr(tokens_iterator)) != T_END) {
         failable_expression parsing = parse_expression(CM_NORMAL, verbose);

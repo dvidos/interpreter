@@ -28,6 +28,12 @@ struct expression {
     } per_type;
 };
 
+contained_item_info *containing_expressions = &(contained_item_info){
+    .are_equal = (are_equal_func)expressions_are_equal,
+    .to_string = (to_string_func)expression_to_string,
+    .hash      = NULL
+};
+
 static expression *new_expression(expression_type type, operator op) {
     expression *e = malloc(sizeof(expression));
     memset(e, 0, sizeof(expression));

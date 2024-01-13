@@ -146,7 +146,7 @@ static failable_token get_token_at_code_position(const char *code, int len, int 
 }
 
 failable_list parse_code_into_tokens(const char *code) {
-    list *tokens = new_list();
+    list *tokens = new_list(containing_tokens);
 
     if (code == NULL) {
         list_add(tokens, new_token(T_END));
