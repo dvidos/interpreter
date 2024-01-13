@@ -2,12 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 #include "../../utils/failable.h"
-#include "../../utils/containers/containable.h"
+#include "../../utils/containers/contained_item.h"
 #include "../../utils/strbld.h"
 #include "expression.h"
 
 struct expression {
-    containable *containable;
     expression_type type;
     operator op;
     union {
@@ -28,7 +27,8 @@ struct expression {
     } per_type;
 };
 
-contained_item_info *containing_expressions = &(contained_item_info){
+contained_item *containing_expressions = &(contained_item){
+    .type_name = "expression",
     .are_equal = (are_equal_func)expressions_are_equal,
     .to_string = (to_string_func)expression_to_string,
     .hash      = NULL
@@ -37,10 +37,6 @@ contained_item_info *containing_expressions = &(contained_item_info){
 static expression *new_expression(expression_type type, operator op) {
     expression *e = malloc(sizeof(expression));
     memset(e, 0, sizeof(expression));
-    e->containable = new_containable("expression",
-        (are_equal_func)expressions_are_equal,
-        (to_string_func)expression_to_string
-    );
     e->type = type;
     e->op = op;
     return e;

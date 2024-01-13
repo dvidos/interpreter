@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "containable.h"
+#include "contained_item.h"
 #include "../strbld.h"
 #include "list.h"
 
@@ -14,21 +14,21 @@ typedef struct list {
     int length;
     list_entry *head;
     list_entry *tail;
-    contained_item_info *contained_item_info;
+    contained_item *contained_item;
 } list;
 
 
-list *new_list(contained_item_info *contained_item_info) {
+list *new_list(contained_item *contained_item) {
     list *l = malloc(sizeof(list));
     l->length = 0;
     l->head = NULL;
     l->tail = NULL;
-    l->contained_item_info = contained_item_info;
+    l->contained_item = contained_item;
     return l;
 }
 
-list *list_of(contained_item_info *contained_item_info, int items_count, ...) {
-    list *l = new_list(contained_item_info);
+list *list_of(contained_item *contained_item, int items_count, ...) {
+    list *l = new_list(contained_item);
     va_list args;
     va_start(args, items_count);
     while (items_count-- > 0)
@@ -130,6 +130,8 @@ bool lists_are_equal(list *a, list *b) {
     if (a == b)
         return true;
     
+    if (!contained_item_info_are_equal(a->contained_item, b->contained_item))
+        return false;
     if (a->length != b->length)
         return false;
 
@@ -138,11 +140,11 @@ bool lists_are_equal(list *a, list *b) {
     struct list_entry *entry_b = b->head;
     while (entry_a != NULL && entry_b != NULL) {
         bool equal;
-        if (is_containable_instance(entry_a->item) && is_containable_instance(entry_b->item)) {
-            equal = containables_are_equal(entry_a->item, entry_b->item);
-        } else {
+        if (a->contained_item != NULL && a->contained_item->are_equal != NULL)
+            equal = a->contained_item->are_equal(entry_a->item, entry_b->item);
+        else
             equal = entry_a->item == entry_b->item;
-        }
+        
         if (!equal)
             return false;
         entry_a = entry_a->next;
@@ -159,8 +161,8 @@ const char *list_to_string(list *l, const char *separator) {
         if (e != l->head)
             strbld_cat(sb, separator);
         
-        if (is_containable_instance(e->item))
-            strbld_cat(sb, containable_to_string(e->item));
+        if (l->contained_item != NULL && l->contained_item->to_string != NULL)
+            strbld_cat(sb, l->contained_item->to_string(e->item));
         else
             strbld_catf(sb, "@0x%p", e->item);
         

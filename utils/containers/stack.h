@@ -6,7 +6,7 @@
 
 typedef struct stack stack;
 
-stack *new_stack(contained_item_info *contained_item_info);
+stack *new_stack(contained_item *contained_item);
 
 int   stack_length(stack *s);
 bool  stack_empty(stack *s);

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "../../utils/failable.h"
-#include "../../utils/containers/containable.h"
+#include "../../utils/containers/contained_item.h"
 #include "../../utils/containers/list.h"
 
 typedef enum token_type {
@@ -81,6 +81,6 @@ bool tokens_are_equal(token *a, token *b);
 
 STRONGLY_TYPED_FAILABLE_DECLARATION(token);
 
-extern contained_item_info *containing_tokens;
+extern contained_item *containing_tokens;
 
 #endif

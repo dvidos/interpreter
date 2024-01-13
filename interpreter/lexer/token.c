@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "token.h"
-#include "../../utils/containers/containable.h"
+#include "../../utils/containers/contained_item.h"
 #include "../../utils/strbld.h"
 
 struct token_info {
@@ -10,7 +10,8 @@ struct token_info {
     const char *debug_str;
 };
 
-contained_item_info *containing_tokens = &(contained_item_info){
+contained_item *containing_tokens = &(contained_item){
+    .type_name = "token",
     .are_equal = (are_equal_func)tokens_are_equal,
     .to_string = (to_string_func)token_to_string,
     .hash = NULL
@@ -74,17 +75,12 @@ static struct token_info token_infos[] = {
 };
 
 struct token {
-    containable *c;
     token_type type;
     const char *data; // e.g. identifier or number
 };
 
 token *new_token(token_type type) {
     token *t = malloc(sizeof(token));
-    t->c = new_containable("token", 
-        (are_equal_func)tokens_are_equal,
-        (to_string_func)token_to_string
-    );
     t->type = type;
     t->data = NULL;
     return t;
@@ -92,10 +88,6 @@ token *new_token(token_type type) {
 
 token *new_data_token(token_type type, const char *data) {
     token *t = malloc(sizeof(token));
-    t->c = new_containable("token", 
-        (are_equal_func)tokens_are_equal,
-        (to_string_func)token_to_string
-    );
     t->type = type;
     t->data = data;
     return t;

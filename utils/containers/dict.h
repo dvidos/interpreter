@@ -4,11 +4,11 @@
 #include <stdbool.h>
 #include "../failable.h"
 #include "../iterator.h"
-#include "containable.h"
+#include "contained_item.h"
 
 typedef struct dict dict;
 
-dict *new_dict(contained_item_info *contained_item_info, int capacity);
+dict *new_dict(contained_item *contained_item, int capacity);
 
 void  dict_set(dict *d, const char *key, void *item);
 bool  dict_has(dict *d, const char *key);

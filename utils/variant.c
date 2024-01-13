@@ -3,13 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
-#include "containers/containable.h"
+#include "containers/contained_item.h"
 #include "variant.h"
 #include "testing.h"
 
 
 struct variant {
-    containable *containable;
     variant_type type;
     union {
         bool b;
@@ -25,7 +24,8 @@ struct variant {
     const char *str_repr;
 };
 
-contained_item_info *containing_variants = &(contained_item_info){
+contained_item *containing_variants = &(contained_item){
+    .type_name = "variant",
     .are_equal = (are_equal_func)variants_are_equal,
     .to_string = (to_string_func)variant_to_string
 };
@@ -34,9 +34,6 @@ contained_item_info *containing_variants = &(contained_item_info){
 variant *new_null_variant() {
     variant *v = malloc(sizeof(variant));
     memset(v, 0, sizeof(variant));
-    v->containable = new_containable("variant", 
-        (are_equal_func)variants_are_equal, 
-        (to_string_func)variant_to_string);
     v->type = VT_NULL;
     return v;
 }

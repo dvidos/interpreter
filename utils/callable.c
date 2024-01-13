@@ -2,7 +2,8 @@
 #include <string.h>
 #include "callable.h"
 
-contained_item_info *containing_callables = &(contained_item_info){
+contained_item *containing_callables = &(contained_item){
+    .type_name = "callable",
     .are_equal = (are_equal_func)callables_are_equal,
     .to_string = (to_string_func)callable_description
 };

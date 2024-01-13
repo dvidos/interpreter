@@ -19,6 +19,6 @@ const char *callable_description(callable *c);
 failable_variant callable_call(callable *c, list *arguments);
 bool callables_are_equal(callable *a, callable *b);
 
-extern contained_item_info *containing_callables;
+extern contained_item *containing_callables;
 
 #endif

@@ -49,7 +49,7 @@ STRONGLY_TYPED_FAILABLE_DECLARATION(variant);
 
 bool variant_self_diagnostics();
 
-extern contained_item_info *containing_variants;
+extern contained_item *containing_variants;
 
 
 

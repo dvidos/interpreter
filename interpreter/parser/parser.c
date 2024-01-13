@@ -112,11 +112,9 @@ static inline operator pop_top_operator() {
 }
 
 static void print_operators_stack(FILE *stream, char *prefix) {
-    fprintf(stream, "%sOperators stack (%d)\n", prefix, stack_length(operators_stack));
-    int i = stack_length(operators_stack) - 1;
-    for_stack(operators_stack, it, void, ptr) {
-        fprintf(stream, "%s    %d: %s\n", prefix, i--, operator_str((operator)ptr));
-    }
+    const char *s = stack_to_string(operators_stack, ", ");
+    fprintf(stream, "%sOperators   stack, %d items, top -> %s\n", 
+        prefix, stack_length(operators_stack), s);
 }
 
 static inline void push_expression(expression *e) {
@@ -132,15 +130,9 @@ static inline expression *peek_top_expression() {
 }
 
 static void print_expressions_stack(FILE *stream, char *prefix) {
-    fprintf(stream, "%sExpressions stack (%d)\n", prefix, stack_length(expressions_stack));
-    if (stack_empty(expressions_stack)) {
-        fprintf(stream, "%s    (empty)\n", prefix);
-    } else {
-        strbld *separator_sb = new_strbld();
-        strbld_catf(separator_sb, "\n%s    ", prefix);
-        const char *str = stack_to_string(expressions_stack, strbld_charptr(separator_sb));
-        fprintf(stream, "%s    %s\n", prefix, str);
-    }
+    const char *s = stack_to_string(expressions_stack, ", ");
+    fprintf(stream, "%sExpressions stack, %d items, top -> %s\n", 
+        prefix, stack_length(expressions_stack), s);
 }
 
 // --------------------------------------------

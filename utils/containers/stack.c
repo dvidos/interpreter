@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "containable.h"
+#include "contained_item.h"
 #include "../strbld.h"
 #include "stack.h"
 
@@ -13,15 +13,15 @@ typedef struct stack_entry {
 typedef struct stack {
     int length;
     stack_entry *head;
-    contained_item_info *contained_item_info;
+    contained_item *contained_item;
 } stack;
 
 
-stack *new_stack(contained_item_info *contained_item_info) {
+stack *new_stack(contained_item *contained_item) {
     stack *s = malloc(sizeof(stack));
     s->length = 0;
     s->head = NULL;
-    s->contained_item_info = contained_item_info;
+    s->contained_item = contained_item;
     return s;
 }
 
@@ -108,8 +108,8 @@ const char *stack_to_string(stack *s, const char *separator) {
         if (e != s->head)
             strbld_cat(sb, separator);
         
-        if (is_containable_instance(e->item))
-            strbld_cat(sb, containable_to_string(e->item));
+        if (s->contained_item != NULL && s->contained_item->to_string != NULL)
+            strbld_cat(sb, s->contained_item->to_string(e->item));
         else
             strbld_catf(sb, "@0x%p", e->item);
         

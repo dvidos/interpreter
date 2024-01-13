@@ -14,16 +14,16 @@ typedef struct dict {
     dict_entry **entries_array;
     int capacity;
     int count;
-    contained_item_info *contained_item_info;
+    contained_item *contained_item;
 } dict;
 
-dict *new_dict(contained_item_info *contained_item_info, int capacity) {
+dict *new_dict(contained_item *contained_item, int capacity) {
     dict *d = malloc(sizeof(dict));
     d->capacity = capacity;
     d->count = 0;
     d->entries_array = malloc(sizeof(dict_entry *) * capacity);
     memset(d->entries_array, 0, d->capacity * sizeof(dict_entry *));
-    d->contained_item_info = contained_item_info;
+    d->contained_item = contained_item;
     return d;
 }
 
@@ -167,8 +167,11 @@ bool dicts_are_equal(dict *a, dict *b) {
     if (a == b)
         return true;
     
+    if (!contained_item_info_are_equal(a->contained_item, b->contained_item))
+        return false;
     if (a->count != b->count)
         return false;
+
 
     // we should walk now, but I'm tired for today..
     // TODO: implement this comparison.
