@@ -156,27 +156,19 @@ iterator *dict_iterator(dict *d);
 iterator *stack_iterator(stack *s);
 ```
 
-## Containable
+## Contained item
 
-Containable is a way to unlock polymorphic behavior for contained items, without the 
-containers knowing what they are containing. This allows having `compare` and `to_string` 
+Contained_item is a way to unlock polymorphic behavior for contained items, without the 
+containers knowing what they are containing. This allows having `are_equal` and `to_string` 
 functionality, without knowing the item contents.
 
-For an item to be considered containable, the first item in the structure must be a pointer
-to a `containable` structure, one with a magic number for verification. 
-To make things easy, the following functions are all is needed:
+Each entity (e.g. token, expression etc) are declaring a global pointer to such a struct,
+holding the relevant functions. By convention, these are usually named `containing_####`,
+where #### is the name of the entity. This creates the syntactic sugar below:
 
-```c
-// in the factory function of an item
-containable *new_containable(const char *struct_name, 
-    bool (are_equal_func)(void *pointer_a, void *pointer_b), 
-    const char *(to_string_func)(void *pointer)
-);
-
-// in the containers, to perform functionality
-bool is_containable_instance(void *pointer);
-bool containables_are_equal(void *pointer_a, void *pointer_b);
-const char *containable_to_string(void *pointer);
+```
+list *l = new_list(having_tokens);
+dict *d = new_dict(having_operators);
 ```
 
 # Variant
