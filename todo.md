@@ -1,8 +1,5 @@
 # todo
 
-* split parser - lexer into directories
-* implement function calling, for built-in functions, e.g.
-`length()`, `str()`, `int()`, `float()`, `substr()`, `index()` etc
 * implement control structures parsing, e.g.
 `if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
 * implement parsing of functions
@@ -17,4 +14,8 @@ Ability to parse EBNF syntax and then parse things on the fly?
 
 # done!
 
+* implement function calling, for built-in functions, e.g.
+`length()`, `str()`, `int()`, `float()`, `substr()`, `index()` etc
 * parsing of expressions, using shunting yard, correct execution and saving!
+* extract tests in their own files, go style
+* split parser - lexer into directories

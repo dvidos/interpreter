@@ -1,7 +1,7 @@
 #ifndef _OPERATOR_H
 #define _OPERATOR_H
 
-#include "token.h"
+#include "../lexer/token.h"
 
 
 enum op_position {

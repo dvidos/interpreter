@@ -1,9 +1,13 @@
-#include "tests.h"
-#include "eval/eval.h"
+#include "utils/testing.h"
+#include "utils/variant.h"
+#include "code/lexer/tokenization_tests.h"
+#include "code/parser/parser_tests.h"
+#include "code/interpreter_tests.h"
+#include "code/interpreter.h"
 
 
 /*
-    The core of the functionality is the "evaluate()" function.
+    The core of the functionality is the "interpret_and_execute()" function.
     It would give the ability to programs to evaluate strings,
     like complex business conditions etc.
 
@@ -16,13 +20,24 @@
     something like "if(left(a, 1) == '0', 'number', 'letter')"
     Maybe the code body, arguments and returned value can become a function.
 
-    evaluate("a + b * 2", {a=1, b=2})
+    interpret_and_execute("a + b * 2", {a=1, b=2})
 */
 
-int main() {
-    initialize_evaluator();
+bool run_self_diagnostics() {
 
-    if (!run_unit_tests())
+    variant_self_diagnostics();
+    tokenizer_self_diagnostics();
+    parser_self_diagnostics(false);
+    interpreter_self_diagnostics();
+
+    return testing_outcome(true);
+}
+
+
+int main() {
+    initialize_interpreter();
+
+    if (!run_self_diagnostics())
         return 1;
     
     // actual functionality here

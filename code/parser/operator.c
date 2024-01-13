@@ -1,6 +1,5 @@
 #include <string.h>
 #include "operator.h"
-#include "token.h"
 
 struct op_info {
     operator op;

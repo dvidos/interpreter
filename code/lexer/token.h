@@ -2,8 +2,8 @@
 #define _TOKEN_H
 
 #include <stdio.h>
-#include "../utils/failable.h"
-#include "../utils/containers/list.h"
+#include "../../utils/failable.h"
+#include "../../utils/containers/list.h"
 
 typedef enum token_type {
     T_UNKNOWN = 0, // important that zero has unknown meaning

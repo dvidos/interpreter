@@ -1,3 +1,4 @@
+OUTPUT = interpreter
 FILES = \
 	main.c \
 	utils/testing.c \
@@ -9,16 +10,18 @@ FILES = \
 	utils/strbld.c \
 	utils/variant.c \
 	utils/callable.c \
-	eval/token.c \
-	eval/tokenization.c \
-	eval/operator.c \
-	eval/expression.c \
-	eval/parser.c \
-	eval/built_in_funcs.c \
-	eval/execution.c \
-	eval/eval.c \
-	tests.c
+	code/lexer/token.c \
+	code/lexer/tokenization.c \
+	code/lexer/tokenization_tests.c \
+	code/parser/operator.c \
+	code/parser/expression.c \
+	code/parser/parser.c \
+	code/parser/parser_tests.c \
+	code/runtime/built_in_funcs.c \
+	code/runtime/execution.c \
+	code/interpreter.c \
+	code/interpreter_tests.c
 
 
-evaluator: $(FILES)
-	gcc -g -o evaluator $(FILES)
+$(OUTPUT): $(FILES)
+	gcc -g -o $(OUTPUT) $(FILES)

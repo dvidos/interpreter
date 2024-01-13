@@ -1,9 +1,9 @@
 #ifndef _EXPRESSION_H
 #define _EXPRESSION_H
 
-#include "../utils/failable.h"
-#include "../utils/variant.h"
-#include "../utils/containers/dict.h"
+#include "../../utils/failable.h"
+#include "../../utils/variant.h"
+#include "../../utils/containers/dict.h"
 #include "operator.h"
 
 
