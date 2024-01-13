@@ -255,6 +255,10 @@ dict *variant_as_dict(variant *v) {
     }
 }
 
+variant_type variant_get_type(variant *v) {
+    return v->type;
+}
+
 bool variants_are_same(variant *a, variant *b) {
     if (a == NULL && b == NULL)
         return true;

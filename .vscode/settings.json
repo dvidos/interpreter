@@ -26,7 +26,10 @@
         "unordered_map": "c",
         "vector": "c",
         "string_view": "c",
-        "initializer_list": "c"
+        "initializer_list": "c",
+        "variant.h": "c",
+        "callable.h": "c",
+        "built_in_funcs.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

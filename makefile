@@ -8,11 +8,13 @@ FILES = \
 	utils/containers/stack.c \
 	utils/strbld.c \
 	utils/variant.c \
+	utils/callable.c \
 	eval/token.c \
 	eval/tokenization.c \
 	eval/operator.c \
 	eval/expression.c \
 	eval/parser.c \
+	eval/built_in_funcs.c \
 	eval/execution.c \
 	eval/eval.c \
 	tests.c

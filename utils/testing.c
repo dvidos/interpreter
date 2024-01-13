@@ -28,7 +28,12 @@ void __testing_assert(bool passed, const char *condition, const char *message, c
     }
 }
 
+void __testing_passed(const char *file, int line) {
+    asserts_done++;
+}
+
 void __testing_failed(const char *message, const char *file, int line) {
+    asserts_done++;
     asserts_failed++;
     fprintf(stderr, "Test failed: %s, at %s:%d\n", message, file, line);
 }

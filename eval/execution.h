@@ -6,7 +6,7 @@
 #include "expression.h"
 
 
-failable_variant execute_expression(expression *e, dict *values);
+failable_variant execute_expression(expression *e, dict *values, dict *callables);
 
 
 #endif

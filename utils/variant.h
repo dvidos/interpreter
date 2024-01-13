@@ -33,6 +33,7 @@ bool variant_is_float(variant *v);
 bool variant_is_str(variant *v);
 bool variant_is_list(variant *v);
 bool variant_is_dict(variant *v);
+variant_type variant_get_type(variant *v);
 
 bool variant_as_bool(variant *v);
 int variant_as_int(variant *v);
