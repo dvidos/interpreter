@@ -17,11 +17,11 @@ typedef struct stack {
 } stack;
 
 
-stack *new_stack() {
+stack *new_stack(contained_item_info *contained_item_info) {
     stack *s = malloc(sizeof(stack));
-    // s->contained_item_info = contained_item_info;
     s->length = 0;
     s->head = NULL;
+    s->contained_item_info = contained_item_info;
     return s;
 }
 

@@ -383,8 +383,8 @@ static failable_expression parse_expression(completion_mode completion, bool ver
 }
 
 failable_list parse_tokens_into_expressions(list *tokens, bool verbose) {
-    operators_stack = new_stack();
-    expressions_stack = new_stack();
+    operators_stack = new_stack(containing_operators);
+    expressions_stack = new_stack(containing_expressions);
     tokens_iterator = list_iterator(tokens);
     end_token = new_token(T_END);
     last_token = new_token(T_UNKNOWN);

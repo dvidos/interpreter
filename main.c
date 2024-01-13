@@ -86,7 +86,7 @@ void show_help() {
 }
 
 void execute_code(const char *code) {
-    dict *values = new_dict(20);
+    dict *values = new_dict(containing_variants, 20);
     failable_variant execution = interpret_and_execute(code, values, options.verbose);
     if (execution.failed)
         printf("Failed: %s\n", execution.err_msg);

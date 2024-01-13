@@ -69,7 +69,7 @@ static inline void add_callable(callable *c) {
 }
 void initialize_built_in_funcs_table() {
     built_in_funcs_list = new_list(containing_callables);
-    built_in_funcs_dict = new_dict(16);
+    built_in_funcs_dict = new_dict(containing_callables, 16);
 
     add_callable(built_in_substr());
     add_callable(built_in_strpos());

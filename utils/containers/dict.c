@@ -14,14 +14,16 @@ typedef struct dict {
     dict_entry **entries_array;
     int capacity;
     int count;
+    contained_item_info *contained_item_info;
 } dict;
 
-dict *new_dict(int capacity) {
+dict *new_dict(contained_item_info *contained_item_info, int capacity) {
     dict *d = malloc(sizeof(dict));
     d->capacity = capacity;
     d->count = 0;
     d->entries_array = malloc(sizeof(dict_entry *) * capacity);
     memset(d->entries_array, 0, d->capacity * sizeof(dict_entry *));
+    d->contained_item_info = contained_item_info;
     return d;
 }
 

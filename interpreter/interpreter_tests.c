@@ -15,7 +15,7 @@
 
 
 static void verify_execution_failed(char *expression) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (!evaluation.failed)
         assertion_failed("Evaluation did not fail as expected");
@@ -23,21 +23,21 @@ static void verify_execution_failed(char *expression) {
 }
 
 static void verify_execution_null(char *expression) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_is_null(evaluation.result), expression);
 }
 
 static void verify_execution_b(char *expression, bool expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_bool(evaluation.result) == expected_result, expression);
 }
 
 static void verify_execution_bb(char *expression, bool a, bool expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_bool_variant(a));
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
@@ -45,7 +45,7 @@ static void verify_execution_bb(char *expression, bool a, bool expected_result) 
 }
 
 static void verify_execution_bbb(char *expression, bool a, bool b, bool expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_bool_variant(a));
     dict_set(values, "b", new_bool_variant(b));
     failable_variant evaluation = interpret_and_execute(expression, values, false);
@@ -54,14 +54,14 @@ static void verify_execution_bbb(char *expression, bool a, bool b, bool expected
 }
 
 static void verify_execution_i(char *expression, int expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_int(evaluation.result) == expected_result, expression);
 }
 
 static void verify_execution_ii(char *expression, int a, int expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_int_variant(a));
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
@@ -69,7 +69,7 @@ static void verify_execution_ii(char *expression, int a, int expected_result) {
 }
 
 static void verify_execution_iii(char *expression, int a, int b, int expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_int_variant(a));
     dict_set(values, "b", new_int_variant(b));
     failable_variant evaluation = interpret_and_execute(expression, values, false);
@@ -78,7 +78,7 @@ static void verify_execution_iii(char *expression, int a, int b, int expected_re
 }
 
 static void verify_execution_ib(char *expression, int a, bool expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_int_variant(a));
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
@@ -86,7 +86,7 @@ static void verify_execution_ib(char *expression, int a, bool expected_result) {
 }
 
 static void verify_execution_s(char *expression, char *expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     bool answer_was_the_expected_one = strcmp(variant_as_str(evaluation.result), expected_result) == 0;
@@ -94,7 +94,7 @@ static void verify_execution_s(char *expression, char *expected_result) {
 }
 
 static void verify_execution_ss(char *expression, char *a, char *expected_result) {
-    dict *values = new_dict(10);
+    dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_str_variant(a));
     failable_variant evaluation = interpret_and_execute(expression, values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
