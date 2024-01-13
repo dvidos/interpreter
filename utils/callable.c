@@ -3,14 +3,16 @@
 
 struct callable {
     const char *name;
+    const char *description;
     callable_func *func;
     list *arg_types;
     variant_type ret_type;
 };
 
-callable *new_callable(const char *name, callable_func *func, list *arg_types, variant_type ret_type) {
+callable *new_callable(const char *name, const char *description, callable_func *func, list *arg_types, variant_type ret_type) {
     callable *c = malloc(sizeof(callable));
     c->name = name;
+    c->description = description;
     c->func = func;
     c->arg_types = arg_types;
     c->ret_type = ret_type;
@@ -19,6 +21,9 @@ callable *new_callable(const char *name, callable_func *func, list *arg_types, v
 
 const char *callable_name(callable *c) {
     return c->name;
+}
+const char *callable_description(callable *c) {
+    return c->description;
 }
 
 failable_variant callable_call(callable *c, list *arguments) {

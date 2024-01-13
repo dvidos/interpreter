@@ -13,8 +13,9 @@ typedef struct callable callable;
 
 typedef failable_variant (callable_func)(list *arguments);
 
-callable *new_callable(const char *name, callable_func *func, list *arg_types, variant_type ret_type);
+callable *new_callable(const char *name, const char *description, callable_func *func, list *arg_types, variant_type ret_type);
 const char *callable_name(callable *c);
+const char *callable_description(callable *c);
 failable_variant callable_call(callable *c, list *arguments);
 
 

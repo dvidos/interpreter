@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "token.h"
+#include "../../utils/containers/containable.h"
+#include "../../utils/strbld.h"
 
 struct token_info {
     token_type type;
@@ -65,12 +67,17 @@ static struct token_info token_infos[] = {
 };
 
 struct token {
+    containable *c;
     token_type type;
     const char *data; // e.g. identifier or number
 };
 
 token *new_token(token_type type) {
     token *t = malloc(sizeof(token));
+    t->c = new_containable("token", 
+        (are_equal_func)tokens_are_equal,
+        (to_string_func)token_to_string
+    );
     t->type = type;
     t->data = NULL;
     return t;
@@ -78,6 +85,10 @@ token *new_token(token_type type) {
 
 token *new_data_token(token_type type, const char *data) {
     token *t = malloc(sizeof(token));
+    t->c = new_containable("token", 
+        (are_equal_func)tokens_are_equal,
+        (to_string_func)token_to_string
+    );
     t->type = type;
     t->data = data;
     return t;
@@ -121,10 +132,26 @@ void token_print(token *t, FILE *stream, char *prefix) {
     );
 }
 
-void token_print_list(list *tokens, FILE *stream, char *prefix) {
+const char *token_to_string(token *t) {
+    strbld *sb = new_strbld();
+
+    token_type tt = token_get_type(t);
+    const char *data = token_get_data(t);
+    bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
+    
+    strbld_cat(sb, token_type_str(tt));
+    if (has_data)
+        strbld_catf(sb, "(\"%s\")", t->data);
+    
+    return strbld_charptr(sb);
+}
+
+void token_print_list(list *tokens, FILE *stream, char *prefix, char *separator) {
+    int i = 0;
     for_list(tokens, it, token, t) {
+        if (i++ > 0)
+            fprintf(stream, "%s", separator);
         token_print(t, stream, prefix);
-        fprintf(stream, "\n");
     }
 }
 

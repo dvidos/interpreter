@@ -48,5 +48,5 @@ bool testing_outcome(bool verbose) {
             asserts_failed
         );
     }
-    return asserts_failed > 0;
+    return asserts_failed == 0;
 }

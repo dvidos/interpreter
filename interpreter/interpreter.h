@@ -5,6 +5,6 @@
 #include "../utils/containers/dict.h"
 
 void initialize_interpreter();
-failable_variant interpret_and_execute(const char *code, dict *arguments);
+failable_variant interpret_and_execute(const char *code, dict *arguments, bool verbose);
 
 #endif

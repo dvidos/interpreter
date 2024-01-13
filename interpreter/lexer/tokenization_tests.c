@@ -36,7 +36,7 @@ static bool use_case_passes(const char *code, bool expect_failure, int expected_
 
     if (list_length(tokens) != expected_tokens) {
         fprintf(stderr, "Tokenization expected %d tokens, gotten %d, code=\"%s\")\n", expected_tokens, list_length(tokens), code);
-        token_print_list(tokens, stderr, "    ");
+        token_print_list(tokens, stderr, "    ", "\n");
         return false;
     }
 

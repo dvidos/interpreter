@@ -21,15 +21,25 @@ void initialize_interpreter() {
 }
 
 
-failable_variant interpret_and_execute(const char *code, dict *arguments) {
+failable_variant interpret_and_execute(const char *code, dict *arguments, bool verbose) {
 
     failable_list tokenization = parse_code_into_tokens(code);
     if (tokenization.failed)
         return failed("Tokenization failed: %s", tokenization.err_msg);
     
-    failable_list parsing = parse_tokens_into_expressions(tokenization.result, false);
+    if (verbose) {
+        printf("Parsed tokens:\n");
+        printf("  %s\n", list_to_string(tokenization.result, ", "));
+    }
+
+    failable_list parsing = parse_tokens_into_expressions(tokenization.result, verbose);
     if (parsing.failed)
         return failed("Parsing failed: %s", parsing.err_msg);
+
+    if (verbose) {
+        printf("Parsed expressions:\n");
+        printf("  %s\n", list_to_string(parsing.result, "\n  "));
+    }
 
     variant *result = new_null_variant();
     for_list(parsing.result, results_iterator, expression, expr) {

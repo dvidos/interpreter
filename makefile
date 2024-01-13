@@ -1,4 +1,4 @@
-OUTPUT = interpreter
+OUTPUT = ipret
 FILES = \
 	main.c \
 	utils/testing.c \
@@ -10,17 +10,17 @@ FILES = \
 	utils/strbld.c \
 	utils/variant.c \
 	utils/callable.c \
-	code/lexer/token.c \
-	code/lexer/tokenization.c \
-	code/lexer/tokenization_tests.c \
-	code/parser/operator.c \
-	code/parser/expression.c \
-	code/parser/parser.c \
-	code/parser/parser_tests.c \
-	code/runtime/built_in_funcs.c \
-	code/runtime/execution.c \
-	code/interpreter.c \
-	code/interpreter_tests.c
+	interpreter/lexer/token.c \
+	interpreter/lexer/tokenization.c \
+	interpreter/lexer/tokenization_tests.c \
+	interpreter/parser/operator.c \
+	interpreter/parser/expression.c \
+	interpreter/parser/parser.c \
+	interpreter/parser/parser_tests.c \
+	interpreter/runtime/built_in_funcs.c \
+	interpreter/runtime/execution.c \
+	interpreter/interpreter.c \
+	interpreter/interpreter_tests.c
 
 
 $(OUTPUT): $(FILES)

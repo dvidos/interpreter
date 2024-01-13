@@ -5,7 +5,7 @@
 
 void initialize_built_in_funcs_table();
 dict *get_built_in_funcs_table();
-
+void print_built_in_funcs_list();
 
 
 #endif

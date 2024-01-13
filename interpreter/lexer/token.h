@@ -73,7 +73,9 @@ const char *token_get_data(token *t);
 const char *token_type_str(token_type type);
 const char *token_type_parse_chars(token_type type);
 void token_print(token *t, FILE *stream, char *prefix);
-void token_print_list(list *tokens, FILE *stream, char *prefix);
+void token_print_list(list *tokens, FILE *stream, char *prefix, char *separator);
+
+const char *token_to_string(token *t);
 bool tokens_are_equal(token *a, token *b);
 
 STRONGLY_TYPED_FAILABLE_DECLARATION(token);
