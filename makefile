@@ -8,6 +8,7 @@ FILES = \
 	utils/containers/list.c \
 	utils/containers/stack.c \
 	utils/strbld.c \
+	utils/file.c \
 	utils/variant.c \
 	utils/callable.c \
 	interpreter/lexer/token.c \

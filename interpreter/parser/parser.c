@@ -311,7 +311,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     failable_bool completion_detection = detect_completion(tt, completion);
     if (completion_detection.failed)
         return failed("%s", completion_detection.err_msg);
-    if (completion_detection.bool_result) {
+    if ((bool)completion_detection.result) {
         create_expressions_for_higher_operators_than(OP_SENTINEL);
         *state = FINISHED;
         return ok();

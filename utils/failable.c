@@ -6,8 +6,7 @@
 
 
 failable ok() {
-    failable s = { false };
-    return s;
+    return (failable){ false };
 }
 
 failable __failed(const char *file, int line, const char *err_msg_fmt, ...) {
@@ -30,7 +29,10 @@ failable __failed(const char *file, int line, const char *err_msg_fmt, ...) {
 
 
 
-failable_bool ok_bool(bool result) {
-    failable s = { false, NULL, (void *)result };
-    return s;
+inline failable_bool ok_bool(bool result) {
+    return (failable_bool){ false, NULL, (void *)result };
+}
+
+inline failable_constcharptr ok_constcharptr(const char *result) {
+    return (failable_constcharptr){ false, NULL, (void *)result };
 }

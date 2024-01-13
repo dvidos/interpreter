@@ -1,5 +1,7 @@
 # todo
 
+* make "containable" something to pass to containers, not to the items themselves...
+* implement loading script from file to execute (add line numbers as well)
 * implement control structures parsing, e.g.
 `if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
 * implement parsing of functions

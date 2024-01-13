@@ -1,5 +1,6 @@
 #include "utils/testing.h"
 #include "utils/variant.h"
+#include "utils/file.h"
 #include "interpreter/lexer/tokenization_tests.h"
 #include "interpreter/parser/parser_tests.h"
 #include "interpreter/interpreter_tests.h"
@@ -88,6 +89,15 @@ void execute_code(const char *code) {
         printf("Result: %s\n", variant_to_string(execution.result));
 }
 
+void execute_script(const char *filename) {
+    failable_constcharptr contents = file_read(filename);
+    if (contents.failed) {
+        printf("%s", contents.err_msg);
+        return;
+    }
+    execute_code(contents.result);
+}
+
 int main(int argc, char *argv[]) {
     initialize_interpreter();
 
@@ -106,7 +116,7 @@ int main(int argc, char *argv[]) {
     } else if (options.execute_expression) {
         execute_code(options.expression);
     } else if (options.execute_script) {
-        printf("Not implemented yet!\n");
+        execute_script(options.script_filename);
     } else {
         show_help();
     }

@@ -31,7 +31,8 @@
         "callable.h": "c",
         "built_in_funcs.h": "c",
         "tokenization_tests.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "typeinfo": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
