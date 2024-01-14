@@ -303,7 +303,7 @@ const char *variant_to_string(variant *v) {
     return variant_as_str(v);
 }
 
-STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(variant);
+STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(variant);
 
 // -----------------------------------------------------
 

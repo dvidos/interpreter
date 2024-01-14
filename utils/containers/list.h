@@ -26,6 +26,6 @@ const char *list_to_string(list *l, const char *separator);
     for_iterator(iter_var, item_type, item_var)
 
 
-STRONGLY_TYPED_FAILABLE_DECLARATION(list);
+STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(list);
 
 #endif

@@ -79,7 +79,7 @@ void token_print_list(list *tokens, FILE *stream, char *prefix, char *separator)
 const char *token_to_string(token *t);
 bool tokens_are_equal(token *a, token *b);
 
-STRONGLY_TYPED_FAILABLE_DECLARATION(token);
+STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(token);
 
 extern contained_item *containing_tokens;
 

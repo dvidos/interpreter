@@ -27,6 +27,6 @@ statement *new_continue_statement();
 
 extern contained_item *containing_statements;
 
-STRONGLY_TYPED_FAILABLE_DECLARATION(statement);
+STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(statement);
 
 #endif

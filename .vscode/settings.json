@@ -33,7 +33,13 @@
         "tokenization_tests.h": "c",
         "string.h": "c",
         "typeinfo": "c",
-        "statement.h": "c"
+        "statement.h": "c",
+        "compare": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "expression_parser.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

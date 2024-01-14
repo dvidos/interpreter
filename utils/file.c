@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "failable.h"
 
-failable_constcharptr file_read(const char *filepath) {
+failable_const_char file_read(const char *filepath) {
     FILE *f = fopen(filepath, "r");
     if (f == NULL) return failed("Could not open file %s", filepath);
     fseek(f, 0, SEEK_END);
@@ -14,7 +14,7 @@ failable_constcharptr file_read(const char *filepath) {
     buffer[size] = '\0';
 
     fclose(f);
-    return ok_constcharptr(buffer);
+    return ok_const_char(buffer);
 }
 
 // we could try to make a very crude database, to work on ata intensive things

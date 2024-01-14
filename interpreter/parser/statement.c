@@ -170,6 +170,6 @@ contained_item *contains_statements = &(contained_item){
     .are_equal = (are_equal_func)statements_are_equal
 };
 
-STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(statement);
+STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(statement);
 
 

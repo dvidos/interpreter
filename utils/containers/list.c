@@ -171,4 +171,4 @@ const char *list_to_string(list *l, const char *separator) {
     return strbld_charptr(sb);
 }
 
-STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(list);
+STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(list);

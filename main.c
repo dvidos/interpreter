@@ -95,7 +95,7 @@ void execute_code(const char *code) {
 }
 
 void execute_script(const char *filename) {
-    failable_constcharptr contents = file_read(filename);
+    failable_const_char contents = file_read(filename);
     if (contents.failed) {
         printf("%s", contents.err_msg);
         return;

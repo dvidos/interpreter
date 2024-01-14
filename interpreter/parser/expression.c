@@ -208,4 +208,4 @@ const char *expression_to_string(expression *e) {
     return strbld_charptr(sb);
 }
 
-STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(expression);
+STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(expression);

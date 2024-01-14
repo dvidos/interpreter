@@ -28,11 +28,7 @@ failable __failed(const char *file, int line, const char *err_msg_fmt, ...) {
 }
 
 
+STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(bool);
+STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(int);
+STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(const_char);
 
-inline failable_bool ok_bool(bool result) {
-    return (failable_bool){ false, NULL, (void *)result };
-}
-
-inline failable_constcharptr ok_constcharptr(const char *result) {
-    return (failable_constcharptr){ false, NULL, (void *)result };
-}

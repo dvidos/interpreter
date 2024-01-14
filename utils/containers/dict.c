@@ -189,4 +189,4 @@ const char *dict_to_string(dict *l, const char *key_value_separator, const char 
 
 
 
-STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(dict);
+STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(dict);

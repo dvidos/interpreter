@@ -26,6 +26,6 @@ const char *dict_to_string(dict *l, const char *key_value_separator, const char 
     for_iterator(iter_var, item_type, item_var)
 
 
-STRONGLY_TYPED_FAILABLE_DECLARATION(dict);
+STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(dict);
 
 #endif

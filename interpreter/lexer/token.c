@@ -167,4 +167,4 @@ bool tokens_are_equal(token *a, token *b) {
     return true;
 }
 
-STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(token);
+STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(token);

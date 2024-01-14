@@ -43,7 +43,7 @@ list *expression_get_func_args(expression *e);
 const char *expression_to_string(expression *e);
 bool expressions_are_equal(expression *a, expression *b);
 
-STRONGLY_TYPED_FAILABLE_DECLARATION(expression);
+STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(expression);
 
 
 #endif

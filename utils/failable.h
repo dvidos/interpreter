@@ -18,32 +18,38 @@ failable __failed(const char *file, int line, const char *err_msg_fmt, ...);
 
 
 
-typedef struct failable failable_bool;
-failable_bool ok_bool(bool result);
-
-typedef struct failable failable_constcharptr;
-failable_constcharptr ok_constcharptr(const char *result);
-
-
-
 /* Declares:
    - struct   `failable_<type>`  alias to failable, for descriptive function declaration
    - function `ok_<type>()`      for returning failable with strongly typed result 
 */
-#define STRONGLY_TYPED_FAILABLE_DECLARATION(type)  \
+#define STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(type)  \
     typedef struct failable failable_##type; \
     failable_##type ok_##type(type *result);
+
+#define STRONGLY_TYPED_FAILABLE_VAL_DECLARATION(type)  \
+    typedef struct failable failable_##type; \
+    failable_##type ok_##type(type result);
 
 
 /* Implements:
    - function `ok_<type>()`      for returning failable with strongly typed result 
 */
-#define STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(type) \
-    failable_##type ok_##type(type *result) { \
-        return (failable_##type){ false, NULL, result }; \
-    }
+#define STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(type) \
+    failable_##type ok_##type(type *result) \
+        { return (failable_##type){ false, NULL, (void *)result }; }
+
+#define STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(type) \
+    failable_##type ok_##type(type result) \
+        { return (failable_##type){ false, NULL, (void *)(size_t)result }; }
 
 
+/* some predefined failables */
+
+typedef const char const_char;
+
+STRONGLY_TYPED_FAILABLE_VAL_DECLARATION(bool);
+STRONGLY_TYPED_FAILABLE_VAL_DECLARATION(int);
+STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(const_char);
 
 
 #endif
