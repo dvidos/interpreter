@@ -1,7 +1,6 @@
 # todo
 
-* implement control structures parsing, e.g.
-`if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
+* implement control structures parsing, e.g. `if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
 * implement parsing of functions
 * implement ability to execute script by file
 

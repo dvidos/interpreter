@@ -37,7 +37,7 @@ expression_type expression_get_type(expression *e);
 operator expression_get_operator(expression *e);
 int expression_get_operands_count(expression *e);
 const char *expression_get_terminal_data(expression *e);
-expression *expression_get_operand(expression *e, int index_1based);
+expression *expression_get_operand(expression *e, int index);
 list *expression_get_func_args(expression *e);
 
 const char *expression_to_string(expression *e);

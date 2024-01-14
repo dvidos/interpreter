@@ -18,6 +18,7 @@ FILES = \
 	interpreter/parser/expression.c \
 	interpreter/parser/parser.c \
 	interpreter/parser/parser_tests.c \
+	interpreter/parser/statement.c \
 	interpreter/runtime/built_in_funcs.c \
 	interpreter/runtime/execution.c \
 	interpreter/interpreter.c \
