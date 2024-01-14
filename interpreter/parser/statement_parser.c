@@ -13,7 +13,7 @@ failable_statement parse_statement(iterator *tokens, bool verbose) {
             return ok_statement(NULL);
     }
 
-    return failed("Unknown token type: %d", token_type_str(token_get_type(next)));
+    return failed_statement("Unknown token type: %d", token_type_str(token_get_type(next)));
 }
 
 

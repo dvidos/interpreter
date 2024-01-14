@@ -178,7 +178,7 @@ static failable_bool detect_completion(token_type curr_token, completion_mode co
 
     // all other modes should not end prematurely.
     if (curr_token == T_END || curr_token == T_SEMICOLON)
-        return failed("Unexpected end of expression (%s), when completion mode is %d", 
+        return failed_bool("Unexpected end of expression (%s), when completion mode is %d", 
                 token_type_str(curr_token), completion);
     
     if (completion == CM_SUB_EXPRESSION) {
@@ -189,7 +189,7 @@ static failable_bool detect_completion(token_type curr_token, completion_mode co
         return ok_bool(curr_token == T_COLON);
     }
 
-    return failed("Unknown completion mode %d", completion);
+    return failed_bool("Unknown completion mode %d", completion);
 }
 
 static failable parse_expression_on_want_operand(run_state *state, bool verbose) {
@@ -238,7 +238,7 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
     while (token_get_type(prev_token) != T_RPAREN) {
         failable_expression parse_arg = parse_expression(tokens_iterator, CM_FUNC_ARGS, verbose);
         if (parse_arg.failed)
-            return failed("%s", parse_arg.err_msg);
+            return failed_list("%s", parse_arg.err_msg);
         list_add(args, parse_arg.result);
     }
     
@@ -247,11 +247,11 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
 
 failable_expression parse_shorthand_if_pair(bool verbose) {
     failable_expression parsing = parse_expression(tokens_iterator, CM_COLON, verbose);
-    if (parsing.failed) return failed("%s", parsing.err_msg);
+    if (parsing.failed) return failed_expression("%s", parsing.err_msg);
     expression *e1 = parsing.result;
 
     parsing = parse_expression(tokens_iterator, CM_NORMAL, verbose);
-    if (parsing.failed) return failed("%s", parsing.err_msg);
+    if (parsing.failed) return failed_expression("%s", parsing.err_msg);
     expression *e2 = parsing.result;
 
     return ok_expression(new_pair_expression(e1, e2));
@@ -358,12 +358,12 @@ failable_expression parse_expression(iterator *tokens, completion_mode completio
             case WANT_OPERAND:
                 state_handling = parse_expression_on_want_operand(&state, verbose);
                 if (state_handling.failed)
-                    return failed("Failed on want operand: %s", state_handling.err_msg);
+                    return failed_expression("Failed on want operand: %s", state_handling.err_msg);
                 break;
             case HAVE_OPERAND:
                 state_handling = parse_expression_on_have_operand(&state, completion, verbose);
                 if (state_handling.failed)
-                    return failed("Failed on have operand: %s", state_handling.err_msg);
+                    return failed_expression("Failed on have operand: %s", state_handling.err_msg);
                 break;
         }
 
@@ -372,7 +372,7 @@ failable_expression parse_expression(iterator *tokens, completion_mode completio
     }
 
     if (peek_top_operator() != OP_SENTINEL)
-        return failed("Was expecting SENTINEL at the top of the queue");
+        return failed_expression("Was expecting SENTINEL at the top of the queue");
     pop_top_operator();
 
     return ok_expression(pop_top_expression());

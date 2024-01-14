@@ -27,6 +27,13 @@ failable __failed(const char *file, int line, const char *err_msg_fmt, ...) {
     return s;
 }
 
+const char *__fail_message(const char *fmt, va_list vl) {
+    char buffer[256];
+    vsnprintf(buffer, sizeof(buffer), fmt, vl);
+    char *p = malloc(strlen(buffer) + 1);
+    strcpy(p, buffer);
+    return p;
+}
 
 STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(bool);
 STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(int);

@@ -26,7 +26,7 @@ failable_variant interpret_and_execute(const char *code, dict *arguments, bool v
 
     failable_list tokenization = parse_code_into_tokens(code);
     if (tokenization.failed)
-        return failed("Tokenization failed: %s", tokenization.err_msg);
+        return failed_variant("Tokenization failed: %s", tokenization.err_msg);
     
     if (verbose)
         printf("Parsed tokens: %s\n", list_to_string(tokenization.result, ", "));
@@ -36,14 +36,14 @@ failable_variant interpret_and_execute(const char *code, dict *arguments, bool v
 
     failable_expression parsing = parse_expression(tokens_it, CM_NORMAL, verbose);
     if (parsing.failed)
-        return failed("Parsing failed: %s", parsing.err_msg);
+        return failed_variant("Parsing failed: %s", parsing.err_msg);
 
     if (verbose)
         printf("Parsed expression:\n  %s\n", expression_to_string(parsing.result));
 
     failable_variant execution = execute_expression(parsing.result, arguments, get_built_in_funcs_table());
     if (execution.failed)
-        return failed("Execution failed: %s", execution.err_msg);
+        return failed_variant("Execution failed: %s", execution.err_msg);
 
     return ok_variant(execution.result);
 }

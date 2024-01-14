@@ -54,12 +54,12 @@ bool callables_are_equal(callable *a, callable *b) {
 failable_variant callable_call(callable *c, list *arguments) {
     // assume we verify argument types.
     if (list_length(c->arg_types) != list_length(arguments))
-        return failed("expected %d arguments, got %d", list_length(c->arg_types), list_length(arguments));
+        return failed_variant("expected %d arguments, got %d", list_length(c->arg_types), list_length(arguments));
     for (int i = 0; i < list_length(arguments); i++) {
         variant_type expected_type = (variant_type)list_get(c->arg_types, i);
         variant_type given_type = variant_get_type(list_get(arguments, i));
         if (given_type != expected_type)
-            return failed("argument #%d expected type %d, got %d", i, expected_type, given_type);
+            return failed_variant("argument #%d expected type %d, got %d", i, expected_type, given_type);
     }
     
     return c->func(arguments);

@@ -81,6 +81,8 @@ bool tokens_are_equal(token *a, token *b);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(token);
 
+
 extern contained_item *containing_tokens;
+
 
 #endif
