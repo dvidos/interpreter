@@ -32,7 +32,8 @@
         "built_in_funcs.h": "c",
         "tokenization_tests.h": "c",
         "string.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "statement.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

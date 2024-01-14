@@ -19,6 +19,7 @@ FILES = \
 	interpreter/parser/expression_parser.c \
 	interpreter/parser/expression_parser_tests.c \
 	interpreter/parser/statement.c \
+	interpreter/parser/statement_parser.c \
 	interpreter/runtime/built_in_funcs.c \
 	interpreter/runtime/execution.c \
 	interpreter/interpreter.c \

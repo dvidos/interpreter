@@ -1,6 +1,7 @@
 #ifndef _STATEMENT_H
 #define _STATEMENT_H
 
+#include "../../utils/failable.h"
 #include "../../utils/containers/list.h"
 #include "../../utils/containers/contained_item.h"
 #include "expression.h"
@@ -25,5 +26,7 @@ statement *new_break_statement();
 statement *new_continue_statement();
 
 extern contained_item *containing_statements;
+
+STRONGLY_TYPED_FAILABLE_DECLARATION(statement);
 
 #endif

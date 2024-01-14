@@ -169,3 +169,7 @@ contained_item *contains_statements = &(contained_item){
     .to_string = (to_string_func)statement_to_string,
     .are_equal = (are_equal_func)statements_are_equal
 };
+
+STRONGLY_TYPED_FAILABLE_IMPLEMENTATION(statement);
+
+
