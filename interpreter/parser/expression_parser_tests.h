@@ -3,6 +3,6 @@
 
 #include <stdbool.h>
 
-bool parser_self_diagnostics(bool verbose);
+bool expression_parser_self_diagnostics(bool verbose);
 
 #endif

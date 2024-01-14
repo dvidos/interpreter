@@ -6,7 +6,7 @@
 #include "../utils/containers/list.h"
 #include "../utils/containers/stack.h"
 #include "parser/expression.h"
-#include "parser/parser.h"
+#include "parser/expression_parser.h"
 #include "lexer/token.h"
 #include "lexer/tokenization.h"
 #include "runtime/built_in_funcs.h"
@@ -105,10 +105,9 @@ static void verify_execution_ss(char *expression, char *a, char *expected_result
 bool interpreter_self_diagnostics() {
     bool passed = true;
 
-    verify_execution_null(NULL);
-    verify_execution_null("");
-
     // can of worms, if "null" keyword should be supported!
+    // verify_execution_null(NULL);
+    // verify_execution_null("");
     // verify_execution_null("null"); 
 
     verify_execution_b("false", false);
@@ -145,9 +144,9 @@ bool interpreter_self_diagnostics() {
     verify_execution_i("1 + 2 * 3 + 4", 11);
     verify_execution_i("1 + (2 * 3) + 4", 11);
     verify_execution_i("(1 + 2) * (3 + 4)", 21);
+    verify_execution_i("3", 3);
     verify_execution_i("3;", 3);
-    verify_execution_i("3; 5;", 5);
-    verify_execution_i("3;6", 6);
+    verify_execution_i("3 ;", 3);
     verify_execution_failed("1/0");
 
     verify_execution_ii("a", 4, 4);
@@ -158,8 +157,7 @@ bool interpreter_self_diagnostics() {
     verify_execution_ii("a / 3", 10, 3);
     verify_execution_ii("a++ + 3", 3, 6);
     verify_execution_ii("++a + 3", 3, 7);
-    verify_execution_ii("a++; a", 5, 6);
-    verify_execution_ii("a = a + 1; a", 5, 6);
+    verify_execution_ii("a = a + 1", 5, 6);
     
     verify_execution_ib("a > 5", 8, true);
     verify_execution_ib("a > 5", 5, false);

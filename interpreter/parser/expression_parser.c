@@ -5,7 +5,7 @@
 #include "../../utils/failable.h"
 #include "../../utils/containers/list.h"
 #include "../../utils/containers/stack.h"
-#include "parser.h"
+#include "expression_parser.h"
 #include "../lexer/token.h"
 #include "../lexer/tokenization.h"
 #include "operator.h"
@@ -29,25 +29,29 @@
 */
 
 typedef enum run_state { WANT_OPERAND, HAVE_OPERAND, FINISHED } run_state;
-typedef enum completion_mode { CM_NORMAL, CM_SUB_EXPRESSION, CM_FUNC_ARGS, CM_COLON } completion_mode;
 
 
 static stack *operators_stack;
 static stack *expressions_stack;
 static iterator *tokens_iterator;
-static token *last_token;
+static token *prev_token;
 static token *end_token;
-static failable_expression parse_expression(completion_mode completion, bool verbose);
 
+void initialize_expression_parser() {
+    operators_stack = new_stack(containing_operators);
+    expressions_stack = new_stack(containing_expressions);
+    end_token = new_token(T_END);
+    prev_token = new_token(T_UNKNOWN);
+}
 
 static token* get_token_and_advance() {
     // get token, advance to next position, so we can peek.
     if (!tokens_iterator->valid(tokens_iterator))
         return end_token;
     
-    last_token = tokens_iterator->curr(tokens_iterator);
+    prev_token = tokens_iterator->curr(tokens_iterator);
     tokens_iterator->next(tokens_iterator);
-    return last_token;
+    return prev_token;
 }
 
 static token* peek_token() {
@@ -202,7 +206,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 
     // handle sub-expressions, func cals are handled after having operand.
     if (tt == T_LPAREN) {
-        failable_expression sub_expression = parse_expression(CM_SUB_EXPRESSION, verbose);
+        failable_expression sub_expression = parse_expression(tokens_iterator, CM_SUB_EXPRESSION, verbose);
         if (sub_expression.failed)
             return failed("Subexpression failed: %s", sub_expression.err_msg);
         push_expression(sub_expression.result);
@@ -231,8 +235,8 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
         return ok_list(args);
     }
 
-    while (token_get_type(last_token) != T_RPAREN) {
-        failable_expression parse_arg = parse_expression(CM_FUNC_ARGS, verbose);
+    while (token_get_type(prev_token) != T_RPAREN) {
+        failable_expression parse_arg = parse_expression(tokens_iterator, CM_FUNC_ARGS, verbose);
         if (parse_arg.failed)
             return failed("%s", parse_arg.err_msg);
         list_add(args, parse_arg.result);
@@ -242,11 +246,11 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
 }
 
 failable_expression parse_shorthand_if_pair(bool verbose) {
-    failable_expression parsing = parse_expression(CM_COLON, verbose);
+    failable_expression parsing = parse_expression(tokens_iterator, CM_COLON, verbose);
     if (parsing.failed) return failed("%s", parsing.err_msg);
     expression *e1 = parsing.result;
 
-    parsing = parse_expression(CM_NORMAL, verbose);
+    parsing = parse_expression(tokens_iterator, CM_NORMAL, verbose);
     if (parsing.failed) return failed("%s", parsing.err_msg);
     expression *e2 = parsing.result;
 
@@ -325,10 +329,10 @@ static void print_debug_information(char *title, run_state state) {
         fprintf(stderr, "    Curr state %s", state_name);
 
         fprintf(stderr, ", last token "); 
-        if (last_token == NULL)
+        if (prev_token == NULL)
             fprintf(stderr, "(null)");
         else
-            token_print(last_token, stderr, "");
+            token_print(prev_token, stderr, "");
 
         fprintf(stderr, ", next token ");
         token_print(peek_token(), stderr, "");
@@ -338,9 +342,9 @@ static void print_debug_information(char *title, run_state state) {
         print_operators_stack(stderr, "    ");
 }
 
-static failable_expression parse_expression(completion_mode completion, bool verbose) {
-    // re-entrable, for subexpressions.
-    // parse till we encounter the completion condition
+failable_expression parse_expression(iterator *tokens, completion_mode completion, bool verbose) {
+    // re-entrable
+    tokens_iterator = tokens;
 
     failable state_handling;
     run_state state = WANT_OPERAND;
@@ -372,25 +376,4 @@ static failable_expression parse_expression(completion_mode completion, bool ver
     pop_top_operator();
 
     return ok_expression(pop_top_expression());
-}
-
-failable_list parse_tokens_into_expressions(list *tokens, bool verbose) {
-    operators_stack = new_stack(containing_operators);
-    expressions_stack = new_stack(containing_expressions);
-    tokens_iterator = list_iterator(tokens);
-    end_token = new_token(T_END);
-    last_token = new_token(T_UNKNOWN);
-
-    // there may be more than one expressions, parse them as long as we have tokens
-    list *expressions = new_list(containing_expressions);
-    tokens_iterator->reset(tokens_iterator);
-    while (tokens_iterator->valid(tokens_iterator) && token_get_type(tokens_iterator->curr(tokens_iterator)) != T_END) {
-        failable_expression parsing = parse_expression(CM_NORMAL, verbose);
-        if (parsing.failed)
-            return failed("%s", parsing.err_msg);
-
-        list_add(expressions, parsing.result);
-    }
-
-    return ok_list(expressions);
 }

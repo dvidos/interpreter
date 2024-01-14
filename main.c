@@ -2,7 +2,7 @@
 #include "utils/variant.h"
 #include "utils/file.h"
 #include "interpreter/lexer/tokenization_tests.h"
-#include "interpreter/parser/parser_tests.h"
+#include "interpreter/parser/expression_parser_tests.h"
 #include "interpreter/interpreter_tests.h"
 #include "interpreter/interpreter.h"
 #include "interpreter/runtime/built_in_funcs.h"
@@ -31,7 +31,7 @@ bool run_self_diagnostics(bool verbose) {
 
     variant_self_diagnostics();
     tokenizer_self_diagnostics();
-    parser_self_diagnostics(false);
+    expression_parser_self_diagnostics(false);
     interpreter_self_diagnostics();
 
     return testing_outcome(verbose);
