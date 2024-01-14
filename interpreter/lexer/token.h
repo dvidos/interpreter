@@ -16,6 +16,8 @@ typedef enum token_type {
 
     T_LPAREN,
     T_RPAREN,
+    T_LBRACKET,
+    T_RBRACKET,
     T_LSQBRACKET,
     T_RSQBRACKET,
     T_SEMICOLON,

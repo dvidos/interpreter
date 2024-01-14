@@ -27,6 +27,8 @@ static struct token_info token_infos[] = {
 
     { T_LPAREN,             "(",   "LPAREN" },
     { T_RPAREN,             ")",   "RPAREN" },
+    { T_LBRACKET,           "{",   "LBRACKET" },
+    { T_RBRACKET,           "}",   "RBRACKET" },
     { T_LSQBRACKET,         "[",   "LSQBRACKET" },
     { T_RSQBRACKET,         "]",   "RSQBRACKET" },
     { T_SEMICOLON,          ";",   "SEMICOLON" },

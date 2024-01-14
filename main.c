@@ -1,8 +1,10 @@
 #include "utils/testing.h"
 #include "utils/variant.h"
+#include "utils/variant_tests.h"
 #include "utils/file.h"
 #include "interpreter/lexer/tokenization_tests.h"
-#include "interpreter/parser/expression_parser_tests.h"
+#include "interpreter/parser_expr/expression_parser_tests.h"
+#include "interpreter/parser_stmt/statement_parser_tests.h"
 #include "interpreter/interpreter_tests.h"
 #include "interpreter/interpreter.h"
 #include "interpreter/runtime/built_in_funcs.h"
@@ -28,13 +30,27 @@
 */
 
 bool run_self_diagnostics(bool verbose) {
+    bool all_passed = true;
 
-    variant_self_diagnostics();
-    tokenizer_self_diagnostics();
-    expression_parser_self_diagnostics(false);
-    interpreter_self_diagnostics();
+    if (!variant_self_diagnostics())
+        all_passed = false;
+    
+    if (!tokenizer_self_diagnostics())
+        all_passed = false;
+    
+    if (!expression_parser_self_diagnostics(false))
+        all_passed = false;
+    
+    if (!statement_parser_self_diagnostics(false))
+        all_passed = false;
 
-    return testing_outcome(verbose);
+    if (!interpreter_self_diagnostics())
+        all_passed = false;
+
+    if (verbose) {
+        printf("Self diagnostics %s\n", all_passed ? "PASSED" : "FAILED");
+    }
+    return all_passed;
 }
 
 struct options {

@@ -4,7 +4,7 @@
 #include "../../utils/failable.h"
 #include "../../utils/containers/list.h"
 #include "../../utils/containers/contained_item.h"
-#include "expression.h"
+#include "../parser_expr/expression.h"
 
 typedef enum statement_type {
     ST_EXPRESSION,
@@ -28,5 +28,8 @@ statement *new_continue_statement();
 extern contained_item *containing_statements;
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(statement);
+
+bool statements_are_equal(statement *a, statement *b);
+const char *statement_to_string(statement *s);
 
 #endif

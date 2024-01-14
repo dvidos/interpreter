@@ -1,5 +1,5 @@
-#ifndef _PARSER_H
-#define _PARSER_H
+#ifndef _EXPRESSION_PARSER_TESTS_H
+#define _EXPRESSION_PARSER_TEST_H
 
 #include <stdbool.h>
 

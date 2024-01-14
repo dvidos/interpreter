@@ -47,8 +47,6 @@ const char *variant_to_string(variant *v);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(variant);
 
-bool variant_self_diagnostics();
-
 extern contained_item *containing_variants;
 
 

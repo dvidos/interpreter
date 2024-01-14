@@ -10,16 +10,18 @@ FILES = \
 	utils/strbld.c \
 	utils/file.c \
 	utils/variant.c \
+	utils/variant_tests.c \
 	utils/callable.c \
 	interpreter/lexer/token.c \
 	interpreter/lexer/tokenization.c \
 	interpreter/lexer/tokenization_tests.c \
-	interpreter/parser/operator.c \
-	interpreter/parser/expression.c \
-	interpreter/parser/expression_parser.c \
-	interpreter/parser/expression_parser_tests.c \
-	interpreter/parser/statement.c \
-	interpreter/parser/statement_parser.c \
+	interpreter/parser_expr/operator.c \
+	interpreter/parser_expr/expression.c \
+	interpreter/parser_expr/expression_parser.c \
+	interpreter/parser_expr/expression_parser_tests.c \
+	interpreter/parser_stmt/statement.c \
+	interpreter/parser_stmt/statement_parser.c \
+	interpreter/parser_stmt/statement_parser_tests.c \
 	interpreter/runtime/built_in_funcs.c \
 	interpreter/runtime/execution.c \
 	interpreter/interpreter.c \
