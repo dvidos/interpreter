@@ -28,7 +28,7 @@ static bool use_case_passes(const char *code, bool expect_failure, statement *ex
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
 
-    failable_statement parsing = parse_statement(tokens_it, verbose);
+    failable_statement parsing = parse_statement(tokens_it);
     
     // test failure
     if (expect_failure) {
@@ -64,29 +64,35 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("if (a) b;", false, 
         new_if_statement(
             new_identifier_expression("a"),
-            list_of(containing_expressions, 1, new_identifier_expression("b"))
+            list_of(containing_expressions, 1, new_identifier_expression("b")),
+            false,
+            NULL
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("if (a) { b; c; }", false, 
         new_if_statement(
             new_identifier_expression("a"),
-            list_of(containing_expressions, 2, new_identifier_expression("b"), new_identifier_expression("c"))
+            list_of(containing_expressions, 2, new_identifier_expression("b"), new_identifier_expression("c")),
+            false,
+            NULL
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("if (a) b; else c;", false, 
-        new_if_else_statement(
+        new_if_statement(
             new_identifier_expression("a"),
             list_of(containing_expressions, 1, new_identifier_expression("b")),
+            true,
             list_of(containing_expressions, 1, new_identifier_expression("c"))
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("if (a) { b; c; } else { d; e; }", false, 
-        new_if_else_statement(
+        new_if_statement(
             new_identifier_expression("a"),
             list_of(containing_expressions, 2, new_identifier_expression("b"), new_identifier_expression("c")),
+            true,
             list_of(containing_expressions, 2, new_identifier_expression("d"), new_identifier_expression("e"))
         ), 
     verbose)) all_passed = false;

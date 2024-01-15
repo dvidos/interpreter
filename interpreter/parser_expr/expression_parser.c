@@ -181,7 +181,9 @@ static failable_bool detect_completion(token_type curr_token, completion_mode co
         return failed_bool("Unexpected end of expression (%s), when completion mode is %d", 
                 token_type_str(curr_token), completion);
     
-    if (completion == CM_SUB_EXPRESSION) {
+    if (completion == CM_SEMICOLON) {
+        return ok_bool(curr_token == T_SEMICOLON);
+    } else if (completion == CM_RPAREN) {
         return ok_bool(curr_token == T_RPAREN);
     } else if (completion == CM_FUNC_ARGS) {
         return ok_bool(curr_token == T_RPAREN || curr_token == T_COMMA);
@@ -206,7 +208,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 
     // handle sub-expressions, func cals are handled after having operand.
     if (tt == T_LPAREN) {
-        failable_expression sub_expression = parse_expression(tokens_iterator, CM_SUB_EXPRESSION, verbose);
+        failable_expression sub_expression = parse_expression(tokens_iterator, CM_RPAREN, verbose);
         if (sub_expression.failed)
             return failed("Subexpression failed: %s", sub_expression.err_msg);
         push_expression(sub_expression.result);

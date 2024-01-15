@@ -41,7 +41,8 @@
         "utility": "c",
         "expression_parser.h": "c",
         "interpreter_tests.h": "c",
-        "statement_parser_tests.h": "c"
+        "statement_parser_tests.h": "c",
+        "statement_parser.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

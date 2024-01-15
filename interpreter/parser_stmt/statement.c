@@ -38,21 +38,12 @@ statement *new_expression_statement(expression *expr) {
     s->per_type.expr.expr = expr;
     return s;
 }
-statement *new_if_statement(expression *condition, list *body_statements) {
+statement *new_if_statement(expression *condition, list *body_statements, bool has_else, list *else_body_statements) {
     statement *s = malloc(sizeof(statement));
     s->type = ST_IF;
     s->per_type.if_.condition = condition;
     s->per_type.if_.body_statements = body_statements;
-    s->per_type.if_.has_else = false;
-    s->per_type.if_.else_body_statements = NULL;
-    return s;
-}
-statement *new_if_else_statement(expression *condition, list *body_statements, list *else_body_statements) {
-    statement *s = malloc(sizeof(statement));
-    s->type = ST_IF;
-    s->per_type.if_.condition = condition;
-    s->per_type.if_.body_statements = body_statements;
-    s->per_type.if_.has_else = true;
+    s->per_type.if_.has_else = has_else;
     s->per_type.if_.else_body_statements = else_body_statements;
     return s;
 }
@@ -163,7 +154,7 @@ bool statements_are_equal(statement *a, statement *b) {
     return true;
 }
 
-contained_item *contains_statements = &(contained_item){
+contained_item *containing_statements = &(contained_item){
     .type_name = "statement",
     .to_string = (to_string_func)statement_to_string,
     .are_equal = (are_equal_func)statements_are_equal

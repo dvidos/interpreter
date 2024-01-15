@@ -7,7 +7,8 @@
 
 typedef enum completion_mode {
     CM_NORMAL,         // either a semicolon, or end of tokens
-    CM_SUB_EXPRESSION, // a closing parenthesis
+    CM_RPAREN,         // a closing parenthesis
+    CM_SEMICOLON,      // explicit semicolon
     CM_FUNC_ARGS,      // either comma or closing parenthesis
     CM_COLON           // until a colon is found, used for '?:'
 } completion_mode;

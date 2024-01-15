@@ -18,8 +18,7 @@ typedef enum statement_type {
 typedef struct statement statement;
 
 statement *new_expression_statement(expression *expr);
-statement *new_if_statement(expression *condition, list *body_statements);
-statement *new_if_else_statement(expression *condition, list *body_statements, list *else_body_statements);
+statement *new_if_statement(expression *condition, list *body_statements, bool has_else, list *else_body_statements);
 statement *new_while_statement(expression *condition, list *body_statements);
 statement *new_for_statement(expression *init, expression *condition, expression *next, list *body_statements);
 statement *new_break_statement();
