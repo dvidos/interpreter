@@ -172,12 +172,13 @@ static void create_expressions_for_higher_operators_than(operator op) {
 // --------------------------------------------
 
 static failable_bool detect_completion(token_type curr_token, completion_mode completion) {
-    if (completion == CM_NORMAL) {
-        return ok_bool(curr_token == T_END || curr_token == T_SEMICOLON);
+    if (completion == CM_END_OF_TEXT) {
+        // we can accept END here.
+        return ok_bool(curr_token == T_END);
     }
 
-    // all other modes should not end prematurely.
-    if (curr_token == T_END || curr_token == T_SEMICOLON)
+    // we should not accept END here.
+    if (curr_token == T_END)
         return failed_bool("Unexpected end of expression (%s), when completion mode is %d", 
                 token_type_str(curr_token), completion);
     
@@ -252,7 +253,7 @@ failable_expression parse_shorthand_if_pair(bool verbose) {
     if (parsing.failed) return failed_expression("%s", parsing.err_msg);
     expression *e1 = parsing.result;
 
-    parsing = parse_expression(tokens_iterator, CM_NORMAL, verbose);
+    parsing = parse_expression(tokens_iterator, CM_END_OF_TEXT, verbose);
     if (parsing.failed) return failed_expression("%s", parsing.err_msg);
     expression *e2 = parsing.result;
 

@@ -34,7 +34,7 @@ failable_variant interpret_and_execute(const char *code, dict *arguments, bool v
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
 
-    failable_expression parsing = parse_expression(tokens_it, CM_NORMAL, verbose);
+    failable_expression parsing = parse_expression(tokens_it, CM_END_OF_TEXT, verbose);
     if (parsing.failed)
         return failed_variant("Parsing failed: %s", parsing.err_msg);
 

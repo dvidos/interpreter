@@ -1,6 +1,10 @@
 # todo
 
 * implement control structures parsing, e.g. `if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
+* make iterator a two level object, internal is move/validate only, externa supports:
+`last`, `curr`, `peek` etc, to aleviate code repetition. Then, since we have the `last` method, fix:
+  * the `if(a;b;c;d) {...} case
+  * function arguments parsing, so that parser does not need to store last token.
 * implement parsing of functions
 * implement ability to execute script by file
 

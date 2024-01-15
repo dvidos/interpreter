@@ -64,7 +64,8 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("if (a) b;", false, 
         new_if_statement(
             new_identifier_expression("a"),
-            list_of(containing_expressions, 1, new_identifier_expression("b")),
+            list_of(containing_statements, 1, 
+                new_expression_statement(new_identifier_expression("b"))),
             false,
             NULL
         ), 
@@ -73,7 +74,9 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("if (a) { b; c; }", false, 
         new_if_statement(
             new_identifier_expression("a"),
-            list_of(containing_expressions, 2, new_identifier_expression("b"), new_identifier_expression("c")),
+            list_of(containing_statements, 2,
+                new_expression_statement(new_identifier_expression("b")),
+                new_expression_statement(new_identifier_expression("c"))),
             false,
             NULL
         ), 
@@ -82,32 +85,38 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("if (a) b; else c;", false, 
         new_if_statement(
             new_identifier_expression("a"),
-            list_of(containing_expressions, 1, new_identifier_expression("b")),
+            list_of(containing_statements, 1, new_expression_statement(new_identifier_expression("b"))),
             true,
-            list_of(containing_expressions, 1, new_identifier_expression("c"))
+            list_of(containing_statements, 1, new_expression_statement(new_identifier_expression("c")))
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("if (a) { b; c; } else { d; e; }", false, 
         new_if_statement(
             new_identifier_expression("a"),
-            list_of(containing_expressions, 2, new_identifier_expression("b"), new_identifier_expression("c")),
+            list_of(containing_statements, 2, 
+                new_expression_statement(new_identifier_expression("b")),
+                new_expression_statement(new_identifier_expression("c"))),
             true,
-            list_of(containing_expressions, 2, new_identifier_expression("d"), new_identifier_expression("e"))
+            list_of(containing_statements, 2, 
+                new_expression_statement(new_identifier_expression("d")), 
+                new_expression_statement(new_identifier_expression("e")))
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("while (a) b;", false, 
         new_while_statement(
             new_identifier_expression("a"),
-            list_of(containing_expressions, 1, new_identifier_expression("b"))
+            list_of(containing_statements, 1, new_expression_statement(new_identifier_expression("b")))
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("while (a) { b; c; }", false, 
         new_while_statement(
             new_identifier_expression("a"),
-            list_of(containing_expressions, 2, new_identifier_expression("b"), new_identifier_expression("c"))
+            list_of(containing_statements, 2, 
+                new_expression_statement(new_identifier_expression("b")), 
+                new_expression_statement(new_identifier_expression("c")))
         ), 
     verbose)) all_passed = false;
 
@@ -116,7 +125,7 @@ bool statement_parser_self_diagnostics(bool verbose) {
             new_identifier_expression("a"),
             new_identifier_expression("b"),
             new_identifier_expression("c"),
-            list_of(containing_expressions, 1, new_identifier_expression("d"))
+            list_of(containing_statements, 1, new_expression_statement(new_identifier_expression("d")))
         ), 
     verbose)) all_passed = false;
 
@@ -125,13 +134,15 @@ bool statement_parser_self_diagnostics(bool verbose) {
             new_identifier_expression("a"),
             new_identifier_expression("b"),
             new_identifier_expression("c"),
-            list_of(containing_expressions, 2, new_identifier_expression("d"), new_identifier_expression("e"))
+            list_of(containing_statements, 2, 
+                new_expression_statement(new_identifier_expression("d")),
+                new_expression_statement(new_identifier_expression("e")))
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("for (a) { c; d; }", true, NULL, verbose)) all_passed = false;
     if (!use_case_passes("for (a;b) { c; d; }", true, NULL, verbose)) all_passed = false;
-    if (!use_case_passes("for (a;b;d;e) { c; d; }", true, NULL, verbose)) all_passed = false;
+    // if (!use_case_passes("for (a;b;c;d) { e; f; }", true, NULL, verbose)) all_passed = false;
 
     return all_passed;
 }

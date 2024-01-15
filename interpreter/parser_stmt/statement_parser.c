@@ -32,11 +32,10 @@ static failable_statement parse_if_statement() {
     if (!accept_identifier("if")) return failed_statement("was expecting 'if'");
     if (!accept_token(T_LPAREN))  return failed_statement("was expecting '('");
     
+    // expression parsing consumes RPAREN as well.
     failable_expression expr_parsing = parse_expression(tokens_it, CM_RPAREN, false);
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *condition = expr_parsing.result;
-
-    if (!accept_token(T_LPAREN)) return failed_statement("was expecting ')'");
 
     failable_list body_parsing = parse_statements_block(tokens_it);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
@@ -46,6 +45,7 @@ static failable_statement parse_if_statement() {
     list *else_statements = NULL;
 
     if (accept_identifier("else")) {
+        has_else = true;
         failable_list else_parsing = parse_statements_block(tokens_it);
         if (else_parsing.failed) return failed_statement("%s", else_parsing.err_msg);
         else_statements = else_parsing.result;
@@ -58,11 +58,10 @@ static failable_statement parse_while_statement() {
     if (!accept_identifier("while")) return failed_statement("was expecting 'while'");
     if (!accept_token(T_LPAREN))     return failed_statement("was expecting '('");
     
+    // expression parsing consumes RPAREN as well.
     failable_expression expr_parsing = parse_expression(tokens_it, CM_RPAREN, false);
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *condition = expr_parsing.result;
-
-    if (!accept_token(T_LPAREN)) return failed_statement("was expecting ')'");
 
     failable_list body_parsing = parse_statements_block(tokens_it);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
@@ -72,8 +71,8 @@ static failable_statement parse_while_statement() {
 }
 
 static failable_statement parse_for_statement() {
-    if (!accept_identifier("while")) return failed_statement("was expecting 'while'");
-    if (!accept_token(T_LPAREN))     return failed_statement("was expecting '('");
+    if (!accept_identifier("for")) return failed_statement("was expecting 'for'");
+    if (!accept_token(T_LPAREN))   return failed_statement("was expecting '('");
     
     failable_expression expr_parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
     if (expr_parsing.failed) return failed_statement("cannot parse init: %s", expr_parsing.err_msg);
@@ -83,11 +82,10 @@ static failable_statement parse_for_statement() {
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *cond = expr_parsing.result;
 
+    // expression parsing consumes RPAREN as well.
     expr_parsing = parse_expression(tokens_it, CM_RPAREN, false);
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *next = expr_parsing.result;
-
-    if (!accept_token(T_LPAREN)) return failed_statement("was expecting ')'");
 
     failable_list body_parsing = parse_statements_block(tokens_it);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
@@ -113,10 +111,10 @@ static failable_statement parse_expression_statement() {
 failable_statement parse_statement(iterator *tokens) {
     tokens_it = tokens;
 
-    token *next = tokens_it->peek(tokens);
-    switch (token_get_type(next)) {
+    token *t = tokens_it->curr(tokens);
+    switch (token_get_type(t)) {
         case T_IDENTIFIER:
-            const char *name = token_get_data(next);
+            const char *name = token_get_data(t);
             if (strcmp(name, "if") == 0) {
                 return parse_if_statement();
             } else if (strcmp(name, "while") == 0) {
@@ -133,7 +131,7 @@ failable_statement parse_statement(iterator *tokens) {
             break;
     }
 
-    return failed_statement("Unknown token type: %s", token_type_str(token_get_type(next)));
+    return failed_statement("Unknown token type: %s", token_type_str(token_get_type(t)));
 }
 
 failable_list parse_statements_block(iterator *tokens) {
@@ -143,13 +141,13 @@ failable_list parse_statements_block(iterator *tokens) {
     failable_statement parsing;
 
     if (accept_token(T_LBRACKET)) {
-        token_type next_type = token_get_type(tokens_it->peek(tokens_it));
-        while (next_type != T_RBRACKET && next_type != T_END) {
+        while (true) {
             parsing = parse_statement(tokens_it);
             if (parsing.failed) return failed_list("%s", parsing.err_msg);
             list_add(statements, parsing.result);
             
-            next_type = token_get_type(tokens_it->peek(tokens_it));
+            if (accept_token(T_RBRACKET))
+                break;
         }
     } else {
         parsing = parse_statement(tokens_it);

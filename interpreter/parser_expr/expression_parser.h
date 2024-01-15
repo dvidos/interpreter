@@ -6,7 +6,7 @@
 #include "expression.h"
 
 typedef enum completion_mode {
-    CM_NORMAL,         // either a semicolon, or end of tokens
+    CM_END_OF_TEXT,    // till end of tokens
     CM_RPAREN,         // a closing parenthesis
     CM_SEMICOLON,      // explicit semicolon
     CM_FUNC_ARGS,      // either comma or closing parenthesis

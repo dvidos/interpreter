@@ -83,7 +83,9 @@ const char *statement_to_string(statement *s) {
 
     switch (s->type) {
         case ST_EXPRESSION:
+            strbld_cat(sb, "expr(");
             strbld_cat(sb, expression_to_string(s->per_type.expr.expr));
+            strbld_cat(sb, ")");
             break;
         case ST_IF:
             strbld_catf(sb, "if (%s) {\n", expression_to_string(s->per_type.if_.condition));

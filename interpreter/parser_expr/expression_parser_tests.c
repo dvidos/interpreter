@@ -25,7 +25,7 @@ static bool use_case_passes(const char *code, bool expect_failure, expression *e
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
 
-    failable_expression parsing = parse_expression(tokens_it, CM_NORMAL, verbose);
+    failable_expression parsing = parse_expression(tokens_it, CM_END_OF_TEXT, verbose);
 
     // test failure
     if (expect_failure) {
