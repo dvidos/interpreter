@@ -27,6 +27,9 @@ struct statement {
             expression *next;
             list *body_statements;
         } for_;
+        struct return_ {
+            expression *value;
+        } return_;
     } per_type;
 };
 
@@ -73,9 +76,50 @@ statement *new_continue_statement() {
     s->type = ST_CONTINUE;
     return s;
 }
+statement *new_return_statement(expression *value) {
+    statement *s = malloc(sizeof(statement));
+    s->type = ST_RETURN;
+    s->per_type.return_.value = value;
+    return s;
+}
+
 
 statement_type statement_get_type(statement *s) {
     return s->type;
+}
+
+expression *statement_get_expression(statement *s, int mnemonic) {
+    switch (s->type) {
+        case ST_IF:
+            return s->per_type.if_.condition;
+        case ST_WHILE:
+            return s->per_type.while_.condition;
+        case ST_FOR_LOOP:
+            if      (mnemonic == 0) return s->per_type.for_.init;
+            else if (mnemonic == 1) return s->per_type.for_.condition;
+            else if (mnemonic == 2) return s->per_type.for_.next;
+        case ST_RETURN:
+            return s->per_type.return_.value;
+        case ST_EXPRESSION:
+            return s->per_type.expr.expr;
+    }
+    return NULL;
+}
+
+bool statement_has_alternate_body(statement *s) {
+    return s->type == ST_IF && s->per_type.if_.has_else;
+}
+
+list *statement_get_statements_body(statement *s, bool alternative) {
+    switch (s->type) {
+        case ST_IF:
+            return alternative ? s->per_type.if_.else_body_statements : s->per_type.if_.body_statements;
+        case ST_WHILE:
+            return s->per_type.while_.body_statements;
+        case ST_FOR_LOOP:
+            return s->per_type.for_.body_statements;
+    }
+    return NULL;
 }
 
 const char *statement_to_string(statement *s) {

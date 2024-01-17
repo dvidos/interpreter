@@ -23,7 +23,8 @@ FILES = \
 	interpreter/parser_stmt/statement_parser.c \
 	interpreter/parser_stmt/statement_parser_tests.c \
 	interpreter/runtime/built_in_funcs.c \
-	interpreter/runtime/execution.c \
+	interpreter/runtime/expression_execution.c \
+	interpreter/runtime/statement_execution.c \
 	interpreter/interpreter.c \
 	interpreter/interpreter_tests.c
 

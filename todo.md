@@ -5,6 +5,7 @@
 `last`, `curr`, `peek` etc, to aleviate code repetition. Then, since we have the `last` method, fix:
   * the `if(a;b;c;d) {...} case
   * function arguments parsing, so that parser does not need to store last token.
+* fix first assignment to create the variable (or other guardrail?)
 * implement parsing of functions
 * implement ability to execute script by file
 

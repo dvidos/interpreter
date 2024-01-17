@@ -71,6 +71,17 @@ bool statement_parser_self_diagnostics(bool verbose) {
         ), 
     verbose)) all_passed = false;
 
+    if (!use_case_passes("if (a) return a;", false, 
+        new_if_statement(
+            new_identifier_expression("a"),
+            list_of(containing_statements, 1, 
+                new_return_statement(new_identifier_expression("a"))
+            ),
+            false,
+            NULL
+        ), 
+    verbose)) all_passed = false;
+
     if (!use_case_passes("if (a) { b; c; }", false, 
         new_if_statement(
             new_identifier_expression("a"),
@@ -117,6 +128,15 @@ bool statement_parser_self_diagnostics(bool verbose) {
             list_of(containing_statements, 2, 
                 new_expression_statement(new_identifier_expression("b")), 
                 new_expression_statement(new_identifier_expression("c")))
+        ), 
+    verbose)) all_passed = false;
+
+    if (!use_case_passes("while (a) { break; continue; }", false, 
+        new_while_statement(
+            new_identifier_expression("a"),
+            list_of(containing_statements, 2, 
+                new_break_statement(), 
+                new_continue_statement())
         ), 
     verbose)) all_passed = false;
 

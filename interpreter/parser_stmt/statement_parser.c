@@ -108,6 +108,29 @@ static failable_statement parse_expression_statement() {
     return ok_statement(new_expression_statement(parsing.result));
 }
 
+static failable_statement parse_return_statement() {
+    if (!accept_identifier("return")) return failed_statement("was expecting 'return'");
+
+    failable_expression parsing;
+    expression *return_value_expression;
+
+    if (accept_token(T_LPAREN)) {
+        parsing = parse_expression(tokens_it, CM_RPAREN, false);
+        if (parsing.failed) return failed_statement("cannot parse value: %s", parsing.err_msg);
+        return_value_expression = parsing.result;
+        if (!accept_token(T_SEMICOLON)) return failed_statement("was expecting ';'");
+
+    } else if (accept_token(T_SEMICOLON)) {
+        return_value_expression = NULL;
+    } else {
+        parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
+        if (parsing.failed) return failed_statement("cannot parse value: %s", parsing.err_msg);
+        return_value_expression = parsing.result;
+    }
+
+    return ok_statement(new_return_statement(return_value_expression));
+}
+
 failable_statement parse_statement(iterator *tokens) {
     tokens_it = tokens;
 
@@ -125,6 +148,8 @@ failable_statement parse_statement(iterator *tokens) {
                 return parse_break_statement();
             } else if (strcmp(name, "continue") == 0) {
                 return parse_continue_statement();
+            } else if (strcmp(name, "return") == 0) {
+                return parse_return_statement();
             } else {
                 return parse_expression_statement();
             }
