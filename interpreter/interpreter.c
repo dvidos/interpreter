@@ -7,10 +7,13 @@
 #include "../utils/containers/stack.h"
 #include "parser_expr/expression.h"
 #include "parser_expr/expression_parser.h"
+#include "parser_stmt/statement.h"
+#include "parser_stmt/statement_parser.h"
 #include "lexer/token.h"
 #include "lexer/tokenization.h"
 #include "runtime/built_in_funcs.h"
 #include "runtime/expression_execution.h"
+#include "runtime/statement_execution.h"
 #include "interpreter.h"
 
 
@@ -18,6 +21,7 @@ void initialize_interpreter() {
     initialize_char_tokens_trie();
     initialize_operator_tables();
     initialize_expression_parser();
+    initialize_statement_parser();
     initialize_built_in_funcs_table();
 }
 
@@ -34,14 +38,17 @@ failable_variant interpret_and_execute(const char *code, dict *arguments, bool v
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
 
-    failable_expression parsing = parse_expression(tokens_it, CM_END_OF_TEXT, verbose);
+    // failable_expression parsing = parse_expression(tokens_it, CM_END_OF_TEXT, verbose);
+    failable_list parsing = parse_statements_block(tokens_it);
     if (parsing.failed)
         return failed_variant("Parsing failed: %s", parsing.err_msg);
 
     if (verbose)
-        printf("Parsed expression:\n  %s\n", expression_to_string(parsing.result));
+        printf("Parsed statements: %s\n", list_to_string(parsing.result, "\n"));
+    //     printf("Parsed expression:\n  %s\n", expression_to_string(parsing.result));
 
-    failable_variant execution = execute_expression(parsing.result, arguments, get_built_in_funcs_table());
+    // failable_variant execution = execute_expression(parsing.result, arguments, get_built_in_funcs_table());
+    failable_variant execution = execute_statements(parsing.result, arguments, get_built_in_funcs_table());
     if (execution.failed)
         return failed_variant("Execution failed: %s", execution.err_msg);
 
