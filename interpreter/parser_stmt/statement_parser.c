@@ -95,10 +95,14 @@ static failable_statement parse_for_statement() {
 }
 
 static failable_statement parse_break_statement() {
+    if (!accept_identifier("break")) return failed_statement("was expecting 'break'");
+    if (!accept_token(T_SEMICOLON)) return failed_statement("was expecting ';'");
     return ok_statement(new_break_statement());
 }
 
 static failable_statement parse_continue_statement() {
+    if (!accept_identifier("continue")) return failed_statement("was expecting 'continue'");
+    if (!accept_token(T_SEMICOLON)) return failed_statement("was expecting ';'");
     return ok_statement(new_continue_statement());
 }
 
