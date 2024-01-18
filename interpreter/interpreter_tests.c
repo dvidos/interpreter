@@ -192,5 +192,32 @@ bool interpreter_self_diagnostics() {
     verify_execution_failed("substr('hello there')");
     verify_execution_failed("some_function('hello there', 2, 3)");
 
+    verify_execution_ii("if (a < 10) return 2;"
+                        "else return 3;", 5, 2);
+
+    verify_execution_ii("if (a < 10) return 2;"
+                        "else return 3;", 15, 3);
+
+    // verify_execution_ii("while (a < 100) {"
+    //                     "   a++;"
+    //                     "   if (a > 10) return a;"
+    //                     "}"
+    //                     "return 100;", 1, 11);
+
+    // verify_execution_ii("while (a < 100) {"
+    //                     "   a++;"
+    //                     "   if (a > 10) break;"
+    //                     "}"
+    //                     "return a;", 1, 11);
+
+    // verify_execution_ii("while (a < 100) {"
+    //                     "   a++;"
+    //                     "   if (a > 10) continue;"
+    //                     "}"
+    //                     "return a;", 1, 101);
+
+    verify_execution_ii("return 100;", 1, 100);
+
+    
     return passed;
 }

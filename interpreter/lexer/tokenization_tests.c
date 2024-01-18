@@ -95,8 +95,8 @@ bool tokenizer_self_diagnostics() {
         all_passed = false;
     if (!use_case_passes(">>", false, 2, T_DOUBLE_LARGER, T_END))
         all_passed = false;
-    if (!use_case_passes("if(a >= 10, b, c)", false, 11, 
-        T_IDENTIFIER, "if",
+    if (!use_case_passes("iif(a >= 10, b, c)", false, 11, 
+        T_IDENTIFIER, "iif",
         T_LPAREN,
         T_IDENTIFIER, "a",
         T_LARGER_EQUAL,

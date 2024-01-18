@@ -25,6 +25,26 @@ static bool is_number_char(char c) {
 
 typedef bool char_filter_function(char c);
 
+static struct reserved_word {
+    const char *word;
+    token_type token;
+} reserved_words[] = {
+    { "if",         T_IF },
+    { "else",       T_ELSE },
+    { "while",      T_WHILE },
+    { "for",        T_FOR },
+    { "break",      T_BREAK },
+    { "continue",   T_CONTINUE },
+    { "return",     T_RETURN },
+};
+
+static token_type get_reserved_word_token(const char *data) {
+    for (int i = 0; i < sizeof(reserved_words)/sizeof(reserved_words[0]); i++)
+        if (strcmp(reserved_words[i].word, data) == 0)
+            return reserved_words[i].token;
+    return T_UNKNOWN;
+}
+
 static char *collect(const char *code, int len, int *pos, char first_char, char_filter_function *filter) {
     char buffer[128];
     memset(buffer, 0, sizeof(buffer));
@@ -136,7 +156,10 @@ static failable_token get_token_at_code_position(const char *code, int len, int 
 
     } else if (is_identifier_char(c)) {
         char *data = collect(code, len, pos, c, is_identifier_char);
-        if (strcmp(data, "true") == 0 || strcmp(data, "false") == 0)
+        token_type reserved_word_token = get_reserved_word_token(data);
+        if (reserved_word_token != T_UNKNOWN)
+            return ok_token(new_token(reserved_word_token));
+        else if (strcmp(data, "true") == 0 || strcmp(data, "false") == 0)
             return ok_token(new_data_token(T_BOOLEAN_LITERAL, data));
         else
             return ok_token(new_data_token(T_IDENTIFIER, data));

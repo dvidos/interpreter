@@ -18,8 +18,8 @@ struct variant {
             char *ptr;
             int len;
         } s;
-        list *lst;
-        dict *dct;
+        list *list_;
+        dict *dict_;
     } per_type;
     const char *str_repr;
 };
@@ -71,14 +71,14 @@ variant *new_str_variant(const char *p) {
 variant *new_list_variant(list *l) {
     variant *v = new_null_variant();
     v->type = VT_LIST;
-    v->per_type.lst = l;
+    v->per_type.list_ = l;
     return v;
 }
 
 variant *new_dict_variant(dict *d) {
     variant *v = new_null_variant();
     v->type = VT_DICT;
-    v->per_type.dct = d;
+    v->per_type.dict_ = d;
     return v;
 }
 
@@ -126,9 +126,9 @@ bool variant_as_bool(variant *v) {
                 strcmp(v->per_type.s.ptr, "1") == 0
             );
         case VT_LIST:
-            return v->per_type.lst != NULL && list_length(v->per_type.lst) > 0;
+            return v->per_type.list_ != NULL && list_length(v->per_type.list_) > 0;
         case VT_DICT:
-            return v->per_type.dct != NULL && dict_count(v->per_type.dct) > 0;
+            return v->per_type.dict_ != NULL && dict_count(v->per_type.dict_) > 0;
         default:
             return false;
     }
@@ -147,9 +147,9 @@ int variant_as_int(variant *v) {
         case VT_STR:
             return atoi(v->per_type.s.ptr);
         case VT_LIST:
-            return v->per_type.lst == NULL ? 0 : list_length(v->per_type.lst);
+            return v->per_type.list_ == NULL ? 0 : list_length(v->per_type.list_);
         case VT_DICT:
-            return v->per_type.lst == NULL ? 0 : dict_count(v->per_type.dct);
+            return v->per_type.list_ == NULL ? 0 : dict_count(v->per_type.dict_);
         default:
             return false;
     }
@@ -168,9 +168,9 @@ float variant_as_float(variant *v) {
         case VT_STR:
             return atof(v->per_type.s.ptr);
         case VT_LIST:
-            return v->per_type.lst == NULL ? 0.0 : (float)list_length(v->per_type.lst);
+            return v->per_type.list_ == NULL ? 0.0 : (float)list_length(v->per_type.list_);
         case VT_DICT:
-            return v->per_type.lst == NULL ? 0.0 : (float)dict_count(v->per_type.dct);
+            return v->per_type.list_ == NULL ? 0.0 : (float)dict_count(v->per_type.dict_);
         default:
             return false;
     }
@@ -200,14 +200,14 @@ const char *variant_as_str(variant *v) {
             return v->per_type.s.ptr;
         case VT_LIST:
             if (v->str_repr == NULL) {
-                if (v->per_type.lst != NULL)
-                    v->str_repr = list_to_string(v->per_type.lst, ", ");
+                if (v->per_type.list_ != NULL)
+                    v->str_repr = list_to_string(v->per_type.list_, ", ");
             }
             return v->str_repr;
         case VT_DICT:
             if (v->str_repr == NULL) {
-                if (v->per_type.dct != NULL)
-                    v->str_repr = dict_to_string(v->per_type.dct, ":", ", ");
+                if (v->per_type.dict_ != NULL)
+                    v->str_repr = dict_to_string(v->per_type.dict_, ":", ", ");
             }
             return v->str_repr;
         default:
@@ -228,7 +228,7 @@ list *variant_as_list(variant *v) {
         case VT_STR:
             return list_of(containing_variants, 1, v);
         case VT_LIST:
-            return v->per_type.lst;
+            return v->per_type.list_;
         case VT_DICT:
             // TODO: should get values off the dict...
             return new_list(NULL);
@@ -252,7 +252,7 @@ dict *variant_as_dict(variant *v) {
         case VT_LIST:
             return new_dict(containing_variants, 10);
         case VT_DICT:
-            return v->per_type.dct;
+            return v->per_type.dict_;
         default:
             return NULL;
     }
@@ -288,9 +288,9 @@ bool variants_are_equal(variant *a, variant *b) {
                 return false;
             return memcmp(a->per_type.s.ptr, b->per_type.s.ptr, a->per_type.s.len) == 0;
         case VT_LIST:
-            return lists_are_equal(a->per_type.lst, b->per_type.lst);
+            return lists_are_equal(a->per_type.list_, b->per_type.list_);
         case VT_DICT:
-            return dicts_are_equal(a->per_type.dct, b->per_type.dct);
+            return dicts_are_equal(a->per_type.dict_, b->per_type.dict_);
 
         // for other types, we should implement is_dict_equal() etc.
     }

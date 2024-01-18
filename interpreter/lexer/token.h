@@ -61,6 +61,14 @@ typedef enum token_type {
     T_PIPE_EQUAL,
     T_CARET_EQUAL,
 
+    T_IF,
+    T_ELSE,
+    T_WHILE,
+    T_FOR,
+    T_BREAK,
+    T_CONTINUE,
+    T_RETURN,
+
     T_END, // the last token of the stream
     T_MAX_VALUE // max value for the sizing of the enum
 } token_type;

@@ -140,9 +140,9 @@ bool expression_parser_self_diagnostics(bool verbose) {
             new_numeric_literal_expression("0")
         ), verbose)) all_passed = false;
     
-    if (!use_case_passes("if(left(a, 1) == '0', 'number', 'letter')", false,
+    if (!use_case_passes("iif(left(a, 1) == '0', 'number', 'letter')", false,
         new_binary_op_expression(OP_FUNC_CALL,
-            new_identifier_expression("if"),
+            new_identifier_expression("iif"),
             new_func_args_expression(list_of(containing_expressions, 3, 
                 new_binary_op_expression(OP_EQUAL, 
                     new_binary_op_expression(OP_FUNC_CALL,

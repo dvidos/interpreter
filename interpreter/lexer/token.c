@@ -72,6 +72,14 @@ static struct token_info token_infos[] = {
     { T_PIPE_EQUAL,         "|=",  "PIPE_EQUAL" },
     { T_CARET_EQUAL,        "^=",  "CARET_EQUAL" },
     
+    { T_IF,                 "", "IF" },
+    { T_ELSE,               "", "ELSE" },
+    { T_WHILE,              "", "WHILE" },
+    { T_FOR,                "", "FOR" },
+    { T_BREAK,              "", "BREAK" },
+    { T_CONTINUE,           "", "CONTINUE" },
+    { T_RETURN,             "", "RETURN" },
+
     { T_END,                "",    "END" },
     { T_MAX_VALUE,          "",    "MAX_VALUE" },
 };

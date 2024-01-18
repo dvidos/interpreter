@@ -175,9 +175,11 @@ static failable_bool detect_completion(token_type curr_token, completion_mode co
     if (completion == CM_END_OF_TEXT) {
         // we can accept END here.
         return ok_bool(curr_token == T_END);
+    } else if (completion == CM_SEMICOLON_OR_END){
+        return ok_bool(curr_token == T_SEMICOLON || curr_token == T_END);
     }
 
-    // we should not accept END here.
+    // we do not accept END from here onwards
     if (curr_token == T_END)
         return failed_bool("Unexpected end of expression (%s), when completion mode is %d", 
                 token_type_str(curr_token), completion);

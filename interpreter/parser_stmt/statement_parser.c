@@ -11,25 +11,16 @@ void initialize_statement_parser() {
     // anything global 
 }
 
-bool accept_token(token_type tt) {
+static bool accept_token(token_type tt) {
     token *t = tokens_it->curr(tokens_it);
     if (token_get_type(t) != tt)
         return false;
     tokens_it->next(tokens_it);
     return true;
 }
-bool accept_identifier(const char *data) {
-    token *t = tokens_it->curr(tokens_it);
-    if (token_get_type(t) != T_IDENTIFIER)
-        return false;
-    if (strcmp(token_get_data(t), data) != 0)
-        return false;
-    tokens_it->next(tokens_it);
-    return true;
-}
 
 static failable_statement parse_if_statement() {
-    if (!accept_identifier("if")) return failed_statement("was expecting 'if'");
+    if (!accept_token(T_IF)) return failed_statement("was expecting 'if'");
     if (!accept_token(T_LPAREN))  return failed_statement("was expecting '('");
     
     // expression parsing consumes RPAREN as well.
@@ -44,7 +35,7 @@ static failable_statement parse_if_statement() {
     bool has_else = false;
     list *else_statements = NULL;
 
-    if (accept_identifier("else")) {
+    if (accept_token(T_ELSE)) {
         has_else = true;
         failable_list else_parsing = parse_statements_block(tokens_it);
         if (else_parsing.failed) return failed_statement("%s", else_parsing.err_msg);
@@ -55,7 +46,7 @@ static failable_statement parse_if_statement() {
 }
 
 static failable_statement parse_while_statement() {
-    if (!accept_identifier("while")) return failed_statement("was expecting 'while'");
+    if (!accept_token(T_WHILE)) return failed_statement("was expecting 'while'");
     if (!accept_token(T_LPAREN))     return failed_statement("was expecting '('");
     
     // expression parsing consumes RPAREN as well.
@@ -71,7 +62,7 @@ static failable_statement parse_while_statement() {
 }
 
 static failable_statement parse_for_statement() {
-    if (!accept_identifier("for")) return failed_statement("was expecting 'for'");
+    if (!accept_token(T_FOR)) return failed_statement("was expecting 'for'");
     if (!accept_token(T_LPAREN))   return failed_statement("was expecting '('");
     
     failable_expression expr_parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
@@ -95,25 +86,25 @@ static failable_statement parse_for_statement() {
 }
 
 static failable_statement parse_break_statement() {
-    if (!accept_identifier("break")) return failed_statement("was expecting 'break'");
+    if (!accept_token(T_BREAK)) return failed_statement("was expecting 'break'");
     if (!accept_token(T_SEMICOLON)) return failed_statement("was expecting ';'");
     return ok_statement(new_break_statement());
 }
 
 static failable_statement parse_continue_statement() {
-    if (!accept_identifier("continue")) return failed_statement("was expecting 'continue'");
+    if (!accept_token(T_CONTINUE)) return failed_statement("was expecting 'continue'");
     if (!accept_token(T_SEMICOLON)) return failed_statement("was expecting ';'");
     return ok_statement(new_continue_statement());
 }
 
 static failable_statement parse_expression_statement() {
-    failable_expression parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
+    failable_expression parsing = parse_expression(tokens_it, CM_SEMICOLON_OR_END, false);
     if (parsing.failed) return failed_statement("%s", parsing.err_msg);
     return ok_statement(new_expression_statement(parsing.result));
 }
 
 static failable_statement parse_return_statement() {
-    if (!accept_identifier("return")) return failed_statement("was expecting 'return'");
+    if (!accept_token(T_RETURN)) return failed_statement("was expecting 'return'");
 
     failable_expression parsing;
     expression *return_value_expression;
@@ -140,24 +131,13 @@ failable_statement parse_statement(iterator *tokens) {
 
     token *t = tokens_it->curr(tokens);
     switch (token_get_type(t)) {
-        case T_IDENTIFIER:
-            const char *name = token_get_data(t);
-            if (strcmp(name, "if") == 0) {
-                return parse_if_statement();
-            } else if (strcmp(name, "while") == 0) {
-                return parse_while_statement();
-            } else if (strcmp(name, "for") == 0) {
-                return parse_for_statement();
-            } else if (strcmp(name, "break") == 0) {
-                return parse_break_statement();
-            } else if (strcmp(name, "continue") == 0) {
-                return parse_continue_statement();
-            } else if (strcmp(name, "return") == 0) {
-                return parse_return_statement();
-            } else {
-                return parse_expression_statement();
-            }
-            break;
+        case T_IF:       return parse_if_statement();
+        case T_WHILE:    return parse_while_statement();
+        case T_FOR:      return parse_for_statement();
+        case T_BREAK:    return parse_break_statement();
+        case T_CONTINUE: return parse_continue_statement();
+        case T_RETURN:   return parse_return_statement();
+        default:         return parse_expression_statement();
     }
 
     return failed_statement("Unknown token type: %s", token_type_str(token_get_type(t)));

@@ -1,5 +1,6 @@
 #include "../../utils/containers/dict.h"
 #include "../../utils/variant.h"
+#include "../../utils/strbld.h"
 
 struct exec_context {
     dict *callables;
