@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "../../utils/strbld.h"
+#include "../../utils/str_builder.h"
 #include "../../utils/containers/list.h"
 #include "../../utils/containers/contained_item.h"
 #include "statement.h"
@@ -123,45 +123,45 @@ list *statement_get_statements_body(statement *s, bool alternative) {
 }
 
 const char *statement_to_string(statement *s) {
-    strbld *sb = new_strbld();
+    str_builder *sb = new_str_builder();
 
     switch (s->type) {
         case ST_EXPRESSION:
-            strbld_cat(sb, "expr(");
-            strbld_cat(sb, expression_to_string(s->per_type.expr.expr));
-            strbld_cat(sb, ")");
+            str_builder_cat(sb, "expr(");
+            str_builder_cat(sb, expression_to_string(s->per_type.expr.expr));
+            str_builder_cat(sb, ")");
             break;
         case ST_IF:
-            strbld_catf(sb, "if (%s) {\n", expression_to_string(s->per_type.if_.condition));
-            strbld_cat(sb, list_to_string(s->per_type.if_.body_statements, "\n"));
+            str_builder_catf(sb, "if (%s) {\n", expression_to_string(s->per_type.if_.condition));
+            str_builder_cat(sb, list_to_string(s->per_type.if_.body_statements, "\n"));
             if (s->per_type.if_.has_else) {
-                strbld_cat(sb, "\n} else {\n");
-                strbld_cat(sb, list_to_string(s->per_type.if_.else_body_statements, "\n"));
+                str_builder_cat(sb, "\n} else {\n");
+                str_builder_cat(sb, list_to_string(s->per_type.if_.else_body_statements, "\n"));
             }
-            strbld_cat(sb, "\n}");
+            str_builder_cat(sb, "\n}");
             break;
         case ST_WHILE:
-            strbld_catf(sb, "while (%s) {\n", expression_to_string(s->per_type.while_.condition));
-            strbld_cat(sb, list_to_string(s->per_type.while_.body_statements, "\n"));
-            strbld_cat(sb, "\n}");
+            str_builder_catf(sb, "while (%s) {\n", expression_to_string(s->per_type.while_.condition));
+            str_builder_cat(sb, list_to_string(s->per_type.while_.body_statements, "\n"));
+            str_builder_cat(sb, "\n}");
             break;
         case ST_FOR_LOOP:
-            strbld_catf(sb, "for (%s; %s; %s) {\n",
+            str_builder_catf(sb, "for (%s; %s; %s) {\n",
                 expression_to_string(s->per_type.for_.init),
                 expression_to_string(s->per_type.for_.condition),
                 expression_to_string(s->per_type.for_.next));
-            strbld_cat(sb, list_to_string(s->per_type.for_.body_statements, "\n"));
-            strbld_cat(sb, "\n}");
+            str_builder_cat(sb, list_to_string(s->per_type.for_.body_statements, "\n"));
+            str_builder_cat(sb, "\n}");
             break;
         case ST_CONTINUE:
-            strbld_cat(sb, "continue;");
+            str_builder_cat(sb, "continue;");
             break;
         case ST_BREAK:
-            strbld_cat(sb, "break;");
+            str_builder_cat(sb, "break;");
             break;
     }
 
-    return strbld_charptr(sb);
+    return str_builder_charptr(sb);
 }
 
 bool statements_are_equal(statement *a, statement *b) {

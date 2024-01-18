@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "contained_item.h"
-#include "../strbld.h"
+#include "../str_builder.h"
 #include "list.h"
 
 typedef struct list_entry {
@@ -155,20 +155,20 @@ bool lists_are_equal(list *a, list *b) {
 }
 
 const char *list_to_string(list *l, const char *separator) {
-    strbld *sb = new_strbld();
+    str_builder *sb = new_str_builder();
     list_entry *e = l->head;
     while (e != NULL) {
         if (e != l->head)
-            strbld_cat(sb, separator);
+            str_builder_cat(sb, separator);
         
         if (l->contained_item != NULL && l->contained_item->to_string != NULL)
-            strbld_cat(sb, l->contained_item->to_string(e->item));
+            str_builder_cat(sb, l->contained_item->to_string(e->item));
         else
-            strbld_catf(sb, "@0x%p", e->item);
+            str_builder_catf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
-    return strbld_charptr(sb);
+    return str_builder_charptr(sb);
 }
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(list);

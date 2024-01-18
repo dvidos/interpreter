@@ -3,7 +3,7 @@
 #include <string.h>
 #include "../../utils/failable.h"
 #include "../../utils/containers/contained_item.h"
-#include "../../utils/strbld.h"
+#include "../../utils/str_builder.h"
 #include "expression.h"
 
 struct expression {
@@ -169,43 +169,43 @@ bool expressions_are_equal(expression *a, expression *b) {
 }
 
 const char *expression_to_string(expression *e) {
-    strbld *sb = new_strbld();
+    str_builder *sb = new_str_builder();
     
     if (e->type == ET_IDENTIFIER) {
-        strbld_catf(sb, "IDENTIFIER(\"%s\")", e->per_type.terminal.data);
+        str_builder_catf(sb, "IDENTIFIER(\"%s\")", e->per_type.terminal.data);
     } else if (e->type == ET_NUMERIC_LITERAL) {
-        strbld_catf(sb, "NUMBER(\"%s\")", e->per_type.terminal.data);
+        str_builder_catf(sb, "NUMBER(\"%s\")", e->per_type.terminal.data);
     } else if (e->type == ET_STRING_LITERAL) {
-        strbld_catf(sb, "STRING(\"%s\")", e->per_type.terminal.data);
+        str_builder_catf(sb, "STRING(\"%s\")", e->per_type.terminal.data);
     } else if (e->type == ET_BOOLEAN_LITERAL) {
-        strbld_catf(sb, "BOOLEAN(%s)", e->per_type.terminal.data);
+        str_builder_catf(sb, "BOOLEAN(%s)", e->per_type.terminal.data);
     } else if (e->type == ET_UNARY_OP) {
-        strbld_catf(sb, "%s(", operator_str(e->op));
-        strbld_cat(sb, expression_to_string(e->per_type.operation.op0));
-        strbld_catc(sb, ')');
+        str_builder_catf(sb, "%s(", operator_str(e->op));
+        str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
+        str_builder_catc(sb, ')');
     } else if (e->type == ET_BINARY_OP) {
-        strbld_catf(sb, "%s(", operator_str(e->op));
-        strbld_cat(sb, expression_to_string(e->per_type.operation.op0));
-        strbld_cat(sb, ", ");
-        strbld_cat(sb, expression_to_string(e->per_type.operation.op1));
-        strbld_catc(sb, ')');
+        str_builder_catf(sb, "%s(", operator_str(e->op));
+        str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
+        str_builder_cat(sb, ", ");
+        str_builder_cat(sb, expression_to_string(e->per_type.operation.op1));
+        str_builder_catc(sb, ')');
     } else if (e->type == ET_FUNC_ARGS) {
-        strbld_cat(sb, "ARGS(");
+        str_builder_cat(sb, "ARGS(");
         int num = 0;
         for_list(e->per_type.func_args.list, it, expression, arg_exp) {
-            if (num++ > 0) strbld_cat(sb, ", ");
-            strbld_cat(sb, expression_to_string(arg_exp));
+            if (num++ > 0) str_builder_cat(sb, ", ");
+            str_builder_cat(sb, expression_to_string(arg_exp));
         }
-        strbld_catc(sb, ')');
+        str_builder_catc(sb, ')');
     } else if (e->type == ET_EXPR_PAIR) {
-        strbld_cat(sb, "PAIR(");
-        strbld_cat(sb, expression_to_string(e->per_type.pair.left));
-        strbld_cat(sb, ", ");
-        strbld_cat(sb, expression_to_string(e->per_type.pair.right));
-        strbld_catc(sb, ')');
+        str_builder_cat(sb, "PAIR(");
+        str_builder_cat(sb, expression_to_string(e->per_type.pair.left));
+        str_builder_cat(sb, ", ");
+        str_builder_cat(sb, expression_to_string(e->per_type.pair.right));
+        str_builder_catc(sb, ')');
     }
 
-    return strbld_charptr(sb);
+    return str_builder_charptr(sb);
 }
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(expression);

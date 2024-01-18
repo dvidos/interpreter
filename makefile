@@ -7,7 +7,7 @@ FILES = \
 	utils/containers/dict.c \
 	utils/containers/list.c \
 	utils/containers/stack.c \
-	utils/strbld.c \
+	utils/str_builder.c \
 	utils/file.c \
 	utils/variant.c \
 	utils/variant_tests.c \

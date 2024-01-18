@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "contained_item.h"
-#include "../strbld.h"
+#include "../str_builder.h"
 #include "stack.h"
 
 typedef struct stack_entry {
@@ -102,18 +102,18 @@ iterator *stack_iterator(stack *s) {
 
 
 const char *stack_to_string(stack *s, const char *separator) {
-    strbld *sb = new_strbld();
+    str_builder *sb = new_str_builder();
     stack_entry *e = s->head;
     while (e != NULL) {
         if (e != s->head)
-            strbld_cat(sb, separator);
+            str_builder_cat(sb, separator);
         
         if (s->contained_item != NULL && s->contained_item->to_string != NULL)
-            strbld_cat(sb, s->contained_item->to_string(e->item));
+            str_builder_cat(sb, s->contained_item->to_string(e->item));
         else
-            strbld_catf(sb, "@0x%p", e->item);
+            str_builder_catf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
-    return strbld_charptr(sb);
+    return str_builder_charptr(sb);
 }

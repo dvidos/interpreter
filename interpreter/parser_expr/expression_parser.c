@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "../../utils/strbld.h"
+#include "../../utils/str_builder.h"
 #include "../../utils/failable.h"
 #include "../../utils/containers/list.h"
 #include "../../utils/containers/stack.h"

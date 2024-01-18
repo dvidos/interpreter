@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../strbld.h"
+#include "../str_builder.h"
 #include "dict.h"
 
 typedef struct dict_entry {
@@ -180,10 +180,10 @@ bool dicts_are_equal(dict *a, dict *b) {
 }
 
 const char *dict_to_string(dict *l, const char *key_value_separator, const char *entries_separator) {
-    strbld *sb = new_strbld();
+    str_builder *sb = new_str_builder();
     // we should also walk and I'm tired...
     // TODO: implement this walking.
-    return strbld_charptr(sb);
+    return str_builder_charptr(sb);
 }
 
 
