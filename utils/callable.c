@@ -12,17 +12,19 @@ struct callable {
     const char *name;
     const char *description;
     callable_func *func;
-    list *arg_types;
     variant_type ret_type;
+    list *arg_types;
+    bool var_args;
 };
 
-callable *new_callable(const char *name, const char *description, callable_func *func, list *arg_types, variant_type ret_type) {
+callable *new_callable(const char *name, const char *description, callable_func *func, variant_type ret_type, list *arg_types, bool var_args) {
     callable *c = malloc(sizeof(callable));
     c->name = name;
     c->description = description;
     c->func = func;
-    c->arg_types = arg_types;
     c->ret_type = ret_type;
+    c->arg_types = arg_types;
+    c->var_args = var_args;
     return c;
 }
 
@@ -53,13 +55,16 @@ bool callables_are_equal(callable *a, callable *b) {
 
 failable_variant callable_call(callable *c, list *arguments) {
     // assume we verify argument types.
-    if (list_length(c->arg_types) != list_length(arguments))
-        return failed_variant("expected %d arguments, got %d", list_length(c->arg_types), list_length(arguments));
-    for (int i = 0; i < list_length(arguments); i++) {
-        variant_type expected_type = (variant_type)list_get(c->arg_types, i);
-        variant_type given_type = variant_get_type(list_get(arguments, i));
-        if (given_type != expected_type)
-            return failed_variant("argument #%d expected type %d, got %d", i, expected_type, given_type);
+    if (!c->var_args) {
+        if (list_length(c->arg_types) != list_length(arguments))
+            return failed_variant("%s() expected %d arguments, got %d", c->name, list_length(c->arg_types), list_length(arguments));
+
+        for (int i = 0; i < list_length(arguments); i++) {
+            variant_type expected_type = (variant_type)list_get(c->arg_types, i);
+            variant_type given_type = variant_get_type(list_get(arguments, i));
+            if (given_type != expected_type)
+                return failed_variant("argument #%d expected type %d, got %d", i, expected_type, given_type);
+        }
     }
     
     return c->func(arguments);

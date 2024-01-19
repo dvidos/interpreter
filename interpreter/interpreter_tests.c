@@ -11,6 +11,7 @@
 #include "lexer/tokenization.h"
 #include "runtime/built_in_funcs.h"
 #include "runtime/expression_execution.h"
+#include "runtime/exec_context.h"
 #include "interpreter.h"
 
 
@@ -100,6 +101,17 @@ static void verify_execution_ss(char *code, char *a, char *expected_result) {
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     bool answer_was_the_expected_one = strcmp(variant_as_str(evaluation.result), expected_result) == 0;
     assert_msg(answer_was_the_expected_one, code);
+}
+
+static void verify_execution_log(char *code, char *expected_log) {
+    dict *values = new_dict(containing_variants, 10);
+    failable_variant execution = interpret_and_execute(code, values, false);
+    if (execution.failed) { assertion_failed(execution.err_msg); printf("code=%s\n", code); return; }
+    if (strcmp(exec_context_get_log(), expected_log) != 0) {
+        assertion_failed("log comparison failed!");
+        printf("  expected log: \"%s\"\n", expected_log);
+        printf("  produced log: \"%s\"\n", exec_context_get_log());
+    }
 }
 
 bool interpreter_self_diagnostics() {
@@ -192,32 +204,42 @@ bool interpreter_self_diagnostics() {
     verify_execution_failed("substr('hello there')");
     verify_execution_failed("some_function('hello there', 2, 3)");
 
-    verify_execution_ii("if (a < 10) return 2;"
-                        "else return 3;", 5, 2);
+    verify_execution_log("log('abc', true, 123, -456);",
+                         "abc true 123 -456\n");
 
-    verify_execution_ii("if (a < 10) return 2;"
-                        "else return 3;", 15, 3);
+    verify_execution_log("if (1 + 1 == 2) log('if-body'); else log('else-body');", 
+                         "if-body\n");
 
-    // verify_execution_ii("while (a < 100) {"
-    //                     "   a++;"
-    //                     "   if (a > 10) return a;"
-    //                     "}"
-    //                     "return 100;", 1, 11);
+    verify_execution_log("if (1 + 1 == 7) log('if-body'); else log('else-body');", 
+                         "else-body\n");
 
-    // verify_execution_ii("while (a < 100) {"
-    //                     "   a++;"
-    //                     "   if (a > 10) break;"
-    //                     "}"
-    //                     "return a;", 1, 11);
+    verify_execution_log("for (i = 0; i < 3; i++) log(i);",
+                         "0\n1\n2\n");
+    
+    verify_execution_log("for (i = 0; i < 10; i++) {"
+                         "   if (i < 3) continue;"
+                         "   log(i);"
+                         "   if (i >= 6) break;"
+                         "}",
+                         "3\n4\n5\n6\n");
+    
+    verify_execution_log("i = 5; while (i > 0) {"
+                         "   log(i--);"
+                         "}",
+                         "5\n4\n3\n2\n1\n");
+    
+    verify_execution_log("i = 0; while (i++ < 10) {"
+                         "   log(i);"
+                         "   if (i >= 5)"
+                         "       return i;"
+                         "}",
+                         "1\n2\n3\n4\n5\n");
+    
+    verify_execution_i("i = 5; return i * i;", 25);
 
-    // verify_execution_ii("while (a < 100) {"
-    //                     "   a++;"
-    //                     "   if (a > 10) continue;"
-    //                     "}"
-    //                     "return a;", 1, 101);
-
-    verify_execution_ii("return 100;", 1, 100);
-
+    setenv("ENV_VAR_A", "some-value", true);
+    verify_execution_b("getenv('ENV_VAR_A') == 'some-value'", true); // bare expr format
+    verify_execution_b("return (getenv('ENV_VAR_A') == 'some-value');", true); // statement format
     
     return passed;
 }

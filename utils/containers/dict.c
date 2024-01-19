@@ -27,8 +27,8 @@ dict *new_dict(contained_item *contained_item, int capacity) {
     return d;
 }
 
-static int hash(const char *str) {
-    int result = 5381;
+static unsigned hash(const char *str) {
+    unsigned result = 5381;
     while (*str) {
         // result = (result * 33) + char
         result = ((result << 5) + result) + *str++;
@@ -42,7 +42,7 @@ void dict_set(dict *d, const char *key, void *item) {
     entry->item = item;
     entry->next = NULL;
 
-    int slot = hash(key) % d->capacity;
+    unsigned slot = hash(key) % (unsigned)d->capacity;
     if (d->entries_array[slot] == NULL) {
         d->entries_array[slot] = entry;
         d->count += 1;

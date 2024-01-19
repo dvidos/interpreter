@@ -6,6 +6,7 @@ typedef struct str_builder str_builder;
 
 str_builder *new_str_builder();
 
+void str_builder_clear(str_builder *sb);
 void str_builder_cat(str_builder *sb, const char *str);
 void str_builder_catc(str_builder *sb, char chr);
 void str_builder_catf(str_builder *sb, char *fmt, ...);

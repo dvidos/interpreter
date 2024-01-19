@@ -14,6 +14,9 @@ typedef enum variant_type {
     VT_STR,
     VT_LIST,
     VT_DICT,
+
+    VT_ANYTHING, // for (non) filtering function arguments
+    VT_VOID,     // for functions not returning anything
 } variant_type;
 
 typedef struct variant variant;

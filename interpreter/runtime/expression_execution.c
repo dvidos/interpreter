@@ -8,7 +8,7 @@
 static expression *one = NULL;
 
 enum modify_and_store {
-    MAS_NO_MOD,
+    MAS_ASSIGN,
     MAS_ADD, MAS_SUB, MAS_MUL, MAS_DIV, MAS_MOD,
     MAS_RSH, MAS_LSH, MAS_AND, MAS_OR, MAS_XOR,
 };
@@ -52,7 +52,7 @@ failable_variant execute_expression(expression *e, dict *values, dict *callables
         lvalue = expression_get_operand(e, 0);
         rvalue = expression_get_operand(e, 1);
         switch (op) {
-            case OP_ASSIGNMENT: return modify_and_store(lvalue, MAS_NO_MOD, rvalue, false, values, callables);
+            case OP_ASSIGNMENT: return modify_and_store(lvalue, MAS_ASSIGN, rvalue, false, values, callables);
             case OP_ADD_ASSIGN: return modify_and_store(lvalue, MAS_ADD, rvalue, false, values, callables);
             case OP_SUB_ASSIGN: return modify_and_store(lvalue, MAS_SUB, rvalue, false, values, callables);
             case OP_MUL_ASSIGN: return modify_and_store(lvalue, MAS_MUL, rvalue, false, values, callables);
@@ -79,7 +79,7 @@ static failable_variant retrieve_value(expression *e, dict *values, dict *callab
     failable_variant execution, v1, v2, v3;
     operator op = expression_get_operator(e);
     const char *td = expression_get_terminal_data(e);
-    expression *op1, *op2, *op3;
+    expression *op1, *op2;
 
     switch (expression_get_type(e)) {
         case ET_IDENTIFIER:
@@ -133,40 +133,48 @@ static failable_variant retrieve_value(expression *e, dict *values, dict *callab
 }
 
 static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, dict *values, dict *callables) {
+    failable_variant retrieval;
+    variant *original = NULL;
+    int original_int = 0;
+    int operand_int;
+    int result_int;
 
-    failable_variant retrieval = retrieve_value(lvalue, values, callables);
-    if (retrieval.failed) return failed_variant("Failed retrieving lvalue: %s", retrieval.err_msg);
-    variant *original = retrieval.result;
-    if (!variant_is_int(original))
-        return failed_variant("Modify-and-store applies only to integers");
+    // for now we allow variable creation via simple assignment
+    if (op != MAS_ASSIGN) {
+        retrieval = retrieve_value(lvalue, values, callables);
+        if (retrieval.failed) return failed_variant("Failed retrieving lvalue: %s", retrieval.err_msg);
+        original = retrieval.result;
+        if (!variant_is_int(original))
+            return failed_variant("Modify-and-store applies only to integers");
+        original_int = variant_as_int(original);
+    }
 
     retrieval = retrieve_value(rvalue, values, callables);
     if (retrieval.failed) return failed_variant("Failed retrieving rvalue: %s", retrieval.err_msg);
     variant *operand = retrieval.result;
     if (!variant_is_int(operand))
         return failed_variant("Modify-and-store requires integers as operands");
-    
-    int a = variant_as_int(original);
-    int b = variant_as_int(operand);
-    int c;
-    switch (op) {
-        case MAS_NO_MOD: c = b; break;
-        case MAS_ADD: c = a + b; break;
-        case MAS_SUB: c = a - b; break;
-        case MAS_MUL: c = a * b; break;
-        case MAS_DIV: 
-            if (b == 0) return failed_variant("division by zero not possible with integers");
-            c = a / b;
-            break;
-        case MAS_MOD: c = a % b; break;
-        case MAS_RSH: c = a >> b; break;
-        case MAS_LSH: c = a << b; break;
-        case MAS_AND: c = a & b; break;
-        case MAS_OR:  c = a | b; break;
-        case MAS_XOR: c = a ^ b; break;
-    }
+    operand_int = variant_as_int(operand);
 
-    variant *result = new_int_variant(c);
+    switch (op) {
+        case MAS_ASSIGN: result_int = operand_int; break;
+        case MAS_ADD: result_int = original_int + operand_int; break;
+        case MAS_SUB: result_int = original_int - operand_int; break;
+        case MAS_MUL: result_int = original_int * operand_int; break;
+        case MAS_DIV: 
+            if (operand_int == 0)
+                return failed_variant("division by zero not possible with integers");
+            result_int = original_int / operand_int;
+            break;
+        case MAS_MOD: result_int = original_int  % operand_int; break;
+        case MAS_RSH: result_int = original_int >> operand_int; break;
+        case MAS_LSH: result_int = original_int << operand_int; break;
+        case MAS_AND: result_int = original_int  & operand_int; break;
+        case MAS_OR : result_int = original_int  | operand_int; break;
+        case MAS_XOR: result_int = original_int  ^ operand_int; break;
+    }
+    
+    variant *result = new_int_variant(result_int);
     failable storing = store_value(lvalue, values, callables, result);
     if (storing.failed)
         return failed_variant("Error storing: %s", storing.err_msg);

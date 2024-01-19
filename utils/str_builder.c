@@ -19,6 +19,12 @@ str_builder *new_str_builder() {
     return sb;
 }
 
+void str_builder_clear(str_builder *sb) {
+    // no matter what capacity exists.
+    sb->length = 0;
+    sb->buffer[0] = '\0';
+}
+
 static void ensure_capacity(str_builder *sb, int len_needed) {
     if (sb->capacity < sb->length + len_needed + 1) {
         while (sb->capacity < sb->length + len_needed + 1)

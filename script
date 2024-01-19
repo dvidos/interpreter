@@ -1,17 +1,14 @@
-{
-    if (a == 1) {
-        a = 2;
-    } else {
-        while (a < 10) {
-            a++;
-        }
-        return -1;
+a = 5;
+b = 2;
+c = a + b;
+
+if (a == 1) {
+    a = 2;
+} else {
+    while (a < 10) {
+        a++;
     }
-
-    a = 1;
-    b = 2;
-    c = a + b;
-
+    return -1;
 }
 
 

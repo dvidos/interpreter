@@ -18,6 +18,11 @@ static bool accept_token(token_type tt) {
     tokens_it->next(tokens_it);
     return true;
 }
+static bool tokens_finished() {
+    return 
+        (tokens_it->valid(tokens_it) == false) ||
+        (token_get_type(tokens_it->curr(tokens_it)) == T_END);
+}
 
 static failable_statement parse_if_statement() {
     if (!accept_token(T_IF)) return failed_statement("was expecting 'if'");
@@ -28,7 +33,7 @@ static failable_statement parse_if_statement() {
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *condition = expr_parsing.result;
 
-    failable_list body_parsing = parse_statements_block(tokens_it);
+    failable_list body_parsing = parse_statements(tokens_it, true);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
     list *body_statements = body_parsing.result;
 
@@ -37,7 +42,7 @@ static failable_statement parse_if_statement() {
 
     if (accept_token(T_ELSE)) {
         has_else = true;
-        failable_list else_parsing = parse_statements_block(tokens_it);
+        failable_list else_parsing = parse_statements(tokens_it, true);
         if (else_parsing.failed) return failed_statement("%s", else_parsing.err_msg);
         else_statements = else_parsing.result;
     }
@@ -54,7 +59,7 @@ static failable_statement parse_while_statement() {
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *condition = expr_parsing.result;
 
-    failable_list body_parsing = parse_statements_block(tokens_it);
+    failable_list body_parsing = parse_statements(tokens_it, true);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
     list *body_statements = body_parsing.result;
 
@@ -78,7 +83,7 @@ static failable_statement parse_for_statement() {
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *next = expr_parsing.result;
 
-    failable_list body_parsing = parse_statements_block(tokens_it);
+    failable_list body_parsing = parse_statements(tokens_it, true);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
     list *body_statements = body_parsing.result;
 
@@ -143,25 +148,28 @@ failable_statement parse_statement(iterator *tokens) {
     return failed_statement("Unknown token type: %s", token_type_str(token_get_type(t)));
 }
 
-failable_list parse_statements_block(iterator *tokens) {
+failable_list parse_statements(iterator *tokens, bool single_statement_unless_block) {
     tokens_it = tokens;
 
     list *statements = new_list(containing_statements);
     failable_statement parsing;
+    
+    // three use cases:
+    // - many statements without brackets, e.g. a whole script file
+    // - many statements in brackets block '{ ... }' 
+    // - single statement without brackets, e.g. after an "if"
 
-    if (accept_token(T_LBRACKET)) {
-        while (true) {
-            parsing = parse_statement(tokens_it);
-            if (parsing.failed) return failed_list("%s", parsing.err_msg);
-            list_add(statements, parsing.result);
-            
-            if (accept_token(T_RBRACKET))
-                break;
-        }
-    } else {
+    bool in_block = accept_token(T_LBRACKET);
+    bool done = false;
+    while (!done) {
         parsing = parse_statement(tokens_it);
         if (parsing.failed) return failed_list("%s", parsing.err_msg);
         list_add(statements, parsing.result);
+        
+        if (in_block)
+            done = accept_token(T_RBRACKET);
+        else
+            done = single_statement_unless_block ? true : tokens_finished();
     }
 
     return ok_list(statements);
