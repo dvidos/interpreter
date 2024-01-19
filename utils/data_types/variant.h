@@ -2,9 +2,8 @@
 #define _VARIANT_H
 
 #include <stdbool.h>
-#include "failable.h"
-#include "containers/list.h"
-#include "containers/dict.h"
+#include "../failable.h"
+#include "../containers/_module.h"
 
 typedef enum variant_type {
     VT_NULL,

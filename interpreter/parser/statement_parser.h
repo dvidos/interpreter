@@ -3,7 +3,7 @@
 
 #include "../../utils/iterator.h"
 #include "../../utils/containers/_module.h"
-#include "statement.h"
+#include "../entities/_module.h"
 
 
 void initialize_statement_parser();

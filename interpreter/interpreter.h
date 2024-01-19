@@ -1,7 +1,7 @@
 #ifndef _INTERPRETER_H
 #define _INTERPRETER_H
 
-#include "../utils/variant.h"
+#include "../utils/data_types/_module.h"
 #include "../utils/containers/_module.h"
 
 void initialize_interpreter();

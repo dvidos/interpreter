@@ -3,9 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
-#include "containers/contained_item.h"
 #include "variant.h"
-#include "testing.h"
 
 
 struct variant {

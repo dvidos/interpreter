@@ -4,13 +4,12 @@
 #include "../../utils/str_builder.h"
 #include "../../utils/failable.h"
 #include "../../utils/containers/_module.h"
-#include "../lexer/token.h"
-#include "../lexer/tokenization.h"
-#include "../parser_expr/expression_parser.h"
-#include "../parser_expr/expression.h"
-#include "../parser_expr/operator.h"
+#include "../lexer/_module.h"
+#include "../entities/expression.h"
+#include "../entities/operator.h"
+#include "../entities/statement.h"
+#include "expression_parser.h"
 #include "statement_parser.h"
-#include "statement.h"
 
 
 static bool use_case_passes(const char *code, bool expect_failure, statement *expected_statement, bool verbose) {

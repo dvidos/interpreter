@@ -4,13 +4,10 @@
 #include "../utils/testing.h"
 #include "../utils/failable.h"
 #include "../utils/containers/_module.h"
-#include "parser_expr/expression.h"
-#include "parser_expr/expression_parser.h"
-#include "lexer/token.h"
-#include "lexer/tokenization.h"
-#include "runtime/built_in_funcs.h"
-#include "runtime/expression_execution.h"
-#include "runtime/exec_context.h"
+#include "entities/_module.h"
+#include "lexer/_module.h"
+#include "parser/_module.h"
+#include "runtime/_module.h"
 #include "interpreter.h"
 
 

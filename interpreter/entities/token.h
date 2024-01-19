@@ -25,6 +25,8 @@ typedef enum token_type {
     T_ASTERISK,
     T_FWD_SLASH,
     T_DOUBLE_SLASH,
+    T_SLASH_STAR,
+    T_STAR_SLASH,
     T_PIPE,
     T_DOUBLE_PIPE,
     T_AMPERSAND,
@@ -89,7 +91,6 @@ const char *token_to_string(token *t);
 bool tokens_are_equal(token *a, token *b);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(token);
-
 
 extern contained_item *containing_tokens;
 

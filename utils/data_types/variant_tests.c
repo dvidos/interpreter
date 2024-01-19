@@ -4,10 +4,11 @@
 #include <string.h>
 #include <stddef.h>
 #include "variant.h"
-#include "testing.h"
+#include "../testing.h"
 
 
-bool variant_self_diagnostics() {
+bool variant_self_diagnostics(bool verbose) {
+
     variant *v = new_str_variant("15");
     assert(variant_is_str(v));
     assert(variants_are_equal(v, new_str_variant("15")));
@@ -30,5 +31,5 @@ bool variant_self_diagnostics() {
     assert(variant_as_bool(new_int_variant(0)) == false);
     assert(variant_as_bool(new_int_variant(1)) == true);
 
-    return testing_outcome(false);
+    return testing_outcome(verbose);
 }

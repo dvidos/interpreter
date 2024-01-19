@@ -2,7 +2,7 @@
 #define _CALLABLE_H
 
 #include "variant.h"
-#include "containers/list.h"
+#include "../containers/_module.h"
 
 // We want to support both callables being called,
 // with a list of variants as arguments

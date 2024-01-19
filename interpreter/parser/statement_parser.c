@@ -1,8 +1,8 @@
 #include <string.h>
-#include "../parser_expr/expression_parser.h"
-#include "statement.h"
-#include "../lexer/token.h"
+#include "../lexer/_module.h"
+#include "expression_parser.h"
 #include "statement_parser.h"
+#include "../entities/statement.h"
 
 iterator *tokens_it;
 

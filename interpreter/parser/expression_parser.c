@@ -5,10 +5,8 @@
 #include "../../utils/failable.h"
 #include "../../utils/containers/_module.h"
 #include "expression_parser.h"
-#include "../lexer/token.h"
-#include "../lexer/tokenization.h"
-#include "operator.h"
-#include "expression.h"
+#include "../lexer/_module.h"
+
 
 /*
     The shunting yard algorithm, for parsing operators according to precedence,

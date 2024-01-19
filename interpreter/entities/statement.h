@@ -2,8 +2,8 @@
 #define _STATEMENT_H
 
 #include "../../utils/failable.h"
-#include "../../utils/containers/_module.h"
-#include "../parser_expr/expression.h"
+#include "expression.h"
+
 
 typedef enum statement_type {
     ST_EXPRESSION,

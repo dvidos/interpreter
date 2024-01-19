@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include "../../utils/failable.h"
 #include "tokenization.h"
-#include "token.h"
 
 
 
@@ -67,7 +66,7 @@ static bool use_case_passes(const char *code, bool expect_failure, int expected_
     return true;
 }
 
-bool tokenizer_self_diagnostics() {
+bool lexer_self_diagnostics() {
     bool all_passed = true;
     
     // for each token, pass in expected type. for identifiers and literals, pass in data.

@@ -37,6 +37,8 @@ static struct token_info token_infos[] = {
     { T_ASTERISK,           "*",   "ASTERISK" },
     { T_FWD_SLASH,          "/",   "FWD_SLASH" },
     { T_DOUBLE_SLASH,       "//",  "DOUBLE_SLASH" },
+    { T_SLASH_STAR,         "/*",  "SLASH_STAR" },
+    { T_STAR_SLASH,         "*/",  "STAR_SLASH" },
     { T_PIPE,               "|",   "PIPE" },
     { T_DOUBLE_PIPE,        "||",  "DOUBLE_PIPE" },
     { T_AMPERSAND,          "&",   "AMPERSAND" },

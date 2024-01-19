@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include "../../utils/failable.h"
 #include "tokenization.h"
-#include "token.h"
 
 
 static bool is_whitespace(char c) {
@@ -106,7 +105,7 @@ static void place_token_in_tokens_trie(const char *parse_chars, token_type type)
     curr->type = type;
 }
 
-void initialize_char_tokens_trie() {
+void initialize_lexer() {
     tokens_trie_root = malloc(sizeof(tokens_trie_node));
     memset(tokens_trie_root, 0, sizeof(tokens_trie_node));
     for (int tt = 0; tt < T_MAX_VALUE; tt++) {

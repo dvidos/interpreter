@@ -1,16 +1,15 @@
-#include "utils/testing.h"
-#include "utils/variant.h"
-#include "utils/variant_tests.h"
-#include "utils/file.h"
-#include "interpreter/lexer/tokenization_tests.h"
-#include "interpreter/parser_expr/expression_parser_tests.h"
-#include "interpreter/parser_stmt/statement_parser_tests.h"
-#include "interpreter/interpreter_tests.h"
-#include "interpreter/interpreter.h"
-#include "interpreter/runtime/built_in_funcs.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include "utils/testing.h"
+#include "utils/file.h"
+#include "utils/data_types/_module.h"
+#include "interpreter/lexer/_module.h"
+#include "interpreter/parser/expression_parser_tests.h"
+#include "interpreter/parser/statement_parser_tests.h"
+#include "interpreter/interpreter_tests.h"
+#include "interpreter/interpreter.h"
+#include "interpreter/runtime/built_in_funcs.h"
 
 /*
     The core of the functionality is the "interpret_and_execute()" function.
@@ -32,19 +31,19 @@
 bool run_self_diagnostics(bool verbose) {
     bool all_passed = true;
 
-    if (!variant_self_diagnostics())
+    if (!variant_self_diagnostics(verbose))
         all_passed = false;
     
-    if (!tokenizer_self_diagnostics())
+    if (!lexer_self_diagnostics(verbose))
         all_passed = false;
     
-    if (!expression_parser_self_diagnostics(false))
+    if (!expression_parser_self_diagnostics(verbose))
         all_passed = false;
     
-    if (!statement_parser_self_diagnostics(false))
+    if (!statement_parser_self_diagnostics(verbose))
         all_passed = false;
 
-    if (!interpreter_self_diagnostics())
+    if (!interpreter_self_diagnostics(verbose))
         all_passed = false;
 
     if (verbose) {
@@ -127,7 +126,7 @@ int main(int argc, char *argv[]) {
     if (options.show_help) {
         show_help();
     } else if (options.run_unit_tests) {
-        if (!run_self_diagnostics(true))
+        if (!run_self_diagnostics(options.verbose))
             return 1;
     } else if (options.show_built_in_functions) {
         printf("Built-in functions:\n");

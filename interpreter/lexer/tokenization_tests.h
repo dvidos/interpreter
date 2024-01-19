@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
-bool tokenizer_self_diagnostics();
+void initialize_lexer();
+
+bool lexer_self_diagnostics(bool verbose);
+
+failable_list parse_code_into_tokens(const char *code);
 
 #endif

@@ -4,11 +4,8 @@
 #include "../../utils/str_builder.h"
 #include "../../utils/failable.h"
 #include "../../utils/containers/_module.h"
-#include "../lexer/token.h"
-#include "../lexer/tokenization.h"
+#include "../lexer/_module.h"
 #include "expression_parser.h"
-#include "operator.h"
-#include "expression.h"
 
 
 static bool use_case_passes(const char *code, bool expect_failure, expression *expected_expression, bool verbose) {
