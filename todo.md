@@ -1,9 +1,6 @@
 # todo
 
-* make log() echo to stderr, unless suppressed or redirected to a log file.
 * implement print() or something for std out (maybe streams is better?).
-
-* try out the idea of `_module.h` files
 * make iterator a two level object, internal is move/validate only, externa supports:
 `last`, `curr`, `peek` etc, to aleviate code repetition. Then, since we have the `last` method, fix:
   * the `if(a;b;c;d) {...} case
@@ -30,6 +27,8 @@ Ability to parse EBNF syntax and then parse things on the fly?
 
 # done!
 
+* make log() echo to stderr, unless suppressed or redirected to a log file.
+* try out the idea of `_module.h` files
 * fix first assignment to create the variable (or other guardrail?)
 * implement control structures parsing, e.g. `if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
 * test the execution of whole scripts.

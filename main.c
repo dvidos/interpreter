@@ -9,7 +9,7 @@
 #include "interpreter/parser/statement_parser_tests.h"
 #include "interpreter/interpreter_tests.h"
 #include "interpreter/interpreter.h"
-#include "interpreter/runtime/built_in_funcs.h"
+#include "interpreter/runtime/_module.h"
 
 /*
     The core of the functionality is the "interpret_and_execute()" function.
@@ -61,6 +61,9 @@ struct options {
     char *expression;
     bool execute_script;
     char *script_filename;
+    bool suppress_log_echo;
+    bool log_to_file;
+    char *log_filename;
 } options;
 
 void parse_options(int argc, char *argv[]) {
@@ -69,9 +72,6 @@ void parse_options(int argc, char *argv[]) {
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
             switch (argv[i][1]) {
-                case 'h': options.show_help = true; break;
-                case 'v': options.verbose = true; break;
-                case 'b': options.show_built_in_functions = true; break;
                 case 'e':
                     options.execute_expression = true;
                     options.expression = argv[++i];
@@ -80,9 +80,15 @@ void parse_options(int argc, char *argv[]) {
                     options.execute_script = true;
                     options.script_filename = argv[++i];
                     break;
-                case 'u':
-                    options.run_unit_tests = true;
+                case 'l':
+                    options.log_to_file = true;
+                    options.log_filename = argv[++i];
                     break;
+                case 'h': options.show_help = true; break;
+                case 'v': options.verbose = true; break;
+                case 'b': options.show_built_in_functions = true; break;
+                case 'u': options.run_unit_tests = true; break;
+                case 'q': options.suppress_log_echo = true; break;
             }
         }
     }
@@ -98,6 +104,8 @@ void show_help() {
     printf("  -v                  Be verbose\n");
     printf("  -u                  Run self diagnostics (unit tests)\n");
     printf("  -h                  Show this help message\n");
+    printf("  -q                  Suppress log() output to stderr\n");
+    printf("  -l <log-file>       Save log() output to file\n");
 }
 
 void execute_code(const char *code) {
@@ -118,10 +126,25 @@ void execute_script(const char *filename) {
     execute_code(contents.result);
 }
 
-int main(int argc, char *argv[]) {
-    initialize_interpreter();
+FILE *log_file = NULL;
 
+void setup() {
+
+    initialize_interpreter();
+    if (options.log_to_file)
+        exec_context_set_log_echo(NULL, options.log_filename);
+    else if (!options.suppress_log_echo)
+        exec_context_set_log_echo(stderr, NULL);
+}
+
+void tear_down() {
+
+}
+
+int main(int argc, char *argv[]) {
+    
     parse_options(argc, argv);
+    setup();
 
     if (options.show_help) {
         show_help();
@@ -139,5 +162,6 @@ int main(int argc, char *argv[]) {
         show_help();
     }
 
+    tear_down();
     return 0;
 }

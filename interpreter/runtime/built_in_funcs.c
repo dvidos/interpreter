@@ -69,15 +69,25 @@ BUILT_IN_CALLABLE("char *getenv(char *name);", getenv, VT_STR, false, 1, VT_STR)
     return RET_STR(getenv(name));
 }
 
+str_builder *log_line_builder = NULL;
+
 BUILT_IN_CALLABLE("void log(anything, ...);", log, VT_VOID, true, 0) {
     int args_count = list_length(args);
 
+    if (log_line_builder == NULL)
+        log_line_builder = new_str_builder();
+
+    str_builder_clear(log_line_builder);
     for (int i = 0; i < args_count; i++) {
-        exec_context_log_str(variant_to_string(list_get(args, i)));
+        str_builder_cat(log_line_builder, variant_to_string(list_get(args, i)));
         if (i < args_count - 1)
-            exec_context_log_str(" ");
+            str_builder_catc(log_line_builder, ' ');
     }
-    exec_context_log_str("\n");
+
+    exec_context_log_line(str_builder_charptr(log_line_builder));
+    FILE *echo = exec_context_get_log_echo();
+    if (echo != NULL)
+        fprintf(echo, "%s\n", str_builder_charptr(log_line_builder));
 
     return RET_VOID();
 }

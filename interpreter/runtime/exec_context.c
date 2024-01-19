@@ -46,3 +46,17 @@ const char *exec_context_get_log() {
 
     return str_builder_charptr(exec_context_log);
 }
+
+static FILE *log_echo_handle = NULL;
+
+FILE *exec_context_get_log_echo() {
+    return log_echo_handle;
+}
+
+void exec_context_set_log_echo(FILE *handle, char *filename) {
+    if (handle != NULL) {
+        log_echo_handle = handle;
+    } else if (filename != NULL) {
+        log_echo_handle = fopen(filename, "a");
+    }
+}

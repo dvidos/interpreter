@@ -3,6 +3,7 @@
 /* also block comments */
 
 a = 5;
+d = 123;
 b = 2;
 c = a + b;
 
