@@ -3,8 +3,7 @@
 
 #include <stdio.h>
 #include "../../utils/failable.h"
-#include "../../utils/containers/contained_item.h"
-#include "../../utils/containers/list.h"
+#include "../../utils/containers/_module.h"
 
 typedef enum token_type {
     T_UNKNOWN = 0, // important that zero has unknown meaning

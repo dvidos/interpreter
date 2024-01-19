@@ -1,14 +1,13 @@
 # todo
 
-* implement control structures parsing, e.g. `if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
-* test the execution of whole scripts.
-* make while/for/if etc into tokens, not identifiers
+* make log() echo to stderr, unless suppressed or redirected to a log file.
+* implement print() or something for std out (maybe streams is better?).
+
 * try out the idea of `_module.h` files
 * make iterator a two level object, internal is move/validate only, externa supports:
 `last`, `curr`, `peek` etc, to aleviate code repetition. Then, since we have the `last` method, fix:
   * the `if(a;b;c;d) {...} case
   * function arguments parsing, so that parser does not need to store last token.
-* fix first assignment to create the variable (or other guardrail?)
 * implement parsing of functions
 
 * make parsing of dictionaries `a = {key: value, ...}` and lists `b = (1, 2, ...)`
@@ -18,6 +17,11 @@
 * make streams for execution, stdin/out etc?
 * could implement a `foreach` keyword, to iterate over 
 
+* instead of multiple "switch" statements to handle polymorphic behavior,
+convert to function pointers, and implement discrete functions for each case.
+This should speed up runtime a ton.
+
+
 ## later
 
 Ability to parse EBNF syntax and then parse things on the fly?
@@ -26,6 +30,10 @@ Ability to parse EBNF syntax and then parse things on the fly?
 
 # done!
 
+* fix first assignment to create the variable (or other guardrail?)
+* implement control structures parsing, e.g. `if`, `while`, `break`, `continue`, `for`, ~~`?:`~~
+* test the execution of whole scripts.
+* make while/for/if etc into tokens, not identifiers
 * implement ability to execute script by file
 * implement loading script from file to execute (add line numbers as well)
 * make "containable" something to pass to containers, not to the items themselves...

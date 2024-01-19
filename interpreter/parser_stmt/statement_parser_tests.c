@@ -3,8 +3,7 @@
 #include <string.h>
 #include "../../utils/str_builder.h"
 #include "../../utils/failable.h"
-#include "../../utils/containers/list.h"
-#include "../../utils/containers/stack.h"
+#include "../../utils/containers/_module.h"
 #include "../lexer/token.h"
 #include "../lexer/tokenization.h"
 #include "../parser_expr/expression_parser.h"

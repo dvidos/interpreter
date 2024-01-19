@@ -2,7 +2,7 @@
 #define _EXPRESSION_EXECUTION_H
 
 #include "../../utils/variant.h"
-#include "../../utils/containers/dict.h"
+#include "../../utils/containers/_module.h"
 #include "../parser_expr/expression.h"
 
 

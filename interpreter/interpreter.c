@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include "../utils/testing.h"
 #include "../utils/failable.h"
-#include "../utils/containers/list.h"
-#include "../utils/containers/stack.h"
+#include "../utils/containers/_module.h"
 #include "parser_expr/expression.h"
 #include "parser_expr/expression_parser.h"
 #include "parser_stmt/statement.h"

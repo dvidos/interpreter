@@ -6,8 +6,7 @@
 #include "../../utils/variant.h"
 #include "../../utils/str_builder.h"
 #include "../../utils/callable.h"
-#include "../../utils/containers/list.h"
-#include "../../utils/containers/dict.h"
+#include "../../utils/containers/_module.h"
 
 #define at_least(value, threshold)   ((value) >= (threshold) ? (value) : (threshold))
 #define at_most(value, threshold)    ((value) <= (threshold) ? (value) : (threshold))
