@@ -228,8 +228,7 @@ list *variant_as_list(variant *v) {
         case VT_LIST:
             return v->per_type.list_;
         case VT_DICT:
-            // TODO: should get values off the dict...
-            return new_list(NULL);
+            return dict_get_values(v->per_type.dict_);
         default:
             return NULL;
     }

@@ -92,8 +92,8 @@ static failable_variant retrieve_value(expression *e, dict *values, dict *callab
             return ok_variant(new_str_variant(td));
         case ET_BOOLEAN_LITERAL:
             return ok_variant(new_bool_variant(strcmp(td, "true") == 0));
-        case ET_FUNC_ARGS:
-            list *arg_expressions = expression_get_func_args(e);
+        case ET_LIST_DATA:
+            list *arg_expressions = expression_get_list_data(e);
             list *arg_values = new_list(containing_variants);
             for_list(arg_expressions, args_iterator, expression, arg_exp) {
                 execution = execute_expression(arg_exp, values, callables);

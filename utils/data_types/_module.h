@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "variant.h"
+#include "str.h"
 #include "callable.h"
 
 bool variant_self_diagnostics();

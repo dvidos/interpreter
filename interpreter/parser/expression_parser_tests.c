@@ -98,13 +98,13 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("time()", false,
         new_binary_op_expression(OP_FUNC_CALL,
             new_identifier_expression("time"),
-            new_func_args_expression(list_of(containing_expressions, 0))
+            new_list_data_expression(list_of(containing_expressions, 0))
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("round(3.14)", false,
         new_binary_op_expression(OP_FUNC_CALL,
             new_identifier_expression("round"),
-            new_func_args_expression(list_of(containing_expressions, 1,
+            new_list_data_expression(list_of(containing_expressions, 1,
                 new_numeric_literal_expression("3.14")
             ))
         ), verbose)) all_passed = false;
@@ -112,7 +112,7 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("round(3.14, 2)", false,
         new_binary_op_expression(OP_FUNC_CALL,
             new_identifier_expression("round"),
-            new_func_args_expression(list_of(containing_expressions, 2,
+            new_list_data_expression(list_of(containing_expressions, 2,
                 new_numeric_literal_expression("3.14"),
                 new_numeric_literal_expression("2")
             ))
@@ -122,7 +122,7 @@ bool expression_parser_self_diagnostics(bool verbose) {
         new_binary_op_expression(OP_ADD,
             new_binary_op_expression(OP_FUNC_CALL,
                 new_identifier_expression("pow"),
-                new_func_args_expression(list_of(containing_expressions, 2,
+                new_list_data_expression(list_of(containing_expressions, 2,
                     new_numeric_literal_expression("8"),
                     new_numeric_literal_expression("2")
                 ))
@@ -139,11 +139,11 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("iif(left(a, 1) == '0', 'number', 'letter')", false,
         new_binary_op_expression(OP_FUNC_CALL,
             new_identifier_expression("iif"),
-            new_func_args_expression(list_of(containing_expressions, 3, 
+            new_list_data_expression(list_of(containing_expressions, 3, 
                 new_binary_op_expression(OP_EQUAL, 
                     new_binary_op_expression(OP_FUNC_CALL,
                         new_identifier_expression("left"),
-                        new_func_args_expression(list_of(containing_expressions, 2, 
+                        new_list_data_expression(list_of(containing_expressions, 2, 
                             new_identifier_expression("a"),
                             new_numeric_literal_expression("1")
                         ))),

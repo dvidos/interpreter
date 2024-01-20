@@ -14,7 +14,8 @@ typedef enum expression_type {
     ET_BOOLEAN_LITERAL,
     ET_UNARY_OP,
     ET_BINARY_OP,
-    ET_FUNC_ARGS,
+    ET_LIST_DATA,
+    ET_DICT_DATA,
     ET_EXPR_PAIR,
 } expression_type;
 
@@ -30,7 +31,8 @@ expression *new_boolean_literal_expression(const char *data);
 
 expression *new_unary_op_expression(operator op, expression *operand);
 expression *new_binary_op_expression(operator op, expression *left, expression *right);
-expression *new_func_args_expression(list *args);
+expression *new_list_data_expression(list *data);
+expression *new_dict_data_expression(dict *data);
 expression *new_pair_expression(expression *left, expression *right);
 
 expression_type expression_get_type(expression *e);
@@ -38,7 +40,8 @@ operator expression_get_operator(expression *e);
 int expression_get_operands_count(expression *e);
 const char *expression_get_terminal_data(expression *e);
 expression *expression_get_operand(expression *e, int index);
-list *expression_get_func_args(expression *e);
+list *expression_get_list_data(expression *e);
+dict *expression_get_dict_data(expression *e);
 
 const char *expression_to_string(expression *e);
 bool expressions_are_equal(expression *a, expression *b);

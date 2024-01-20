@@ -3,6 +3,7 @@ FILES = \
 	main.c \
 	utils/testing.c \
 	\
+	utils/data_types/str.c \
 	utils/data_types/variant.c \
 	utils/data_types/variant_tests.c \
 	utils/data_types/callable.c \

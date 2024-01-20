@@ -2,7 +2,9 @@
 #include <string.h>
 #include <stddef.h>
 #include "../str_builder.h"
+#include "../data_types/_module.h"
 #include "dict.h"
+#include "list.h"
 
 typedef struct dict_entry {
     const char *key;
@@ -94,13 +96,13 @@ bool dict_is_empty(dict *d) {
 }
 
 
-typedef struct dict_iterator_private_data {
+typedef struct dict_keys_iterator_private_data {
     dict *dict;
     int curr_slot;
     dict_entry *curr_entry;
-} dict_iterator_private_data;
+} dict_keys_iterator_private_data;
 
-static void dict_iterator_find_next_entry(dict_iterator_private_data *pd, int *slot, dict_entry **entry) {
+static void dict_keys_iterator_find_next_entry(dict_keys_iterator_private_data *pd, int *slot, dict_entry **entry) {
     if (*slot != -1 && *entry != NULL && (*entry)->next != NULL) {
         // only if already in some slot and entry
         *entry = (*entry)->next;
@@ -112,52 +114,67 @@ static void dict_iterator_find_next_entry(dict_iterator_private_data *pd, int *s
         *entry = *slot >= pd->dict->capacity ? NULL : pd->dict->entries_array[*slot];
     }
 }
-static void *dict_iterator_reset(iterator *it) {
-    dict_iterator_private_data *pd = (dict_iterator_private_data *)it->private_data;
+static void *dict_keys_iterator_reset(iterator *it) {
+    dict_keys_iterator_private_data *pd = (dict_keys_iterator_private_data *)it->private_data;
     pd->curr_slot = -1;
     pd->curr_entry = NULL;
-    dict_iterator_find_next_entry(pd, &pd->curr_slot, &pd->curr_entry);
+    dict_keys_iterator_find_next_entry(pd, &pd->curr_slot, &pd->curr_entry);
     return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
 }
-static bool dict_iterator_valid(iterator *it) {
-    dict_iterator_private_data *pd = (dict_iterator_private_data *)it->private_data;
+static bool dict_keys_iterator_valid(iterator *it) {
+    dict_keys_iterator_private_data *pd = (dict_keys_iterator_private_data *)it->private_data;
     return pd->curr_entry != NULL;
 }
-static void *dict_iterator_next(iterator *it) {
-    dict_iterator_private_data *pd = (dict_iterator_private_data *)it->private_data;
+static void *dict_keys_iterator_next(iterator *it) {
+    dict_keys_iterator_private_data *pd = (dict_keys_iterator_private_data *)it->private_data;
     if (pd->curr_slot == -1 || pd->curr_slot >= pd->dict->capacity)
         return NULL;
-    dict_iterator_find_next_entry(pd, &pd->curr_slot, &pd->curr_entry);
+    dict_keys_iterator_find_next_entry(pd, &pd->curr_slot, &pd->curr_entry);
     return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
 }
-static void *dict_iterator_curr(iterator *it) {
-    dict_iterator_private_data *pd = (dict_iterator_private_data *)it->private_data;
+static void *dict_keys_iterator_curr(iterator *it) {
+    dict_keys_iterator_private_data *pd = (dict_keys_iterator_private_data *)it->private_data;
     return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
 }
-static void *dict_iterator_peek(iterator *it) {
-    dict_iterator_private_data *pd = (dict_iterator_private_data *)it->private_data;
+static void *dict_keys_iterator_peek(iterator *it) {
+    dict_keys_iterator_private_data *pd = (dict_keys_iterator_private_data *)it->private_data;
     if (pd->curr_slot == -1 || pd->curr_slot >= pd->dict->capacity)
         return NULL;
     int slot = pd->curr_slot;
     dict_entry *entry = pd->curr_entry;
-    dict_iterator_find_next_entry(pd, &slot, &entry);
+    dict_keys_iterator_find_next_entry(pd, &slot, &entry);
     return entry == NULL ? NULL : entry->item;
 }
-iterator *dict_iterator(dict *d) {
-    dict_iterator_private_data *pd = malloc(sizeof(dict_iterator_private_data));
+iterator *dict_keys_iterator(dict *d) {
+    dict_keys_iterator_private_data *pd = malloc(sizeof(dict_keys_iterator_private_data));
     pd->dict = d;
     pd->curr_slot = -1;
     pd->curr_entry = NULL;
     iterator *it = malloc(sizeof(iterator));
-    it->reset = dict_iterator_reset;
-    it->valid = dict_iterator_valid;
-    it->next = dict_iterator_next;
-    it->curr = dict_iterator_curr;
-    it->peek = dict_iterator_peek;
+    it->reset = dict_keys_iterator_reset;
+    it->valid = dict_keys_iterator_valid;
+    it->next = dict_keys_iterator_next;
+    it->curr = dict_keys_iterator_curr;
+    it->peek = dict_keys_iterator_peek;
     it->private_data = pd;
     return it;
 }
 
+list *dict_get_keys(dict *d) {
+    list *keys = new_list(containing_strs);
+    iterator *it = dict_keys_iterator(d);
+    for_iterator(it, str, key)
+        list_add(keys, (void *)key); // we lose 'const' here
+    return keys;
+}
+
+list *dict_get_values(dict *d) {
+    list *values = new_list(d->contained_item);
+    iterator *it = dict_keys_iterator(d);
+    for_iterator(it, str, key)
+        list_add(values, dict_get(d, key));
+    return values;
+}
 
 bool dicts_are_equal(dict *a, dict *b) {
     if (a == NULL && b == NULL)
@@ -172,21 +189,51 @@ bool dicts_are_equal(dict *a, dict *b) {
     if (a->count != b->count)
         return false;
 
+    iterator *it_a = dict_keys_iterator(a);
+    iterator *it_b = dict_keys_iterator(b);
+    const char *key_a = it_a->reset(it_a);
+    const char *key_b = it_b->reset(it_b);
+    while (it_a->valid(it_a)) {
+        if (!it_b->valid(it_b)) return false;
+        if (strcmp(key_a, key_b) != 0) return false;
+        
+        void *value_a = dict_get(a, key_a);
+        void *value_b = dict_get(b, key_b);
+        bool values_equal;
+        if (a->contained_item != NULL && a->contained_item->are_equal != NULL)
+            values_equal = a->contained_item->are_equal(value_a, value_b);
+        else
+            values_equal = value_a == value_b;
+        if (!values_equal)
+            return false;
 
-    // we should walk now, but I'm tired for today..
-    // TODO: implement this comparison.
+        key_a = it_a->next(it_a);
+        key_b = it_b->next(it_b);
+    }
 
     return true;
 }
 
-const char *dict_to_string(dict *l, const char *key_value_separator, const char *entries_separator) {
+const char *dict_to_string(dict *d, const char *key_value_separator, const char *entries_separator) {
     str_builder *sb = new_str_builder();
-    // we should also walk and I'm tired...
-    // TODO: implement this walking.
+
+    iterator *it = dict_keys_iterator(d);
+    bool first = true;
+    for_iterator(it, const_char, key) {
+        str_builder_catf(sb, "%s%s", key, key_value_separator);
+
+        void *value = dict_get(d, key);
+        if (d->contained_item != NULL && d->contained_item->to_string != NULL)
+            str_builder_cat(sb, d->contained_item->to_string(value));
+        else
+            str_builder_catf(sb, "@0x%p", value);
+
+        str_builder_cat(sb, first ? "" : entries_separator);
+        first = false;
+    }
+
     return str_builder_charptr(sb);
 }
-
-
 
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(dict);
