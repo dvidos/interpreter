@@ -13,7 +13,7 @@
 
 static void verify_execution_failed(char *code) {
     dict *values = new_dict(containing_variants, 10);
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (!evaluation.failed)
         assertion_failed("Evaluation did not fail as expected");
     assertion_passed();
@@ -21,14 +21,14 @@ static void verify_execution_failed(char *code) {
 
 static void verify_execution_null(char *code) {
     dict *values = new_dict(containing_variants, 10);
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_is_null(evaluation.result), code);
 }
 
 static void verify_execution_b(char *code, bool expected_result) {
     dict *values = new_dict(containing_variants, 10);
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_bool(evaluation.result) == expected_result, code);
 }
@@ -36,7 +36,7 @@ static void verify_execution_b(char *code, bool expected_result) {
 static void verify_execution_bb(char *code, bool a, bool expected_result) {
     dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_bool_variant(a));
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_bool(evaluation.result) == expected_result, code);
 }
@@ -45,14 +45,14 @@ static void verify_execution_bbb(char *code, bool a, bool b, bool expected_resul
     dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_bool_variant(a));
     dict_set(values, "b", new_bool_variant(b));
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_bool(evaluation.result) == expected_result, code);
 }
 
 static void verify_execution_i(char *code, int expected_result) {
     dict *values = new_dict(containing_variants, 10);
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_int(evaluation.result) == expected_result, code);
 }
@@ -60,7 +60,7 @@ static void verify_execution_i(char *code, int expected_result) {
 static void verify_execution_ii(char *code, int a, int expected_result) {
     dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_int_variant(a));
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_int(evaluation.result) == expected_result, code);
 }
@@ -69,7 +69,7 @@ static void verify_execution_iii(char *code, int a, int b, int expected_result) 
     dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_int_variant(a));
     dict_set(values, "b", new_int_variant(b));
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_int(evaluation.result) == expected_result, code);
 }
@@ -77,14 +77,14 @@ static void verify_execution_iii(char *code, int a, int b, int expected_result) 
 static void verify_execution_ib(char *code, int a, bool expected_result) {
     dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_int_variant(a));
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     assert_msg(variant_as_bool(evaluation.result) == expected_result, code);
 }
 
 static void verify_execution_s(char *code, char *expected_result) {
     dict *values = new_dict(containing_variants, 10);
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     bool answer_was_the_expected_one = strcmp(variant_as_str(evaluation.result), expected_result) == 0;
     assert_msg(answer_was_the_expected_one, code);
@@ -93,7 +93,7 @@ static void verify_execution_s(char *code, char *expected_result) {
 static void verify_execution_ss(char *code, char *a, char *expected_result) {
     dict *values = new_dict(containing_variants, 10);
     dict_set(values, "a", new_str_variant(a));
-    failable_variant evaluation = interpret_and_execute(code, values, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false);
     if (evaluation.failed) { assertion_failed(evaluation.err_msg); return; }
     bool answer_was_the_expected_one = strcmp(variant_as_str(evaluation.result), expected_result) == 0;
     assert_msg(answer_was_the_expected_one, code);
@@ -101,7 +101,7 @@ static void verify_execution_ss(char *code, char *a, char *expected_result) {
 
 static void verify_execution_log(char *code, char *expected_log) {
     dict *values = new_dict(containing_variants, 10);
-    failable_variant execution = interpret_and_execute(code, values, false);
+    failable_variant execution = interpret_and_execute(code, "test", values, false);
     if (execution.failed) { assertion_failed(execution.err_msg); printf("code=%s\n", code); return; }
     if (strcmp(exec_context_get_log(), expected_log) != 0) {
         assertion_failed("log comparison failed!");

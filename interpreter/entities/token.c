@@ -89,19 +89,28 @@ static struct token_info token_infos[] = {
 struct token {
     token_type type;
     const char *data; // e.g. identifier or number
+    const char *filename;
+    int line_no;
+    int column_no;
 };
 
-token *new_token(token_type type) {
+token *new_token(token_type type, const char *filename, int line_no, int column_no) {
     token *t = malloc(sizeof(token));
     t->type = type;
     t->data = NULL;
+    t->filename = filename;
+    t->line_no = line_no;
+    t->column_no = column_no;
     return t;
 }
 
-token *new_data_token(token_type type, const char *data) {
+token *new_data_token(token_type type, const char *data, const char *filename, int line_no, int column_no) {
     token *t = malloc(sizeof(token));
     t->type = type;
     t->data = data;
+    t->filename = filename;
+    t->line_no = line_no;
+    t->column_no = column_no;
     return t;
 }
 

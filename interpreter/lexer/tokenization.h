@@ -6,6 +6,6 @@
 
 void initialize_lexer();
 
-failable_list parse_code_into_tokens(const char *code);
+failable_list parse_code_into_tokens(const char *code, const char *filename);
 
 #endif

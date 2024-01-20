@@ -7,7 +7,37 @@
 #include "tokenization.h"
 
 
-static int line_no = 0;
+
+// read these values in this module, use the code_*() functions for changes
+static const char *code_curr_char = NULL;
+static const char *code_filename = NULL;
+static int code_line_no = 1;
+static int code_column_no = 1;
+
+static const void code_reset_pos(const char *code, const char *filename) {
+    code_curr_char = code;
+    code_filename = filename;
+    code_line_no = 1;
+    code_column_no = 1;
+}
+static const void code_advance_pos() {
+    if (code_curr_char == NULL || *code_curr_char == '\0')
+        return;
+    
+    if (*code_curr_char == '\n') {
+        code_line_no += 1;
+        code_column_no = 0;
+    }
+    
+    code_column_no++;
+    code_curr_char++;
+}
+static inline bool code_finished() {
+    return *code_curr_char == '\0';
+}
+
+// ----------------------
+
 
 static bool is_whitespace(char c) {
     return (c == ' ' || c == '\n' || c == '\r' || c == '\t');
@@ -46,17 +76,16 @@ static token_type get_reserved_word_token(const char *data) {
     return T_UNKNOWN;
 }
 
-static char *collect(const char *code, int len, int *pos, char first_char, char_filter_function *filter) {
+static char *collect(char_filter_function *filter) {
     char buffer[128];
     memset(buffer, 0, sizeof(buffer));
-    buffer[0] = first_char;
 
-    while ((*pos < len)
-        && (filter(code[*pos]))
+    while (!code_finished()
+        && (filter(*code_curr_char))
         && (strlen(buffer) < sizeof(buffer) - 1) 
     ) {
-        buffer[strlen(buffer)] = code[*pos];
-        *pos += 1;
+        buffer[strlen(buffer)] = *code_curr_char;
+        code_advance_pos();
     }
 
     char *data = malloc(strlen(buffer) + 1);
@@ -64,46 +93,46 @@ static char *collect(const char *code, int len, int *pos, char first_char, char_
     return data;
 }
 
-static char *collect_string_literal(const char *code, int len, int *pos, char opening_quote) {
+static char *collect_string_literal() {
     char buffer[128];
     memset(buffer, 0, sizeof(buffer));
-    char closing_quote = opening_quote;
+
+    char quote = *code_curr_char;
+    code_advance_pos();
     
-    while ((*pos < len)
-        && (code[*pos] != closing_quote)
+    while (!code_finished()
+        && (*code_curr_char != quote)
         && (strlen(buffer) < sizeof(buffer) - 1) 
     ) {
-        buffer[strlen(buffer)] = code[*pos];
-        *pos += 1;
+        buffer[strlen(buffer)] = *code_curr_char;
+        code_advance_pos();
     }
 
-    // since we encountered the closing quote, advance position
-    if (code[*pos] == closing_quote)
-        *pos += 1;
+    // skip over closing quote
+    if (*code_curr_char == quote)
+        code_advance_pos();
 
     char *data = malloc(strlen(buffer) + 1);
     strcpy(data, buffer);
     return data;
 }
 
-static void skip_whitespace(const char *code, int len, int *pos) {
-    while (*pos < len && is_whitespace(code[*pos])) {
-        if (code[*pos] == '\n')
-            line_no += 1;
-        *pos += 1;
-    }
+static void skip_whitespace() {
+    while (!code_finished() && is_whitespace(*code_curr_char))
+        code_advance_pos();
 }
 
-static void skip_comment(bool is_block, const char *code, int len, int *pos) {
-    while (*pos < len) {
+static void skip_comment(bool is_block) {
+    while (!code_finished()) {
         bool found_end = is_block ? 
-            (code[*pos] == '*' && code[(*pos)+1] == '/') :
-            (code[*pos] == '\n');
+            (*code_curr_char == '*' && *(code_curr_char + 1) == '/') :
+            (*code_curr_char == '\n');
         if (found_end) {
-            *pos += is_block ? 2 : 1;
+            code_advance_pos();
+            if (is_block) code_advance_pos();
             break;
         }
-        *pos += 1;
+        code_advance_pos();
     }
 }
 
@@ -139,68 +168,66 @@ void initialize_lexer() {
     }
 }
 
-static token_type get_char_token_type(const char *code, int len, int *pos) {
+static token_type get_char_token_type() {
     // use the trie
     token_type result = T_UNKNOWN;
     tokens_trie_node *curr = tokens_trie_root;
-    while (curr->children[code[*pos]] != NULL) {
+    while (curr->children[*code_curr_char] != NULL) {
         // we may have something.
-        curr = curr->children[code[*pos]];
+        curr = curr->children[*code_curr_char];
         result = curr->type;
-        (*pos) += 1;
+        code_advance_pos();
     }
 
     return result;
 }
 
-static failable_token get_token_at_code_position(const char *code, int len, int *pos) {
+static failable_token get_token_at_code_position() {
 
-    skip_whitespace(code, len, pos);
-    if (*pos >= len)
+    skip_whitespace();
+    if (code_finished())
         return ok_token(NULL);
     
     // try a char-based token first
-    token_type char_token_type = get_char_token_type(code, len, pos);
+    token_type char_token_type = get_char_token_type();
     if (char_token_type != T_UNKNOWN) {
-        return ok_token(new_token(char_token_type));
+        return ok_token(new_token(char_token_type, code_filename, code_line_no, code_column_no));
     }
 
-    char c = code[(*pos)++];
+    char c = *code_curr_char;
     if (c == '"' || c == '\'') {
-        char *data = collect_string_literal(code, len, pos, c);
-        return ok_token(new_data_token(T_STRING_LITERAL, data));
+        char *data = collect_string_literal();
+        return ok_token(new_data_token(T_STRING_LITERAL, data, code_filename, code_line_no, code_column_no));
 
     } else if (is_number_char(c)) {
-        char *data = collect(code, len, pos, c, is_number_char);
-        return ok_token(new_data_token(T_NUMBER_LITERAL, data));
+        char *data = collect(is_number_char);
+        return ok_token(new_data_token(T_NUMBER_LITERAL, data, code_filename, code_line_no, code_column_no));
 
     } else if (is_identifier_char(c)) {
-        char *data = collect(code, len, pos, c, is_identifier_char);
+        char *data = collect(is_identifier_char);
         token_type reserved_word_token = get_reserved_word_token(data);
         if (reserved_word_token != T_UNKNOWN)
-            return ok_token(new_token(reserved_word_token));
+            return ok_token(new_token(reserved_word_token, code_filename, code_line_no, code_column_no));
         else if (strcmp(data, "true") == 0 || strcmp(data, "false") == 0)
-            return ok_token(new_data_token(T_BOOLEAN_LITERAL, data));
+            return ok_token(new_data_token(T_BOOLEAN_LITERAL, data, code_filename, code_line_no, code_column_no));
         else
-            return ok_token(new_data_token(T_IDENTIFIER, data));
+            return ok_token(new_data_token(T_IDENTIFIER, data, code_filename, code_line_no, code_column_no));
     }
     
-    return failed_token("Unrecognized token at pos %d ('%c')", (*pos)-1, code[(*pos)-1]);
+    return failed_token("Unrecognized character at pos %d:%d ('%c')", code_line_no, code_column_no, *code_curr_char);
 }
 
-failable_list parse_code_into_tokens(const char *code) {
+failable_list parse_code_into_tokens(const char *code, const char *filename) {
     list *tokens = new_list(containing_tokens);
-    line_no = 1;
 
-    if (code == NULL) {
-        list_add(tokens, new_token(T_END));
+    if (code == NULL || strlen(code) == 0) {
+        list_add(tokens, new_token(T_END, code_filename, code_line_no, code_column_no));
         return ok_list(tokens);
     }
     
-    int len = strlen(code);
-    int pos = 0;
-    while (pos < len) {
-        failable_token t = get_token_at_code_position(code, len, &pos);
+    code_reset_pos(code, filename);
+    while (!code_finished()) {
+        failable_token t = get_token_at_code_position();
         if (t.failed)
             return failed_list("Cannot get token: %s", t.err_msg);
         if (t.result == NULL)
@@ -208,13 +235,13 @@ failable_list parse_code_into_tokens(const char *code) {
         
         token_type tt = token_get_type(t.result);
         if (tt == T_DOUBLE_SLASH || tt == T_SLASH_STAR) {
-            skip_comment((tt == T_SLASH_STAR), code, len, &pos);
+            skip_comment(tt == T_SLASH_STAR);
             continue;
         }
         
         list_add(tokens, t.result);
     }
-    list_add(tokens, new_token(T_END));
+    list_add(tokens, new_token(T_END, code_filename, code_line_no, code_column_no));
 
     return ok_list(tokens);
 }

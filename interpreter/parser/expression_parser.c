@@ -37,8 +37,8 @@ static token *end_token;
 void initialize_expression_parser() {
     operators_stack = new_stack(containing_operators);
     expressions_stack = new_stack(containing_expressions);
-    end_token = new_token(T_END);
-    prev_token = new_token(T_UNKNOWN);
+    end_token = new_token(T_END, NULL, 0, 0);
+    prev_token = new_token(T_UNKNOWN, NULL, 0, 0);
 }
 
 static token* get_token_and_advance() {

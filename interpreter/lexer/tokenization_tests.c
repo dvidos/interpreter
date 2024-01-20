@@ -10,7 +10,7 @@
 
 // for each token, pass in expected type. for identifiers and literals, pass in data.
 static bool use_case_passes(const char *code, bool expect_failure, int expected_tokens, ...) {
-    failable_list tokenization = parse_code_into_tokens(code);
+    failable_list tokenization = parse_code_into_tokens(code, "test");
 
     // test failure
     if (expect_failure) {

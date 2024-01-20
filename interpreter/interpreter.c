@@ -25,9 +25,9 @@ void initialize_interpreter() {
 }
 
 
-failable_variant interpret_and_execute(const char *code, dict *arguments, bool verbose) {
+failable_variant interpret_and_execute(const char *code, const char *filename, dict *arguments, bool verbose) {
 
-    failable_list tokenization = parse_code_into_tokens(code);
+    failable_list tokenization = parse_code_into_tokens(code, filename);
     if (tokenization.failed)
         return failed_variant("Tokenization failed: %s", tokenization.err_msg);
     if (verbose)

@@ -18,8 +18,8 @@ data = {
 log('a=' + str(a) + ', b=' + str(b));
 
 // some form of useful input/output: per line, per block, per...?
-a = input();
-output(b);
+input();
+output();
 
 if (a == 1) {
     a = 2;

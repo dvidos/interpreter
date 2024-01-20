@@ -108,9 +108,9 @@ void show_help() {
     printf("  -l <log-file>       Save log() output to file\n");
 }
 
-void execute_code(const char *code) {
+void execute_code(const char *code, const char *filename) {
     dict *values = new_dict(containing_variants, 20);
-    failable_variant execution = interpret_and_execute(code, values, options.verbose);
+    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose);
     if (execution.failed)
         printf("Failed: %s\n", execution.err_msg);
     else
@@ -123,7 +123,7 @@ void execute_script(const char *filename) {
         printf("%s", contents.err_msg);
         return;
     }
-    execute_code(contents.result);
+    execute_code(contents.result, filename);
 }
 
 FILE *log_file = NULL;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
         printf("Built-in functions:\n");
         print_built_in_funcs_list();
     } else if (options.execute_expression) {
-        execute_code(options.expression);
+        execute_code(options.expression, "inline");
     } else if (options.execute_script) {
         execute_script(options.script_filename);
     } else {
