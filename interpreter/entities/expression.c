@@ -10,19 +10,13 @@ struct expression {
     expression_type type;
     operator op;
     union {
-        struct terminal {
-            const char *data;
-        } terminal;
+        const char *terminal_data;
+        list *list_;
+        dict *dict_;
         struct operation {
             struct expression *op0;
             struct expression *op1;
         } operation;
-        struct list_data {
-            list *data;
-        } list_data;
-        struct dict_data {
-            dict *data;
-        } dict_data;
         struct pair {
             struct expression *left;
             struct expression *right;
@@ -47,25 +41,25 @@ static expression *new_expression(expression_type type, operator op) {
 
 expression *new_identifier_expression(const char *data) {
     expression *e = new_expression(ET_IDENTIFIER, OP_UNKNOWN);
-    e->per_type.terminal.data = data;
+    e->per_type.terminal_data = data;
     return e;
 }
 
 expression *new_numeric_literal_expression(const char *data) {
     expression *e = new_expression(ET_NUMERIC_LITERAL, OP_UNKNOWN);
-    e->per_type.terminal.data = data;
+    e->per_type.terminal_data = data;
     return e;
 }
 
 expression *new_string_literal_expression(const char *data) {
     expression *e = new_expression(ET_STRING_LITERAL, OP_UNKNOWN);
-    e->per_type.terminal.data = data;
+    e->per_type.terminal_data = data;
     return e;
 }
 
 expression *new_boolean_literal_expression(const char *data) {
     expression *e = new_expression(ET_BOOLEAN_LITERAL, OP_UNKNOWN);
-    e->per_type.terminal.data = data;
+    e->per_type.terminal_data = data;
     return e;
 }
 
@@ -84,13 +78,13 @@ expression *new_binary_op_expression(operator op, expression *left, expression *
 
 expression *new_list_data_expression(list *l) {
     expression *e = new_expression(ET_LIST_DATA, OP_UNKNOWN);
-    e->per_type.list_data.data = l;
+    e->per_type.list_ = l;
     return e;
 }
 
 expression *new_dict_data_expression(dict *d) {
     expression *e = new_expression(ET_DICT_DATA, OP_UNKNOWN);
-    e->per_type.dict_data.data = d;
+    e->per_type.dict_ = d;
     return e;
 }
 
@@ -126,7 +120,7 @@ int expression_get_operands_count(expression *e) {
 }
 
 const char *expression_get_terminal_data(expression *e) {
-    return e->per_type.terminal.data;
+    return e->per_type.terminal_data;
 }
 
 expression *expression_get_operand(expression *e, int index) {
@@ -138,11 +132,11 @@ expression *expression_get_operand(expression *e, int index) {
 }
 
 list *expression_get_list_data(expression *e) {
-    return e->type == ET_LIST_DATA ? e->per_type.list_data.data : NULL;
+    return e->type == ET_LIST_DATA ? e->per_type.list_ : NULL;
 }
 
 dict *expression_get_dict_data(expression *e) {
-    return e->type == ET_DICT_DATA ? e->per_type.dict_data.data : NULL;
+    return e->type == ET_DICT_DATA ? e->per_type.dict_ : NULL;
 }
 
 expression *expression_get_pair_item(expression *e, bool left) {
@@ -159,7 +153,7 @@ bool expressions_are_equal(expression *a, expression *b) {
     if (a->type != b->type)
         return false;
     if (a->type == ET_IDENTIFIER || a->type == ET_NUMERIC_LITERAL || a->type == ET_STRING_LITERAL || a->type == ET_BOOLEAN_LITERAL) {
-        if (strcmp(a->per_type.terminal.data, b->per_type.terminal.data) != 0)
+        if (strcmp(a->per_type.terminal_data, b->per_type.terminal_data) != 0)
             return false;
     } else if (a->type == ET_UNARY_OP) {
         if (!expressions_are_equal(a->per_type.operation.op0, b->per_type.operation.op0))
@@ -170,10 +164,10 @@ bool expressions_are_equal(expression *a, expression *b) {
         if (!expressions_are_equal(a->per_type.operation.op1, b->per_type.operation.op1))
             return false;
     } else if (a->type == ET_LIST_DATA) {
-        if (!lists_are_equal(a->per_type.list_data.data, b->per_type.list_data.data))
+        if (!lists_are_equal(a->per_type.list_, b->per_type.list_))
             return false;
     } else if (a->type == ET_DICT_DATA) {
-        if (!dicts_are_equal(a->per_type.dict_data.data, b->per_type.dict_data.data))
+        if (!dicts_are_equal(a->per_type.dict_, b->per_type.dict_))
             return false;
     } else if (a->type == ET_EXPR_PAIR) {
         if (!expressions_are_equal(a->per_type.pair.left, b->per_type.pair.left))
@@ -189,13 +183,13 @@ const char *expression_to_string(expression *e) {
     str_builder *sb = new_str_builder();
     
     if (e->type == ET_IDENTIFIER) {
-        str_builder_catf(sb, "IDENTIFIER(\"%s\")", e->per_type.terminal.data);
+        str_builder_catf(sb, "IDENTIFIER(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_NUMERIC_LITERAL) {
-        str_builder_catf(sb, "NUMBER(\"%s\")", e->per_type.terminal.data);
+        str_builder_catf(sb, "NUM(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_STRING_LITERAL) {
-        str_builder_catf(sb, "STRING(\"%s\")", e->per_type.terminal.data);
+        str_builder_catf(sb, "STR(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_BOOLEAN_LITERAL) {
-        str_builder_catf(sb, "BOOLEAN(%s)", e->per_type.terminal.data);
+        str_builder_catf(sb, "BOOL(%s)", e->per_type.terminal_data);
     } else if (e->type == ET_UNARY_OP) {
         str_builder_catf(sb, "%s(", operator_str(e->op));
         str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
@@ -208,11 +202,11 @@ const char *expression_to_string(expression *e) {
         str_builder_catc(sb, ')');
     } else if (e->type == ET_LIST_DATA) {
         str_builder_cat(sb, "LIST(");
-        str_builder_cat(sb, list_to_string(e->per_type.list_data.data, ", "));
+        str_builder_cat(sb, list_to_string(e->per_type.list_, ", "));
         str_builder_catc(sb, ')');
     } else if (e->type == ET_DICT_DATA) {
         str_builder_cat(sb, "DICT(");
-        str_builder_cat(sb, dict_to_string(e->per_type.dict_data.data, ":", ", "));
+        str_builder_cat(sb, dict_to_string(e->per_type.dict_, ": ", ", "));
         str_builder_cat(sb, ")");
     } else if (e->type == ET_EXPR_PAIR) {
         str_builder_cat(sb, "PAIR(");

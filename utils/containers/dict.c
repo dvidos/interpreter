@@ -119,7 +119,7 @@ static void *dict_keys_iterator_reset(iterator *it) {
     pd->curr_slot = -1;
     pd->curr_entry = NULL;
     dict_keys_iterator_find_next_entry(pd, &pd->curr_slot, &pd->curr_entry);
-    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
+    return pd->curr_entry == NULL ? NULL : (char *)pd->curr_entry->key; // we lose const here
 }
 static bool dict_keys_iterator_valid(iterator *it) {
     dict_keys_iterator_private_data *pd = (dict_keys_iterator_private_data *)it->private_data;
@@ -130,11 +130,11 @@ static void *dict_keys_iterator_next(iterator *it) {
     if (pd->curr_slot == -1 || pd->curr_slot >= pd->dict->capacity)
         return NULL;
     dict_keys_iterator_find_next_entry(pd, &pd->curr_slot, &pd->curr_entry);
-    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
+    return pd->curr_entry == NULL ? NULL : (char *)pd->curr_entry->key; // we lose const here
 }
 static void *dict_keys_iterator_curr(iterator *it) {
     dict_keys_iterator_private_data *pd = (dict_keys_iterator_private_data *)it->private_data;
-    return pd->curr_entry == NULL ? NULL : pd->curr_entry->item;
+    return pd->curr_entry == NULL ? NULL : (char *)pd->curr_entry->key; // we lose const here
 }
 static void *dict_keys_iterator_peek(iterator *it) {
     dict_keys_iterator_private_data *pd = (dict_keys_iterator_private_data *)it->private_data;
@@ -143,7 +143,7 @@ static void *dict_keys_iterator_peek(iterator *it) {
     int slot = pd->curr_slot;
     dict_entry *entry = pd->curr_entry;
     dict_keys_iterator_find_next_entry(pd, &slot, &entry);
-    return entry == NULL ? NULL : entry->item;
+    return entry == NULL ? NULL : (char *)entry->key; // we lose const here
 }
 iterator *dict_keys_iterator(dict *d) {
     dict_keys_iterator_private_data *pd = malloc(sizeof(dict_keys_iterator_private_data));
@@ -220,16 +220,15 @@ const char *dict_to_string(dict *d, const char *key_value_separator, const char 
     iterator *it = dict_keys_iterator(d);
     bool first = true;
     for_iterator(it, const_char, key) {
-        str_builder_catf(sb, "%s%s", key, key_value_separator);
+        str_builder_cat(sb, first ? "" : entries_separator);
+        first = false;
 
+        str_builder_catf(sb, "%s%s", key, key_value_separator);
         void *value = dict_get(d, key);
         if (d->contained_item != NULL && d->contained_item->to_string != NULL)
             str_builder_cat(sb, d->contained_item->to_string(value));
         else
             str_builder_catf(sb, "@0x%p", value);
-
-        str_builder_cat(sb, first ? "" : entries_separator);
-        first = false;
     }
 
     return str_builder_charptr(sb);

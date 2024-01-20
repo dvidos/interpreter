@@ -7,6 +7,8 @@
 #include "tokenization.h"
 
 
+static int line_no = 0;
+
 static bool is_whitespace(char c) {
     return (c == ' ' || c == '\n' || c == '\r' || c == '\t');
 }
@@ -85,8 +87,11 @@ static char *collect_string_literal(const char *code, int len, int *pos, char op
 }
 
 static void skip_whitespace(const char *code, int len, int *pos) {
-    while (*pos < len && is_whitespace(code[*pos]))
+    while (*pos < len && is_whitespace(code[*pos])) {
+        if (code[*pos] == '\n')
+            line_no += 1;
         *pos += 1;
+    }
 }
 
 static void skip_comment(bool is_block, const char *code, int len, int *pos) {
@@ -185,6 +190,7 @@ static failable_token get_token_at_code_position(const char *code, int len, int 
 
 failable_list parse_code_into_tokens(const char *code) {
     list *tokens = new_list(containing_tokens);
+    line_no = 1;
 
     if (code == NULL) {
         list_add(tokens, new_token(T_END));

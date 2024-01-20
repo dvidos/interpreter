@@ -185,13 +185,60 @@ static failable_bool detect_completion(token_type curr_token, completion_mode co
         return ok_bool(curr_token == T_SEMICOLON);
     } else if (completion == CM_RPAREN) {
         return ok_bool(curr_token == T_RPAREN);
-    } else if (completion == CM_FUNC_ARGS) {
-        return ok_bool(curr_token == T_RPAREN || curr_token == T_COMMA);
+    } else if (completion == CM_COMMA_OR_RPAREN) {
+        return ok_bool(curr_token == T_COMMA || curr_token == T_RPAREN);
+    } else if (completion == CM_COMMA_OR_RSQBRACKET) {
+        return ok_bool(curr_token == T_COMMA || curr_token == T_RSQBRACKET);
+    } else if (completion == CM_COMMA_OR_RBRACKET) {
+        return ok_bool(curr_token == T_COMMA || curr_token == T_RBRACKET);
     } else if (completion == CM_COLON) {
         return ok_bool(curr_token == T_COLON);
     }
 
     return failed_bool("Unknown completion mode %d", completion);
+}
+
+static failable_expression parse_list_initializer(bool verbose) {
+    list *l = new_list(containing_expressions);
+
+    // [] = empty list
+    if (token_get_type(peek_token()) == T_RSQBRACKET) {
+        get_token_and_advance();
+        return ok_expression(new_list_data_expression(l));
+    }
+
+    // else parse expressions until we reach end square bracket.
+    while (token_get_type(prev_token) != T_RSQBRACKET) {
+        failable_expression expr = parse_expression(tokens_iterator, CM_COMMA_OR_RSQBRACKET, verbose);
+        if (expr.failed) return failed_expression("%s", expr.err_msg);
+        list_add(l, expr.result);
+    }
+
+    return ok_expression(new_list_data_expression(l));
+}
+
+static failable_expression parse_dict_initializer(bool verbose) {
+    dict *d = new_dict(containing_expressions, 64);
+
+    // {} = empty dict
+    if (token_get_type(peek_token()) == T_RBRACKET) {
+        get_token_and_advance();
+        return ok_expression(new_dict_data_expression(d));
+    }
+
+    // else parse "key":expression until we reach end square bracket.
+    while (token_get_type(prev_token) != T_RBRACKET) {
+        failable_expression key_expr = parse_expression(tokens_iterator, CM_COLON, verbose);
+        if (key_expr.failed) return failed_expression("%s", key_expr.err_msg);
+        if (expression_get_type(key_expr.result) != ET_IDENTIFIER)
+            return failed_expression("Dict keys should be identifiers, got %d", expression_get_type(key_expr.result));
+        const char *key = expression_get_terminal_data(key_expr.result);
+        failable_expression val_expr = parse_expression(tokens_iterator, CM_COMMA_OR_RBRACKET, verbose);
+        if (val_expr.failed) return failed_expression("%s", val_expr.err_msg);
+        dict_set(d, key, val_expr.result);
+    }
+
+    return ok_expression(new_dict_data_expression(d));
 }
 
 static failable parse_expression_on_want_operand(run_state *state, bool verbose) {
@@ -209,20 +256,27 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     // handle sub-expressions here, func cals are handled after having operand.
     if (tt == T_LPAREN) {
         failable_expression sub_expression = parse_expression(tokens_iterator, CM_RPAREN, verbose);
-        if (sub_expression.failed)
-            return failed("Subexpression failed: %s", sub_expression.err_msg);
+        if (sub_expression.failed) return failed("Subexpression failed: %s", sub_expression.err_msg);
         push_expression(sub_expression.result);
         *state = HAVE_OPERAND;
         return ok();
     }
 
-    // if (tt == T_LSQBRACKET) {
-    //     parse_list_initializer();
-    // }
+    if (tt == T_LSQBRACKET) {
+        failable_expression list_expression = parse_list_initializer(verbose);
+        if (list_expression.failed) return failed("List initialization failed: %s", list_expression.err_msg);
+        push_expression(list_expression.result);
+        *state = HAVE_OPERAND;
+        return ok();
+    }
 
-    // if (tt == T_LBRACKET) {
-    //     parse_dict_initializer();
-    // }
+    if (tt == T_LBRACKET) {
+        failable_expression dict_expression = parse_dict_initializer(verbose);
+        if (dict_expression.failed) return failed("Dict initialization failed: %s", dict_expression.err_msg);
+        push_expression(dict_expression.result);
+        *state = HAVE_OPERAND;
+        return ok();
+    }
 
     // handle operands
     if (is_token_operand(tt)) {
@@ -246,7 +300,7 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
     }
 
     while (token_get_type(prev_token) != T_RPAREN) {
-        failable_expression parse_arg = parse_expression(tokens_iterator, CM_FUNC_ARGS, verbose);
+        failable_expression parse_arg = parse_expression(tokens_iterator, CM_COMMA_OR_RPAREN, verbose);
         if (parse_arg.failed)
             return failed_list("%s", parse_arg.err_msg);
         list_add(args, parse_arg.result);

@@ -205,7 +205,7 @@ const char *variant_as_str(variant *v) {
         case VT_DICT:
             if (v->str_repr == NULL) {
                 if (v->per_type.dict_ != NULL)
-                    v->str_repr = dict_to_string(v->per_type.dict_, ":", ", ");
+                    v->str_repr = dict_to_string(v->per_type.dict_, ": ", ", ");
             }
             return v->str_repr;
         default:
