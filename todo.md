@@ -1,6 +1,5 @@
 # todo
 
-* implement print() or something for std out (maybe streams is better?).
 * make iterator a two level object, internal is move/validate only, externa supports:
 `last`, `curr`, `peek` etc, to aleviate code repetition. Then, since we have the `last` method, fix:
   * the `if(a;b;c;d) {...} case

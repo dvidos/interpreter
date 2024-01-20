@@ -1,0 +1,11 @@
+for (i = 0; i < 50; i++) {
+    if (i % 3 == 0 && i % 5 == 0)
+        log('Fizz Buzz');
+    else if (i % 3 == 0)
+        log('Fizz');
+    else if (i % 5 == 0)
+        log('Buzz');
+    else
+        log(i);
+}
+return 0;

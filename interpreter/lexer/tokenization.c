@@ -54,7 +54,7 @@ static char *collect(const char *code, int len, int *pos, char first_char, char_
         && (strlen(buffer) < sizeof(buffer) - 1) 
     ) {
         buffer[strlen(buffer)] = code[*pos];
-        (*pos) += 1;
+        *pos += 1;
     }
 
     char *data = malloc(strlen(buffer) + 1);
@@ -72,16 +72,34 @@ static char *collect_string_literal(const char *code, int len, int *pos, char op
         && (strlen(buffer) < sizeof(buffer) - 1) 
     ) {
         buffer[strlen(buffer)] = code[*pos];
-        (*pos) += 1;
+        *pos += 1;
     }
 
     // since we encountered the closing quote, advance position
     if (code[*pos] == closing_quote)
-        (*pos) += 1;
+        *pos += 1;
 
     char *data = malloc(strlen(buffer) + 1);
     strcpy(data, buffer);
     return data;
+}
+
+static void skip_whitespace(const char *code, int len, int *pos) {
+    while (*pos < len && is_whitespace(code[*pos]))
+        *pos += 1;
+}
+
+static void skip_comment(bool is_block, const char *code, int len, int *pos) {
+    while (*pos < len) {
+        bool found_end = is_block ? 
+            (code[*pos] == '*' && code[(*pos)+1] == '/') :
+            (code[*pos] == '\n');
+        if (found_end) {
+            *pos += is_block ? 2 : 1;
+            break;
+        }
+        *pos += 1;
+    }
 }
 
 typedef struct tokens_trie_node {
@@ -132,9 +150,7 @@ static token_type get_char_token_type(const char *code, int len, int *pos) {
 
 static failable_token get_token_at_code_position(const char *code, int len, int *pos) {
 
-    // skip whitespacae
-    while (*pos < len && is_whitespace(code[*pos]))
-        (*pos) += 1;
+    skip_whitespace(code, len, pos);
     if (*pos >= len)
         return ok_token(NULL);
     
@@ -183,6 +199,13 @@ failable_list parse_code_into_tokens(const char *code) {
             return failed_list("Cannot get token: %s", t.err_msg);
         if (t.result == NULL)
             break;
+        
+        token_type tt = token_get_type(t.result);
+        if (tt == T_DOUBLE_SLASH || tt == T_SLASH_STAR) {
+            skip_comment((tt == T_SLASH_STAR), code, len, &pos);
+            continue;
+        }
+        
         list_add(tokens, t.result);
     }
     list_add(tokens, new_token(T_END));
