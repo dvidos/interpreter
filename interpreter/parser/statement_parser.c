@@ -6,18 +6,21 @@
 
 iterator *tokens_it;
 
-
 void initialize_statement_parser() {
     // anything global 
 }
 
-static bool accept_token(token_type tt) {
+static bool accept(token_type tt) {
     token *t = tokens_it->curr(tokens_it);
     if (token_get_type(t) != tt)
         return false;
     tokens_it->next(tokens_it);
     return true;
 }
+static token *peek() {
+    return tokens_it->curr(tokens_it);
+}
+
 static bool tokens_finished() {
     return 
         (tokens_it->valid(tokens_it) == false) ||
@@ -25,24 +28,24 @@ static bool tokens_finished() {
 }
 
 static failable_statement parse_if_statement() {
-    if (!accept_token(T_IF)) return failed_statement("was expecting 'if'");
-    if (!accept_token(T_LPAREN))  return failed_statement("was expecting '('");
+    if (!accept(T_IF)) return failed_statement("was expecting 'if'");
+    if (!accept(T_LPAREN))  return failed_statement("was expecting '('");
     
     // expression parsing consumes RPAREN as well.
     failable_expression expr_parsing = parse_expression(tokens_it, CM_RPAREN, false);
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *condition = expr_parsing.result;
 
-    failable_list body_parsing = parse_statements(tokens_it, true);
+    failable_list body_parsing = parse_statements(tokens_it, SP_SINGLE_OR_BLOCK);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
     list *body_statements = body_parsing.result;
 
     bool has_else = false;
     list *else_statements = NULL;
 
-    if (accept_token(T_ELSE)) {
+    if (accept(T_ELSE)) {
         has_else = true;
-        failable_list else_parsing = parse_statements(tokens_it, true);
+        failable_list else_parsing = parse_statements(tokens_it, SP_SINGLE_OR_BLOCK);
         if (else_parsing.failed) return failed_statement("%s", else_parsing.err_msg);
         else_statements = else_parsing.result;
     }
@@ -51,15 +54,15 @@ static failable_statement parse_if_statement() {
 }
 
 static failable_statement parse_while_statement() {
-    if (!accept_token(T_WHILE)) return failed_statement("was expecting 'while'");
-    if (!accept_token(T_LPAREN))     return failed_statement("was expecting '('");
+    if (!accept(T_WHILE)) return failed_statement("was expecting 'while'");
+    if (!accept(T_LPAREN))     return failed_statement("was expecting '('");
     
     // expression parsing consumes RPAREN as well.
     failable_expression expr_parsing = parse_expression(tokens_it, CM_RPAREN, false);
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *condition = expr_parsing.result;
 
-    failable_list body_parsing = parse_statements(tokens_it, true);
+    failable_list body_parsing = parse_statements(tokens_it, SP_SINGLE_OR_BLOCK);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
     list *body_statements = body_parsing.result;
 
@@ -67,8 +70,8 @@ static failable_statement parse_while_statement() {
 }
 
 static failable_statement parse_for_statement() {
-    if (!accept_token(T_FOR)) return failed_statement("was expecting 'for'");
-    if (!accept_token(T_LPAREN))   return failed_statement("was expecting '('");
+    if (!accept(T_FOR)) return failed_statement("was expecting 'for'");
+    if (!accept(T_LPAREN))   return failed_statement("was expecting '('");
     
     failable_expression expr_parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
     if (expr_parsing.failed) return failed_statement("cannot parse init: %s", expr_parsing.err_msg);
@@ -83,7 +86,7 @@ static failable_statement parse_for_statement() {
     if (expr_parsing.failed) return failed_statement("cannot parse condition: %s", expr_parsing.err_msg);
     expression *next = expr_parsing.result;
 
-    failable_list body_parsing = parse_statements(tokens_it, true);
+    failable_list body_parsing = parse_statements(tokens_it, SP_SINGLE_OR_BLOCK);
     if (body_parsing.failed) return failed_statement("%s", body_parsing.err_msg);
     list *body_statements = body_parsing.result;
 
@@ -91,14 +94,14 @@ static failable_statement parse_for_statement() {
 }
 
 static failable_statement parse_break_statement() {
-    if (!accept_token(T_BREAK)) return failed_statement("was expecting 'break'");
-    if (!accept_token(T_SEMICOLON)) return failed_statement("was expecting ';'");
+    if (!accept(T_BREAK)) return failed_statement("was expecting 'break'");
+    if (!accept(T_SEMICOLON)) return failed_statement("was expecting ';'");
     return ok_statement(new_break_statement());
 }
 
 static failable_statement parse_continue_statement() {
-    if (!accept_token(T_CONTINUE)) return failed_statement("was expecting 'continue'");
-    if (!accept_token(T_SEMICOLON)) return failed_statement("was expecting ';'");
+    if (!accept(T_CONTINUE)) return failed_statement("was expecting 'continue'");
+    if (!accept(T_SEMICOLON)) return failed_statement("was expecting ';'");
     return ok_statement(new_continue_statement());
 }
 
@@ -109,18 +112,18 @@ static failable_statement parse_expression_statement() {
 }
 
 static failable_statement parse_return_statement() {
-    if (!accept_token(T_RETURN)) return failed_statement("was expecting 'return'");
+    if (!accept(T_RETURN)) return failed_statement("was expecting 'return'");
 
     failable_expression parsing;
     expression *return_value_expression;
 
-    if (accept_token(T_LPAREN)) {
+    if (accept(T_LPAREN)) {
         parsing = parse_expression(tokens_it, CM_RPAREN, false);
         if (parsing.failed) return failed_statement("cannot parse value: %s", parsing.err_msg);
         return_value_expression = parsing.result;
-        if (!accept_token(T_SEMICOLON)) return failed_statement("was expecting ';'");
+        if (!accept(T_SEMICOLON)) return failed_statement("was expecting ';'");
 
-    } else if (accept_token(T_SEMICOLON)) {
+    } else if (accept(T_SEMICOLON)) {
         return_value_expression = NULL;
     } else {
         parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
@@ -131,45 +134,99 @@ static failable_statement parse_return_statement() {
     return ok_statement(new_return_statement(return_value_expression));
 }
 
+static failable_list parse_function_arguments() {
+    list *arg_names = new_list(containing_strs);
+    while (true) {
+        if (accept(T_RPAREN))
+            break;
+        
+        token *t = peek();
+        if (token_get_type(t) != T_IDENTIFIER)
+            return failed_list("Was expecting identifier in function arg names");
+        accept(T_IDENTIFIER);
+        list_add(arg_names, (void *)token_get_data(t)); // we lose const here
+
+        if (accept(T_COMMA))
+            ;
+    }
+    return ok_list(arg_names);
+}
+
+static failable_statement parse_function_statement() {
+    if (!accept(T_FUNCTION)) return failed_statement("was expecting 'function'");
+
+    // allowing anonymous functions, as in javascript
+    const char *name = NULL;
+    token *name_token = peek();
+    if (token_get_type(name_token) == T_IDENTIFIER) {
+        name = token_get_data(name_token);
+        accept(token_get_type(name_token));
+    }
+    
+    if (!accept(T_LPAREN))
+        return failed_statement("was expecting arguments list after function");
+    
+    failable_list arg_names = parse_function_arguments();
+    if (arg_names.failed) return failed_statement("Parsing function arguements: %s", arg_names.err_msg);
+
+    failable_list stmts = parse_statements(tokens_it, SP_BLOCK_MANDATORY);
+    if (stmts.failed) return failed_statement("Parsing function body: %s", stmts.err_msg);
+
+    return ok_statement(new_function_statement(name, arg_names.result, stmts.result));
+}
+
 failable_statement parse_statement(iterator *tokens) {
     tokens_it = tokens;
 
-    token *t = tokens_it->curr(tokens);
-    switch (token_get_type(t)) {
+    token_type tt = token_get_type(peek());
+    switch (tt) {
         case T_IF:       return parse_if_statement();
         case T_WHILE:    return parse_while_statement();
         case T_FOR:      return parse_for_statement();
         case T_BREAK:    return parse_break_statement();
         case T_CONTINUE: return parse_continue_statement();
         case T_RETURN:   return parse_return_statement();
+        case T_FUNCTION: return parse_function_statement();
         default:         return parse_expression_statement();
     }
-
-    return failed_statement("Unknown token type: %s", token_type_str(token_get_type(t)));
 }
 
-failable_list parse_statements(iterator *tokens, bool single_statement_unless_block) {
+failable_list parse_statements(iterator *tokens, statement_parsing_mode mode) {
     tokens_it = tokens;
 
-    list *statements = new_list(containing_statements);
-    failable_statement parsing;
-    
-    // three use cases:
+    // use cases:
     // - many statements without brackets, e.g. a whole script file
     // - many statements in brackets block '{ ... }' 
     // - single statement without brackets, e.g. after an "if"
+    // - many statements with a block, e.g. a function body
 
-    bool in_block = accept_token(T_LBRACKET);
+    list *statements = new_list(containing_statements);
+    bool is_block = false;
     bool done = false;
-    while (!done) {
-        parsing = parse_statement(tokens_it);
+    
+    if (mode == SP_BLOCK_MANDATORY) {
+        if (!accept(T_LBRACKET))
+            return failed_list("Was expecting '{'");
+    } else if (mode == SP_SINGLE_OR_BLOCK) {
+        is_block = accept(T_LBRACKET);
+    }
+
+    while (true) {
+        // checking first allows for empty blocks
+        if (mode == SP_BLOCK_MANDATORY)
+            done = accept(T_RBRACKET);
+        else if (mode == SP_SINGLE_OR_BLOCK)
+            done = is_block ? accept(T_RBRACKET) : list_length(statements) > 0;
+        else if (mode == SP_SEQUENTIAL_STATEMENTS)
+            done = tokens_finished();
+        else
+            done = true;
+        if (done)
+            break;
+
+        failable_statement parsing = parse_statement(tokens_it);
         if (parsing.failed) return failed_list("%s", parsing.err_msg);
         list_add(statements, parsing.result);
-        
-        if (in_block)
-            done = accept_token(T_RBRACKET);
-        else
-            done = single_statement_unless_block ? true : tokens_finished();
     }
 
     return ok_list(statements);

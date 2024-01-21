@@ -81,6 +81,7 @@ static struct token_info token_infos[] = {
     { T_BREAK,              "", "BREAK" },
     { T_CONTINUE,           "", "CONTINUE" },
     { T_RETURN,             "", "RETURN" },
+    { T_FUNCTION,           "", "FUNCTION" },
 
     { T_END,                "",    "END" },
     { T_MAX_VALUE,          "",    "MAX_VALUE" },

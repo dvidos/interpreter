@@ -13,6 +13,7 @@ typedef enum statement_type {
     ST_CONTINUE,
     ST_BREAK,
     ST_RETURN,
+    ST_FUNCTION,
 } statement_type;
 
 typedef struct statement statement;
@@ -24,6 +25,7 @@ statement *new_for_statement(expression *init, expression *condition, expression
 statement *new_break_statement();
 statement *new_continue_statement();
 statement *new_return_statement(expression *value);
+statement *new_function_statement(const char *name, list *arg_names, list *statements);
 
 extern contained_item *containing_statements;
 

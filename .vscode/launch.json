@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/ipret",
-            "args": ["-v", "-f", "script.scr"],
+            "args": ["-v", "-f", "script3.scr"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -101,6 +101,8 @@ static failable_variant execute_single_statement(statement *stmt, bool *should_b
         *should_return = true;
         return_value = execution.result;
 
+    } else if (s_type == ST_FUNCTION) {
+        // here we should register the function to a callable registry
     } else {
         return failed_variant("was expecting if, while, for, expression, return, but got %s", statement_to_string(stmt));
     }

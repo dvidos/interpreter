@@ -29,6 +29,11 @@ struct statement {
         struct return_ {
             expression *value;
         } return_;
+        struct function {
+            const char *name;
+            list *arg_names;
+            list *statements;
+        } function;
     } per_type;
 };
 
@@ -81,6 +86,14 @@ statement *new_return_statement(expression *value) {
     s->per_type.return_.value = value;
     return s;
 }
+statement *new_function_statement(const char *name, list *arg_names, list *statements) {
+    statement *s = malloc(sizeof(statement));
+    s->type = ST_FUNCTION;
+    s->per_type.function.name = name;
+    s->per_type.function.arg_names = arg_names;
+    s->per_type.function.statements = statements;
+    return s;
+}
 
 
 statement_type statement_get_type(statement *s) {
@@ -131,25 +144,25 @@ const char *statement_to_string(statement *s) {
             str_builder_cat(sb, ")");
             break;
         case ST_IF:
-            str_builder_catf(sb, "if (%s) {\n", expression_to_string(s->per_type.if_.condition));
-            str_builder_cat(sb, list_to_string(s->per_type.if_.body_statements, "\n"));
+            str_builder_catf(sb, "if (%s) {\n    ", expression_to_string(s->per_type.if_.condition));
+            str_builder_cat(sb, list_to_string(s->per_type.if_.body_statements, "\n    "));
             if (s->per_type.if_.has_else) {
-                str_builder_cat(sb, "\n} else {\n");
-                str_builder_cat(sb, list_to_string(s->per_type.if_.else_body_statements, "\n"));
+                str_builder_cat(sb, "\n} else {\n    ");
+                str_builder_cat(sb, list_to_string(s->per_type.if_.else_body_statements, "\n    "));
             }
             str_builder_cat(sb, "\n}");
             break;
         case ST_WHILE:
-            str_builder_catf(sb, "while (%s) {\n", expression_to_string(s->per_type.while_.condition));
-            str_builder_cat(sb, list_to_string(s->per_type.while_.body_statements, "\n"));
+            str_builder_catf(sb, "while (%s) {\n    ", expression_to_string(s->per_type.while_.condition));
+            str_builder_cat(sb, list_to_string(s->per_type.while_.body_statements, "\n    "));
             str_builder_cat(sb, "\n}");
             break;
         case ST_FOR_LOOP:
-            str_builder_catf(sb, "for (%s; %s; %s) {\n",
+            str_builder_catf(sb, "for (%s; %s; %s) {\n    ",
                 expression_to_string(s->per_type.for_.init),
                 expression_to_string(s->per_type.for_.condition),
                 expression_to_string(s->per_type.for_.next));
-            str_builder_cat(sb, list_to_string(s->per_type.for_.body_statements, "\n"));
+            str_builder_cat(sb, list_to_string(s->per_type.for_.body_statements, "\n    "));
             str_builder_cat(sb, "\n}");
             break;
         case ST_CONTINUE:
@@ -157,6 +170,17 @@ const char *statement_to_string(statement *s) {
             break;
         case ST_BREAK:
             str_builder_cat(sb, "break;");
+            break;
+        case ST_RETURN:
+            str_builder_catf(sb, "return (%s);", expression_to_string(s->per_type.return_.value));
+            break;
+        case ST_FUNCTION:
+            str_builder_catf(sb, "function %s(%s) {\n    ", 
+                s->per_type.function.name == NULL ? "(anonymous)": s->per_type.function.name,
+                list_to_string(s->per_type.function.arg_names, ", ")
+            );
+            str_builder_cat(sb, list_to_string(s->per_type.function.statements, "\n    "));
+            str_builder_cat(sb, "\n}");
             break;
     }
 
@@ -193,6 +217,14 @@ bool statements_are_equal(statement *a, statement *b) {
         case ST_CONTINUE:
             break;
         case ST_BREAK:
+            break;
+        case ST_RETURN:
+            if (!expressions_are_equal(a->per_type.return_.value, b->per_type.return_.value)) return false;
+            break;
+        case ST_FUNCTION:
+            if (!strs_are_equal(a->per_type.function.name, b->per_type.function.name)) return false;
+            if (!lists_are_equal(a->per_type.function.arg_names, b->per_type.function.arg_names)) return false;
+            if (!lists_are_equal(a->per_type.function.statements, b->per_type.function.statements)) return false;
             break;
     }
 

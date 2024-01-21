@@ -51,7 +51,7 @@ static token* get_token_and_advance() {
     return prev_token;
 }
 
-static token* peek_token() {
+static token* peek() {
     // get token, but don't advance to next position
     if (!tokens_iterator->valid(tokens_iterator))
         return end_token;
@@ -202,7 +202,7 @@ static failable_expression parse_list_initializer(bool verbose) {
     list *l = new_list(containing_expressions);
 
     // [] = empty list
-    if (token_get_type(peek_token()) == T_RSQBRACKET) {
+    if (token_get_type(peek()) == T_RSQBRACKET) {
         get_token_and_advance();
         return ok_expression(new_list_data_expression(l));
     }
@@ -221,7 +221,7 @@ static failable_expression parse_dict_initializer(bool verbose) {
     dict *d = new_dict(containing_expressions, 64);
 
     // {} = empty dict
-    if (token_get_type(peek_token()) == T_RBRACKET) {
+    if (token_get_type(peek()) == T_RBRACKET) {
         get_token_and_advance();
         return ok_expression(new_dict_data_expression(d));
     }
@@ -294,7 +294,7 @@ static failable_list parse_function_arguments_expressions(bool verbose) {
     list *args = new_list(containing_expressions);
 
     // if empty args, there will be nothing to parse
-    if (token_get_type(peek_token()) == T_RPAREN) {
+    if (token_get_type(peek()) == T_RPAREN) {
         get_token_and_advance();
         return ok_list(args);
     }
@@ -399,7 +399,7 @@ static void print_debug_information(char *title, run_state state) {
             token_print(prev_token, stderr, "");
 
         fprintf(stderr, ", next token ");
-        token_print(peek_token(), stderr, "");
+        token_print(peek(), stderr, "");
         fprintf(stderr, "\n");
 
         print_expressions_stack(stderr, "    ");

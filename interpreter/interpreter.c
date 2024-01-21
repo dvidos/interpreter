@@ -36,7 +36,7 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
 
-    failable_list parsing = parse_statements(tokens_it, false);
+    failable_list parsing = parse_statements(tokens_it, SP_SEQUENTIAL_STATEMENTS);
     if (parsing.failed)
         return failed_variant("Statement parsing failed: %s", parsing.err_msg);
     if (verbose)

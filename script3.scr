@@ -1,0 +1,6 @@
+function multiply(a, b) {
+    return a * b;
+}
+
+c = multiply(2, 3);
+log(c)

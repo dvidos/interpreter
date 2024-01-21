@@ -1,5 +1,7 @@
 # todo
 
+* consider removing getter functions and allow direct reading of struct members.
+for speed. and simplicity.
 * make iterator a two level object, internal is move/validate only, externa supports:
 `last`, `curr`, `peek` etc, to aleviate code repetition. Then, since we have the `last` method, fix:
   * the `if(a;b;c;d) {...} case
