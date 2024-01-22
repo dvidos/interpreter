@@ -1,5 +1,7 @@
 # todo
 
+* symbol tables should contain info about variable type or function type, flags etc.
+
 * consider removing getter functions and allow direct reading of struct members.
 for speed. and simplicity.
 * make iterator a two level object, internal is move/validate only, externa supports:
