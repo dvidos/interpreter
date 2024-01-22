@@ -21,6 +21,10 @@ struct expression {
             struct expression *left;
             struct expression *right;
         } pair;
+        struct func {
+            list *arg_names;
+            list *statements;
+        } func;
     } per_type;
 };
 
@@ -92,6 +96,13 @@ expression *new_pair_expression(expression *left, expression *right) {
     expression *e = new_expression(ET_EXPR_PAIR, OP_UNKNOWN);
     e->per_type.pair.left = left;
     e->per_type.pair.right = right;
+    return e;
+}
+
+expression *new_func_decl_expression(list *arg_names, list *statements) {
+    expression *e = new_expression(ET_FUNC_DECL, OP_UNKNOWN);
+    e->per_type.func.arg_names = arg_names;
+    e->per_type.func.statements = statements;
     return e;
 }
 

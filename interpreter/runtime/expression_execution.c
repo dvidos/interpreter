@@ -93,14 +93,24 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
         case ET_BOOLEAN_LITERAL:
             return ok_variant(new_bool_variant(strcmp(td, "true") == 0));
         case ET_LIST_DATA:
-            list *arg_expressions = expression_get_list_data(e);
-            list *arg_values = new_list(containing_variants);
-            for_list(arg_expressions, args_iterator, expression, arg_exp) {
-                execution = execute_expression(arg_exp, ctx);
+            list *expressions_list = expression_get_list_data(e);
+            list *values_list = new_list(containing_variants);
+            for_list(expressions_list, list_iter, expression, list_exp) {
+                execution = execute_expression(list_exp, ctx);
                 if (execution.failed) return failed_variant("%s", execution.err_msg);
-                list_add(arg_values, execution.result);
+                list_add(values_list, execution.result);
             }
-            return ok_variant(new_list_variant(arg_values));
+            return ok_variant(new_list_variant(values_list));
+        case ET_DICT_DATA:
+            dict *expressions_dict = expression_get_dict_data(e);
+            dict *values_dict = new_dict(containing_variants, dict_count(expressions_dict));
+            iterator *keys_it = dict_keys_iterator(expressions_dict);
+            for_iterator(keys_it, str, key) {
+                execution = execute_expression(dict_get(expressions_dict, key), ctx);
+                if (execution.failed) return failed_variant("%s", execution.err_msg);
+                dict_set(values_dict, key, execution.result);
+            }
+            return ok_variant(new_dict_variant(values_dict));
 
         case ET_EXPR_PAIR:
             list *values_pair = new_list(containing_variants);
@@ -126,6 +136,9 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
             v2 = execute_expression(op2, ctx);
             if (v2.failed) return failed_variant("%s", v2.err_msg);
             return calculate_binary_operation(op, v1.result, v2.result, ctx);
+        
+        case ET_FUNC_DECL:
+            return ok_variant(new_str_variant("(function)"));
     }
 
     return failed_variant("Cannot retrieve value, unknown expr type / operator");

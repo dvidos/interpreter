@@ -5,6 +5,7 @@
 #include "../../utils/failable.h"
 #include "../../utils/containers/_module.h"
 #include "expression_parser.h"
+#include "statement_parser.h"
 #include "../lexer/_module.h"
 
 
@@ -33,6 +34,7 @@ static stack *expressions_stack;
 static iterator *tokens_iterator;
 static token *prev_token;
 static token *end_token;
+static token *_last_accepted = NULL;
 
 void initialize_expression_parser() {
     operators_stack = new_stack(containing_operators);
@@ -41,6 +43,17 @@ void initialize_expression_parser() {
     prev_token = new_token(T_UNKNOWN, NULL, 0, 0);
 }
 
+static bool accept(token_type tt) {
+    token *t = tokens_iterator->curr(tokens_iterator);
+    if (token_get_type(t) != tt)
+        return false;
+    _last_accepted = t;
+    tokens_iterator->next(tokens_iterator);
+    return true;
+}
+static inline token *last_accepted() {
+    return _last_accepted;
+}
 static token* get_token_and_advance() {
     // get token, advance to next position, so we can peek.
     if (!tokens_iterator->valid(tokens_iterator))
@@ -50,7 +63,6 @@ static token* get_token_and_advance() {
     tokens_iterator->next(tokens_iterator);
     return prev_token;
 }
-
 static token* peek() {
     // get token, but don't advance to next position
     if (!tokens_iterator->valid(tokens_iterator))
@@ -241,6 +253,25 @@ static failable_expression parse_dict_initializer(bool verbose) {
     return ok_expression(new_dict_data_expression(d));
 }
 
+static failable_expression parse_func_declaration_expression(bool verbose) {
+    // past 'function', expected: "( [args] ) { [statements] }"
+    if (!accept(T_LPAREN))
+        return failed_expression("Expected '(' after function");
+    
+    list *arg_names = new_list(containing_strs);
+    while (!accept(T_RPAREN)) {
+        if (!accept(T_IDENTIFIER))
+            return failed_expression("Expected identifier in function arg names");
+        list_add(arg_names, (void *)token_get_data(last_accepted())); // we lose const here
+        accept(T_COMMA);
+    }
+
+    failable_list statements_parsing = parse_statements(tokens_iterator, SP_BLOCK_MANDATORY);
+    if (statements_parsing.failed) return failed_expression("Failed parsing function body: %s", statements_parsing.err_msg);
+
+    return ok_expression(new_func_decl_expression(arg_names, statements_parsing.result));
+}
+
 static failable parse_expression_on_want_operand(run_state *state, bool verbose) {
     // read a token. If there are no more tokens, announce an error.
     token *t = get_token_and_advance();
@@ -278,6 +309,15 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
         return ok();
     }
 
+    if (tt == T_FUNCTION) {
+        // parse an inline function declaration
+        failable_expression func_expression = parse_func_declaration_expression(verbose);
+        if (func_expression.failed) return failed("Parsing func declaration failed: %s", func_expression.err_msg);
+        push_expression(func_expression.result);
+        *state = HAVE_OPERAND;
+        return ok();
+    }
+
     // handle operands
     if (is_token_operand(tt)) {
         expression *e = get_operand_expression(tt, token_get_data(t));
@@ -290,7 +330,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     return failed("Unexpected token type %s, was expecting prefix, operand, or lparen", token_type_str(tt));
 }
 
-static failable_list parse_function_arguments_expressions(bool verbose) {
+static failable_list parse_function_call_arguments_expressions(bool verbose) {
     list *args = new_list(containing_expressions);
 
     // if empty args, there will be nothing to parse
@@ -337,7 +377,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
 
     // handle function calls, operand is function name or address
     if (tt == T_LPAREN) {
-        failable_list arg_expressions = parse_function_arguments_expressions(verbose);
+        failable_list arg_expressions = parse_function_call_arguments_expressions(verbose);
         if (arg_expressions.failed)
             return failed("%s", arg_expressions.err_msg);
         push_expression(new_list_data_expression(arg_expressions.result));

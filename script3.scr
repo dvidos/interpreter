@@ -1,6 +1,15 @@
-function multiply(a, b) {
+function multiply(a, b) {    // <-- statement
     return a * b;
 }
 
+obj = {
+    name: "object",
+    number: 12 + 1,          // <-- expression (to be evaluated at runtime)
+    sum: function(a, b) {    // <-- expression (to be evaluated at runtime)
+        return a + b;
+    }
+};
+
 c = multiply(2, 3);
+d = obj.sum(4, 5);
 log(c)

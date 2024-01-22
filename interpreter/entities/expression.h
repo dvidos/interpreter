@@ -17,6 +17,7 @@ typedef enum expression_type {
     ET_LIST_DATA,
     ET_DICT_DATA,
     ET_EXPR_PAIR,
+    ET_FUNC_DECL, // person.fullname = function() { return this.first + " " + this.last; }
 } expression_type;
 
 typedef struct expression expression;
@@ -34,6 +35,7 @@ expression *new_binary_op_expression(operator op, expression *left, expression *
 expression *new_list_data_expression(list *data);
 expression *new_dict_data_expression(dict *data);
 expression *new_pair_expression(expression *left, expression *right);
+expression *new_func_decl_expression(list *arg_names, list *statements);
 
 expression_type expression_get_type(expression *e);
 operator expression_get_operator(expression *e);
