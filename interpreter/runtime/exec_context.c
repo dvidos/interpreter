@@ -5,15 +5,6 @@
 #include "built_in_funcs.h"
 
 
-// struct exec_context {
-//     bool verbose;
-//     dict *callables;
-//     dict *global_variables;
-//     variant_type expected_returned_value_type;
-//     stream stdin;
-//     stream stdout;
-//     str_builder *logger;
-// };
 
 
 static str_builder *exec_context_log = NULL;

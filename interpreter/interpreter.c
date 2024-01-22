@@ -35,16 +35,19 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
 
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
-
     failable_list parsing = parse_statements(tokens_it, SP_SEQUENTIAL_STATEMENTS);
     if (parsing.failed)
         return failed_variant("Statement parsing failed: %s", parsing.err_msg);
     if (verbose)
         printf("Parsed statements: %s\n", list_to_string(parsing.result, "\n"));
 
+    exec_context ctx;
+    ctx.verbose = verbose;
+    ctx.callables = get_built_in_funcs_table();
+    ctx.global_variables = arguments;
     exec_context_log_reset();
 
-    failable_variant execution = execute_statements(parsing.result, arguments, get_built_in_funcs_table());
+    failable_variant execution = execute_statements(parsing.result, &ctx);
     if (execution.failed)
         return failed_variant("Execution failed: %s", execution.err_msg);
 

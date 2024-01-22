@@ -2,6 +2,15 @@
 #define _EXEC_CONTEXT_H
 
 #include <stdio.h>
+#include "../../utils/containers/_module.h"
+
+
+typedef struct exec_context {
+    bool verbose;
+    dict *global_variables;
+    dict *callables;
+} exec_context;
+
 
 
 // simple things for now.

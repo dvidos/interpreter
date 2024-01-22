@@ -21,6 +21,8 @@ for speed. and simplicity.
 convert to function pointers, and implement discrete functions for each case.
 This should speed up runtime a ton.
 
+* experiment with idea of declaration & implementation of strongly typed containers
+through macros, akin to failables...
 
 ## later
 

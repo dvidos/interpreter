@@ -29,6 +29,7 @@ typedef struct symbol {
     } per_type;
 } symbol;
 
+
 symbol *new_built_in_function_symbol(const char *name, callable *c);
 symbol *new_user_function_symbol(const char *name, list *arg_names, list *statements);
 symbol *new_variable_symbol(const char *name, variant *value);

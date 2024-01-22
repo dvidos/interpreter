@@ -48,7 +48,8 @@
         "str_builder.h": "c",
         "_module.h": "c",
         "system_error": "c",
-        "list": "c"
+        "list": "c",
+        "exec_context.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

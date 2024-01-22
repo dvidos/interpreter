@@ -4,9 +4,10 @@
 #include "../../utils/data_types/_module.h"
 #include "../../utils/containers/_module.h"
 #include "../entities/_module.h"
+#include "exec_context.h"
 
 
-failable_variant execute_expression(expression *e, dict *values, dict *callables);
+failable_variant execute_expression(expression *e, exec_context *ctx);
 
 
 #endif

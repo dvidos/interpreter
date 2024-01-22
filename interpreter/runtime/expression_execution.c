@@ -17,17 +17,17 @@ enum comparison {
     COMP_EQ, COMP_NE
 };
 
-static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, dict *values, dict *callables);
-static failable_variant retrieve_value(expression *e, dict *values, dict *callables);
-static failable         store_value(expression *lvalue, dict *values, dict *callables, variant *rvalue);
-static failable_variant make_function_call(expression *func_expr, expression *args_expr, dict *values, dict *callables);
+static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx);
+static failable_variant retrieve_value(expression *e, exec_context *ctx);
+static failable         store_value(expression *lvalue, exec_context *ctx, variant *rvalue);
+static failable_variant make_function_call(expression *func_expr, expression *args_expr, exec_context *ctx);
 
-static failable_variant calculate_unary_operation(operator op, variant *value, dict *values, dict *callables);
-static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, dict *values, dict *callables);
+static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx);
+static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx);
 static failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant *v2);
 
 
-failable_variant execute_expression(expression *e, dict *values, dict *callables) {
+failable_variant execute_expression(expression *e, exec_context *ctx) {
     // first concern is whether the expression stores data, or is read only
     expression_type et = expression_get_type(e);
     operator op = expression_get_operator(e);
@@ -41,40 +41,40 @@ failable_variant execute_expression(expression *e, dict *values, dict *callables
             bool is_post = (op == OP_POST_INC || op == OP_POST_DEC);
             if (one == NULL)
                 one = new_numeric_literal_expression("1");
-            return modify_and_store(lvalue, is_inc ? MAS_ADD : MAS_SUB, one, is_post, values, callables);
+            return modify_and_store(lvalue, is_inc ? MAS_ADD : MAS_SUB, one, is_post, ctx);
         } else {
             // all other unary operators are not storing values
-            return retrieve_value(e, values, callables);
+            return retrieve_value(e, ctx);
         }
 
     } else if (et == ET_BINARY_OP) {
         lvalue = expression_get_operand(e, 0);
         rvalue = expression_get_operand(e, 1);
         switch (op) {
-            case OP_ASSIGNMENT: return modify_and_store(lvalue, MAS_ASSIGN, rvalue, false, values, callables);
-            case OP_ADD_ASSIGN: return modify_and_store(lvalue, MAS_ADD, rvalue, false, values, callables);
-            case OP_SUB_ASSIGN: return modify_and_store(lvalue, MAS_SUB, rvalue, false, values, callables);
-            case OP_MUL_ASSIGN: return modify_and_store(lvalue, MAS_MUL, rvalue, false, values, callables);
-            case OP_DIV_ASSIGN: return modify_and_store(lvalue, MAS_DIV, rvalue, false, values, callables);
-            case OP_MOD_ASSIGN: return modify_and_store(lvalue, MAS_MOD, rvalue, false, values, callables);
-            case OP_RSH_ASSIGN: return modify_and_store(lvalue, MAS_RSH, rvalue, false, values, callables);
-            case OP_LSH_ASSIGN: return modify_and_store(lvalue, MAS_LSH, rvalue, false, values, callables);
-            case OP_AND_ASSIGN: return modify_and_store(lvalue, MAS_AND, rvalue, false, values, callables);
-            case OP_OR_ASSIGN:  return modify_and_store(lvalue, MAS_OR,  rvalue, false, values, callables);
-            case OP_XOR_ASSIGN: return modify_and_store(lvalue, MAS_XOR, rvalue, false, values, callables);
-            case OP_FUNC_CALL:  return make_function_call(lvalue, rvalue, values, callables);
+            case OP_ASSIGNMENT: return modify_and_store(lvalue, MAS_ASSIGN, rvalue, false, ctx);
+            case OP_ADD_ASSIGN: return modify_and_store(lvalue, MAS_ADD, rvalue, false, ctx);
+            case OP_SUB_ASSIGN: return modify_and_store(lvalue, MAS_SUB, rvalue, false, ctx);
+            case OP_MUL_ASSIGN: return modify_and_store(lvalue, MAS_MUL, rvalue, false, ctx);
+            case OP_DIV_ASSIGN: return modify_and_store(lvalue, MAS_DIV, rvalue, false, ctx);
+            case OP_MOD_ASSIGN: return modify_and_store(lvalue, MAS_MOD, rvalue, false, ctx);
+            case OP_RSH_ASSIGN: return modify_and_store(lvalue, MAS_RSH, rvalue, false, ctx);
+            case OP_LSH_ASSIGN: return modify_and_store(lvalue, MAS_LSH, rvalue, false, ctx);
+            case OP_AND_ASSIGN: return modify_and_store(lvalue, MAS_AND, rvalue, false, ctx);
+            case OP_OR_ASSIGN:  return modify_and_store(lvalue, MAS_OR,  rvalue, false, ctx);
+            case OP_XOR_ASSIGN: return modify_and_store(lvalue, MAS_XOR, rvalue, false, ctx);
+            case OP_FUNC_CALL:  return make_function_call(lvalue, rvalue, ctx);
             default:
                 // all other binary operators are not storing values
-                return retrieve_value(e, values, callables);
+                return retrieve_value(e, ctx);
         }
 
     } else {
         // all other expression types are not storing values
-        return retrieve_value(e, values, callables);
+        return retrieve_value(e, ctx);
     }
 }
 
-static failable_variant retrieve_value(expression *e, dict *values, dict *callables) {
+static failable_variant retrieve_value(expression *e, exec_context *ctx) {
     failable_variant execution, v1, v2, v3;
     operator op = expression_get_operator(e);
     const char *td = expression_get_terminal_data(e);
@@ -82,7 +82,7 @@ static failable_variant retrieve_value(expression *e, dict *values, dict *callab
 
     switch (expression_get_type(e)) {
         case ET_IDENTIFIER:
-            variant *v = dict_get(values, td);
+            variant *v = dict_get(ctx->global_variables, td);
             if (v == NULL || variant_is_null(v))
                 return failed_variant("identifier not found \"%s\"", td);
             return ok_variant(v);
@@ -96,7 +96,7 @@ static failable_variant retrieve_value(expression *e, dict *values, dict *callab
             list *arg_expressions = expression_get_list_data(e);
             list *arg_values = new_list(containing_variants);
             for_list(arg_expressions, args_iterator, expression, arg_exp) {
-                execution = execute_expression(arg_exp, values, callables);
+                execution = execute_expression(arg_exp, ctx);
                 if (execution.failed) return failed_variant("%s", execution.err_msg);
                 list_add(arg_values, execution.result);
             }
@@ -104,34 +104,34 @@ static failable_variant retrieve_value(expression *e, dict *values, dict *callab
 
         case ET_EXPR_PAIR:
             list *values_pair = new_list(containing_variants);
-            execution = execute_expression(expression_get_operand(e, 0), values, callables);
+            execution = execute_expression(expression_get_operand(e, 0), ctx);
             if (execution.failed) return failed_variant("%s", execution.err_msg);
             list_add(values_pair, execution.result);
-            execution = execute_expression(expression_get_operand(e, 1), values, callables);
+            execution = execute_expression(expression_get_operand(e, 1), ctx);
             if (execution.failed) return failed_variant("%s", execution.err_msg);
             list_add(values_pair, execution.result);
             return ok_variant(new_list_variant(values_pair));
 
         case ET_UNARY_OP:
             op1 = expression_get_operand(e, 0);
-            v1 = execute_expression(op1, values, callables);
+            v1 = execute_expression(op1, ctx);
             if (v1.failed) return failed_variant("%s", v1);
-            return calculate_unary_operation(op, v1.result, values, callables);
+            return calculate_unary_operation(op, v1.result, ctx);
 
         case ET_BINARY_OP:
             op1 = expression_get_operand(e, 0);
-            v1 = execute_expression(op1, values, callables);
+            v1 = execute_expression(op1, ctx);
             if (v1.failed) return failed_variant("%s", v1.err_msg);
             op2 = expression_get_operand(e, 1);
-            v2 = execute_expression(op2, values, callables);
+            v2 = execute_expression(op2, ctx);
             if (v2.failed) return failed_variant("%s", v2.err_msg);
-            return calculate_binary_operation(op, v1.result, v2.result, values, callables);
+            return calculate_binary_operation(op, v1.result, v2.result, ctx);
     }
 
     return failed_variant("Cannot retrieve value, unknown expr type / operator");
 }
 
-static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, dict *values, dict *callables) {
+static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx) {
     failable_variant retrieval;
     variant *original = NULL;
     int original_int = 0;
@@ -140,7 +140,7 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
 
     // for now we allow variable creation via simple assignment
     if (op != MAS_ASSIGN) {
-        retrieval = retrieve_value(lvalue, values, callables);
+        retrieval = retrieve_value(lvalue, ctx);
         if (retrieval.failed) return failed_variant("Failed retrieving lvalue: %s", retrieval.err_msg);
         original = retrieval.result;
         if (!variant_is_int(original))
@@ -148,7 +148,7 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
         original_int = variant_as_int(original);
     }
 
-    retrieval = retrieve_value(rvalue, values, callables);
+    retrieval = retrieve_value(rvalue, ctx);
     if (retrieval.failed) return failed_variant("Failed retrieving rvalue: %s", retrieval.err_msg);
     variant *operand = retrieval.result;
     if (!variant_is_int(operand))
@@ -174,13 +174,13 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
     }
     
     variant *result = new_int_variant(result_int);
-    failable storing = store_value(lvalue, values, callables, result);
+    failable storing = store_value(lvalue, ctx, result);
     if (storing.failed)
         return failed_variant("Error storing: %s", storing.err_msg);
     return ok_variant(return_original ? original : result);
 }
 
-static failable store_value(expression *lvalue, dict *values, dict *callables, variant *rvalue) {
+static failable store_value(expression *lvalue, exec_context *ctx, variant *rvalue) {
     // example: "i" (IDENTIFIER("i"))
     // example lvalue: "persons[i+1].age"
     // STRUCT_MEMBER(ARRAY_ITEM(IDENT("persons"), ADD(IDENT("i"), NUM("1")), IDENT("age"))
@@ -189,7 +189,7 @@ static failable store_value(expression *lvalue, dict *values, dict *callables, v
 
     expression_type et = expression_get_type(lvalue);
     if (et == ET_IDENTIFIER) {
-        dict_set(values, expression_get_terminal_data(lvalue), rvalue);
+        dict_set(ctx->global_variables, expression_get_terminal_data(lvalue), rvalue);
         return ok();
 
     } else if (et == ET_BINARY_OP) {
@@ -197,12 +197,12 @@ static failable store_value(expression *lvalue, dict *values, dict *callables, v
         if (op == OP_ARRAY_SUBSCRIPT) {
             // e.g. "ARRAY_SUBSCRIPT(<list_like_executionable>, <int_like_executionable>)"
             expression *op1 = expression_get_operand(lvalue, 0);
-            failable_variant op1_exec = execute_expression(op1, values, callables);
+            failable_variant op1_exec = execute_expression(op1, ctx);
             if (op1_exec.failed) return failed("%s", op1_exec.err_msg);
             if (!variant_is_list(op1_exec.result)) return failed("Array subscripts apply only to arrays");
 
             expression *op2 = expression_get_operand(lvalue, 1);
-            failable_variant op2_exec = execute_expression(op2, values, callables);
+            failable_variant op2_exec = execute_expression(op2, ctx);
             if (op2_exec.failed) return failed("%s", op2_exec.err_msg);
             if (!variant_is_int(op2_exec.result)) return failed("only integer results can be used as array indices");
 
@@ -214,7 +214,7 @@ static failable store_value(expression *lvalue, dict *values, dict *callables, v
         } else if (op == OP_STRUCT_MEMBER_REF) {
             // e.g. "ARRAY_SUBSCRIPT(<something_that_evaluates_into_dict>, IDENTIFIER("age"))"
             expression *op1 = expression_get_operand(lvalue, 0);
-            failable_variant op1_exec = execute_expression(op1, values, callables);
+            failable_variant op1_exec = execute_expression(op1, ctx);
             if (op1_exec.failed) return failed("%s", op1_exec.err_msg);
             if (!variant_is_dict(op1_exec.result)) return failed("Struct members work only with identifiers");
 
@@ -289,7 +289,7 @@ failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant 
     return failed_variant("cannot compare with given operands (%s and %s)", variant_to_string(v1), variant_to_string(v2));
 }
 
-static failable_variant make_function_call(expression *func_expr, expression *args_expr, dict *values, dict *callables) {
+static failable_variant make_function_call(expression *func_expr, expression *args_expr, exec_context *ctx) {
     // in theory func_name will be an identifier,
     // but in future in might be a reference.
 
@@ -298,18 +298,18 @@ static failable_variant make_function_call(expression *func_expr, expression *ar
         return failed_variant("function calls only support identifiers for now");
 
     fname = expression_get_terminal_data(func_expr);
-    callable *c = dict_get(callables, fname);
+    callable *c = dict_get(ctx->callables, fname);
     if (c == NULL) return
         failed_variant("function '%s' not found", fname);
     
-    failable_variant a = retrieve_value(args_expr, values, callables);
+    failable_variant a = retrieve_value(args_expr, ctx);
     if (a.failed) return failed_variant("error retrieving argments: %s", a.err_msg);
 
     return callable_call(c, variant_as_list(a.result));
 }
 
 
-static failable_variant calculate_unary_operation(operator op, variant *value, dict *values, dict *callables) {
+static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx) {
     switch (op) {
         case OP_POSITIVE_NUM:
             if (variant_is_int(value) || variant_is_float(value))
@@ -340,7 +340,7 @@ static failable_variant calculate_unary_operation(operator op, variant *value, d
     return failed_variant("Unknown unary operator %s", operator_str(op));
 }
 
-static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, dict *values, dict *callables) {
+static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx) {
     switch (op) {
         case OP_FUNC_CALL:
             return failed_variant("function calls not supported yet!");
