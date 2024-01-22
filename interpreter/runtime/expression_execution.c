@@ -164,7 +164,7 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
     retrieval = retrieve_value(rvalue, ctx);
     if (retrieval.failed) return failed_variant("Failed retrieving rvalue: %s", retrieval.err_msg);
     variant *operand = retrieval.result;
-    if (!variant_is_int(operand))
+    if (op != MAS_ASSIGN && !variant_is_int(operand))
         return failed_variant("Modify-and-store requires integers as operands");
     operand_int = variant_as_int(operand);
 
@@ -224,7 +224,7 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             list_set(l, i, rvalue);
             return ok();
 
-        } else if (op == OP_STRUCT_MEMBER_REF) {
+        } else if (op == OP_MEMBER) {
             // e.g. "ARRAY_SUBSCRIPT(<something_that_evaluates_into_dict>, IDENTIFIER("age"))"
             expression *op1 = expression_get_operand(lvalue, 0);
             failable_variant op1_exec = execute_expression(op1, ctx);

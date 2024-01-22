@@ -194,7 +194,7 @@ const char *expression_to_string(expression *e) {
     str_builder *sb = new_str_builder();
     
     if (e->type == ET_IDENTIFIER) {
-        str_builder_catf(sb, "IDENTIFIER(\"%s\")", e->per_type.terminal_data);
+        str_builder_catf(sb, "SYM(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_NUMERIC_LITERAL) {
         str_builder_catf(sb, "NUM(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_STRING_LITERAL) {
@@ -224,6 +224,10 @@ const char *expression_to_string(expression *e) {
         str_builder_cat(sb, expression_to_string(e->per_type.pair.left));
         str_builder_cat(sb, ", ");
         str_builder_cat(sb, expression_to_string(e->per_type.pair.right));
+        str_builder_catc(sb, ')');
+    } else if (e->type == ET_FUNC_DECL) {
+        str_builder_cat(sb, "FUNCTION(");
+        str_builder_cat(sb, list_to_string(e->per_type.func.arg_names, ", "));
         str_builder_catc(sb, ')');
     }
 

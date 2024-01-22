@@ -31,7 +31,7 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
     if (tokenization.failed)
         return failed_variant("Tokenization failed: %s", tokenization.err_msg);
     if (verbose)
-        printf("Parsed tokens: %s\n", list_to_string(tokenization.result, ", "));
+        printf("------------- parsed tokens -------------\n%s\n", list_to_string(tokenization.result, ", "));
 
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
@@ -39,7 +39,7 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
     if (parsing.failed)
         return failed_variant("Statement parsing failed: %s", parsing.err_msg);
     if (verbose)
-        printf("Parsed statements: %s\n", list_to_string(parsing.result, "\n"));
+        printf("------------- parsed statements -------------\n%s\n", list_to_string(parsing.result, "\n"));
 
     exec_context ctx;
     ctx.verbose = verbose;

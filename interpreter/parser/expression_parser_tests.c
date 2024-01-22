@@ -177,5 +177,61 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("a ? b",     true, NULL, verbose)) all_passed = false;
     if (!use_case_passes("a ? b , c", true, NULL, verbose)) all_passed = false;
     
+
+
+    if (!use_case_passes("persons[2].name", false,
+        new_binary_op_expression(OP_MEMBER,
+            new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
+                new_identifier_expression("persons"),
+                new_numeric_literal_expression("2")
+            ),
+            new_identifier_expression("name")
+        ), verbose)) all_passed = false;
+
+    if (!use_case_passes("person.children[2]", false,
+        new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
+            new_binary_op_expression(OP_MEMBER,
+                new_identifier_expression("persons"),
+                new_identifier_expression("children")
+            ),
+            new_numeric_literal_expression("2")
+        ) , verbose)) all_passed = false;
+
+    if (!use_case_passes("obj.method('hi')", false,
+        new_binary_op_expression(OP_FUNC_CALL,
+            new_binary_op_expression(OP_MEMBER, 
+                new_identifier_expression("obj"),
+                new_identifier_expression("method")
+            ),
+            new_list_data_expression(list_of(containing_expressions, 1,
+                new_string_literal_expression("hi")
+            ))
+        ), verbose)) all_passed = false;
+    
+    if (!use_case_passes("methods[2]('hi')", false,
+        new_binary_op_expression(OP_FUNC_CALL,
+            new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
+                new_identifier_expression("methods"),
+                new_numeric_literal_expression("2")
+            ),
+            new_list_data_expression(list_of(containing_expressions, 1,
+                new_string_literal_expression("hi")
+            ))
+        ), verbose)) all_passed = false;
+    
+    if (!use_case_passes("handles[2].open('text')", false,
+        new_binary_op_expression(OP_FUNC_CALL,
+            new_binary_op_expression(OP_MEMBER, 
+                new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
+                    new_identifier_expression("handles"),
+                    new_numeric_literal_expression("2")
+                ),
+                new_identifier_expression("open")
+            ),
+            new_list_data_expression(list_of(containing_expressions, 1,
+                new_numeric_literal_expression("text")
+            ))
+        ), verbose)) all_passed = false;
+
     return all_passed;
 }

@@ -16,8 +16,8 @@ enum operator {
 
     OP_FUNC_CALL,          // a()
     OP_ARRAY_SUBSCRIPT,    // a[b]
-    OP_STRUCT_MEMBER_PTR,  // a->b
-    OP_STRUCT_MEMBER_REF,  // a.b
+  //OP_STRUCT_MEMBER_PTR,  // a->b
+    OP_MEMBER,  // a.b
     OP_POST_INC,           // a++
     OP_POST_DEC,           // a--
     OP_POSITIVE_NUM,       // +123
@@ -26,8 +26,8 @@ enum operator {
     OP_BITWISE_NOT,        // ~a
     OP_PRE_INC,            // ++a
     OP_PRE_DEC,            // --a
-    OP_POINTED_VALUE,      // *a
-    OP_ADDRESS_OF,         // &a
+  //OP_POINTED_VALUE,      // *a
+  //OP_ADDRESS_OF,         // &a
     OP_MULTIPLY,           // *
     OP_DIVIDE,             // /
     OP_MODULO,             // %
