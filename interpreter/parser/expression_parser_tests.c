@@ -41,9 +41,9 @@ static bool use_case_passes(const char *code, bool expect_failure, expression *e
     // compare each expression
     expression *parsed = parsing.result;
     if (!expressions_are_equal(parsed, expected_expression)) {
-        fprintf(stderr, "Expression differs, (code=\"%s\"), \n" \
-                        "  expected: %s\n" \
-                        "  parsed:   %s\n",
+        fprintf(stderr, "Expression differs, code is \"%s\"), \n" \
+                        "    expected: %s\n" \
+                        "    parsed  : %s\n",
                         code, expression_to_string(expected_expression), expression_to_string(parsed));
         return false;
     }
@@ -178,14 +178,22 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("a ? b , c", true, NULL, verbose)) all_passed = false;
     
 
-
-    if (!use_case_passes("persons[2].name", false,
+    if (!use_case_passes("team.leader.name", false,
         new_binary_op_expression(OP_MEMBER,
+            new_binary_op_expression(OP_MEMBER,
+                new_identifier_expression("team"),
+                new_identifier_expression("leader")
+            ),
+            new_identifier_expression("name")
+        ), verbose)) all_passed = false;
+
+    if (!use_case_passes("persons[2][3]", false,
+        new_binary_op_expression(OP_ARRAY_SUBSCRIPT,
             new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
                 new_identifier_expression("persons"),
                 new_numeric_literal_expression("2")
             ),
-            new_identifier_expression("name")
+            new_numeric_literal_expression("3")
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("person.children[2]", false,

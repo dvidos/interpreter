@@ -48,6 +48,7 @@ static bool accept(token_type tt) {
     if (token_get_type(t) != tt)
         return false;
     _last_accepted = t;
+    prev_token = t;
     tokens_iterator->next(tokens_iterator);
     return true;
 }
@@ -214,10 +215,8 @@ static failable_expression parse_list_initializer(bool verbose) {
     list *l = new_list(containing_expressions);
 
     // [] = empty list
-    if (token_get_type(peek()) == T_RSQBRACKET) {
-        get_token_and_advance();
+    if (accept(T_RSQBRACKET))
         return ok_expression(new_list_data_expression(l));
-    }
 
     // else parse expressions until we reach end square bracket.
     while (token_get_type(prev_token) != T_RSQBRACKET) {
@@ -233,10 +232,8 @@ static failable_expression parse_dict_initializer(bool verbose) {
     dict *d = new_dict(containing_expressions, 64);
 
     // {} = empty dict
-    if (token_get_type(peek()) == T_RBRACKET) {
-        get_token_and_advance();
+    if (accept(T_RBRACKET))
         return ok_expression(new_dict_data_expression(d));
-    }
 
     // else parse "key":expression until we reach end square bracket.
     while (token_get_type(prev_token) != T_RBRACKET) {
