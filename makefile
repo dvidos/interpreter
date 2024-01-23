@@ -11,7 +11,9 @@ FILES = \
 	utils/containers/dict.c \
 	utils/containers/list.c \
 	utils/containers/stack.c \
+	utils/containers/queue.c \
 	utils/containers/contained_item.c \
+	utils/containers/containers_tests.c \
 	\
 	utils/str_builder.c \
 	utils/failable.c \

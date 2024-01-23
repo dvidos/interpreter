@@ -41,7 +41,7 @@ static bool use_case_passes(const char *code, bool expect_failure, expression *e
     // compare each expression
     expression *parsed = parsing.result;
     if (!expressions_are_equal(parsed, expected_expression)) {
-        fprintf(stderr, "Expression differs, code is \"%s\"), \n" \
+        fprintf(stderr, "Expression not as expected \"%s\", \n" \
                         "    expected: %s\n" \
                         "    parsed  : %s\n",
                         code, expression_to_string(expected_expression), expression_to_string(parsed));
@@ -176,7 +176,18 @@ bool expression_parser_self_diagnostics(bool verbose) {
 
     if (!use_case_passes("a ? b",     true, NULL, verbose)) all_passed = false;
     if (!use_case_passes("a ? b , c", true, NULL, verbose)) all_passed = false;
-    
+
+    // although shunting yard is good for precedence, 
+    // we need left-to-right association, not right-to-left
+    // we want "1+2+3" => "(1+2)+3", not "1+(2+3)"
+    if (!use_case_passes("1+2+3", false,
+        new_binary_op_expression(OP_ADD,
+            new_binary_op_expression(OP_ADD, 
+                new_numeric_literal_expression("1"),
+                new_numeric_literal_expression("2")
+            ),
+            new_numeric_literal_expression("3")
+        ), verbose)) all_passed = false;
 
     if (!use_case_passes("team.leader.name", false,
         new_binary_op_expression(OP_MEMBER,

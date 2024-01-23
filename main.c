@@ -3,6 +3,7 @@
 #include <string.h>
 #include "utils/testing.h"
 #include "utils/file.h"
+#include "utils/containers/_module.h"
 #include "utils/data_types/_module.h"
 #include "interpreter/lexer/_module.h"
 #include "interpreter/parser/expression_parser_tests.h"
@@ -32,6 +33,9 @@ bool run_self_diagnostics(bool verbose) {
     bool all_passed = true;
 
     if (!variant_self_diagnostics(verbose))
+        all_passed = false;
+    
+    if (!containers_self_diagnostics(verbose))
         all_passed = false;
     
     if (!lexer_self_diagnostics(verbose))

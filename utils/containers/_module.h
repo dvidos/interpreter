@@ -6,7 +6,9 @@
 #include "list.h"
 #include "dict.h"
 #include "stack.h"
+#include "queue.h"
 
+#include "containers_tests.h"
 
 
 #endif
