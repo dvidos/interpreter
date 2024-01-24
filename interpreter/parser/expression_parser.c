@@ -31,31 +31,30 @@ typedef enum run_state { WANT_OPERAND, HAVE_OPERAND, FINISHED } run_state;
 static stack *operators_stack;
 static stack *expressions_stack;
 static iterator *tokens_iterator;
-static token *end_token;
-static token *_last_accepted_token = NULL;
+static token *last_accepted_token = NULL;
 
 void initialize_expression_parser() {
     operators_stack = new_stack(containing_operators);
     expressions_stack = new_stack(containing_expressions);
-    end_token = new_token(T_END, NULL, 0, 0);
+    last_accepted_token = NULL;
 }
 
 static bool accept(token_type tt) {
     token *t = tokens_iterator->curr(tokens_iterator);
     if (token_get_type(t) != tt)
         return false;
-    _last_accepted_token = t;
+    last_accepted_token = t;
     if (token_get_type(t) != T_END)
         tokens_iterator->next(tokens_iterator);
     return true;
 }
 static inline token *accepted() {
-    return _last_accepted_token;
+    return last_accepted_token;
 }
 static token* peek() {
     // get token, but don't advance to next position
-    if (!tokens_iterator->valid(tokens_iterator))
-        return end_token;
+    if (token_get_type(tokens_iterator->curr(tokens_iterator)) == T_END)
+        return tokens_iterator->curr(tokens_iterator); // emulate infinate ENDs
     
     return tokens_iterator->curr(tokens_iterator);
 }
@@ -418,9 +417,9 @@ static void print_debug_information(char *title, run_state state) {
             case FINISHED:     state_name = "FINISHED"; break;
             default:           state_name = "(unknown)";
         }
-        fprintf(stderr, "    state=%s, accepted()=%s, peek()=%s\n",
+        fprintf(stderr, "    state=%s, accepted=%s, peek=%s\n",
             state_name,
-            accepted() == NULL ? "(null)" : token_type_str(token_get_type(accepted())),
+            accepted() == NULL ? "NULL" : token_type_str(token_get_type(accepted())),
             token_type_str(token_get_type(peek()))
         );
 

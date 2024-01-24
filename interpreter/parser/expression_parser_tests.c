@@ -12,6 +12,8 @@ static bool use_case_passes(const char *code, bool expect_failure, expression *e
     if (verbose)
         fprintf(stderr, "---------- use case: \"%s\" ----------\n", code);
 
+    initialize_expression_parser(); // clean previous failed parsing attempts
+
     failable_list tokenization = parse_code_into_tokens(code, "test");
     if (tokenization.failed) {
         fprintf(stderr, "Parsing tokenization failed unexpectedly: %s\n\t(code=\"%s\")", tokenization.err_msg, code);

@@ -5,7 +5,7 @@
 #include "../entities/statement.h"
 
 static iterator *tokens_it;
-static token *_last_accepted_token;
+static token *last_accepted_token;
 
 void initialize_statement_parser() {
     // anything global 
@@ -16,7 +16,7 @@ static bool accept(token_type tt) {
     token *t = tokens_it->curr(tokens_it);
     if (token_get_type(t) != tt)
         return false;
-    _last_accepted_token = t;
+    last_accepted_token = t;
     tokens_it->next(tokens_it);
     return true;
 }
@@ -24,7 +24,7 @@ static token *peek() {
     return tokens_it->curr(tokens_it);
 }
 static inline token *accepted() {
-    return _last_accepted_token;
+    return last_accepted_token;
 }
 
 static bool tokens_finished() {
