@@ -68,14 +68,14 @@ bool expression_parser_self_diagnostics(bool verbose) {
 
     if (!use_case_passes("1+2*3+4", false,
         new_binary_op_expression(OP_ADD, 
-            new_numeric_literal_expression("1"),
             new_binary_op_expression(OP_ADD, 
+                new_numeric_literal_expression("1"),
                 new_binary_op_expression(OP_MULTIPLY, 
                     new_numeric_literal_expression("2"),
                     new_numeric_literal_expression("3")
-                ),
-                new_numeric_literal_expression("4")
-            )
+                )
+            ),
+            new_numeric_literal_expression("4")
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("(1+2)*(3+4)", false,
@@ -189,6 +189,16 @@ bool expression_parser_self_diagnostics(bool verbose) {
             new_numeric_literal_expression("3")
         ), verbose)) all_passed = false;
 
+    // important difference: "(8-4)-2" = 2, while "8-(4-2)" = 6
+    if (!use_case_passes("8-4-2", false,
+        new_binary_op_expression(OP_SUBTRACT,
+            new_binary_op_expression(OP_SUBTRACT, 
+                new_numeric_literal_expression("8"),
+                new_numeric_literal_expression("4")
+            ),
+            new_numeric_literal_expression("2")
+        ), verbose)) all_passed = false;
+
     if (!use_case_passes("team.leader.name", false,
         new_binary_op_expression(OP_MEMBER,
             new_binary_op_expression(OP_MEMBER,
@@ -210,7 +220,7 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("person.children[2]", false,
         new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
             new_binary_op_expression(OP_MEMBER,
-                new_identifier_expression("persons"),
+                new_identifier_expression("person"),
                 new_identifier_expression("children")
             ),
             new_numeric_literal_expression("2")

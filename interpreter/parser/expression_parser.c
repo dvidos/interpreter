@@ -127,7 +127,7 @@ static inline operator pop_top_operator() {
 
 static void print_operators_stack(FILE *stream, char *prefix) {
     const char *s = stack_to_string(operators_stack, ", ");
-    fprintf(stream, "%sOperators   stack, %d items, top -> %s\n", 
+    fprintf(stream, "%sOperators   stack, %d items, top -> %s <- bottom\n", 
         prefix, stack_length(operators_stack), s);
 }
 
@@ -145,7 +145,7 @@ static inline expression *peek_top_expression() {
 
 static void print_expressions_stack(FILE *stream, char *prefix) {
     const char *s = stack_to_string(expressions_stack, ", ");
-    fprintf(stream, "%sExpressions stack, %d items, top -> %s\n", 
+    fprintf(stream, "%sExpressions stack, %d items, top -> %s <- bottom\n", 
         prefix, stack_length(expressions_stack), s);
 }
 
@@ -167,15 +167,33 @@ static void make_one_expression_from_top_operator() {
     push_expression(new_expr);
 }
 
-static void create_expressions_for_higher_operators_than(operator op) {
+static void create_expressions_for_higher_operators_than(operator new_op) {
     // the operators stack always has the highest precedence ops at the top.
     // if we want to add a smaller precedence, we pop them into expressions
     // this assumes the use of the SENTINEL, the lowest priority operator
-    int precedence = operator_precedence(op);
-    operator top_op = peek_top_operator();
-    while (operator_precedence(top_op) < precedence) {
+    // left-associated operators allow equal precedence to be popped,
+    // so that 8-4-2 => (8-4)-2 and not 8-(4-2).
+    int new_precedence = operator_precedence(new_op);
+    while (true) {
+        operator top_op = peek_top_operator();
+        int top_precedence = operator_precedence(top_op);
+        bool top_is_unary = operator_is_unary(top_op);
+        op_associativity top_assoc = operator_associativity(top_op);
+
+        bool top_is_higher;
+        if (top_op == OP_SENTINEL)
+            top_is_higher = false;
+        else if (top_is_unary)
+            top_is_higher = top_precedence <= new_precedence;
+        else
+            top_is_higher =
+                (top_precedence < new_precedence) ||
+                (top_assoc == L2R && top_precedence == new_precedence);
+        
+        if (!top_is_higher)
+            break;
+        
         make_one_expression_from_top_operator();
-        top_op = peek_top_operator();
     }
 }
 
@@ -346,7 +364,7 @@ static failable_list parse_function_call_arguments_expressions(bool verbose) {
     return ok_list(args);
 }
 
-failable_expression parse_shorthand_if_pair(bool verbose) {
+static failable_expression parse_shorthand_if_pair(bool verbose) {
     failable_expression parsing = parse_expression(tokens_iterator, CM_COLON, verbose);
     if (parsing.failed) return failed_expression("%s", parsing.err_msg);
     expression *e1 = parsing.result;
@@ -357,7 +375,6 @@ failable_expression parse_shorthand_if_pair(bool verbose) {
 
     return ok_expression(new_pair_expression(e1, e2));
 }
-
 
 static failable parse_expression_on_have_operand(run_state *state, completion_mode completion, bool verbose) {
     // read a token   
@@ -398,6 +415,8 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     // if infix, push it for resolving later, and go back to want-operand
     if (is_token_infix_operator(tt)) {
         operator op = get_token_infix_operator(tt);
+        // here, if same operation precedence as top of stack, 
+        // maybe pop one and make one.
         create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
         *state = WANT_OPERAND;

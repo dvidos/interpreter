@@ -11,6 +11,11 @@ enum op_position {
     INFIX,
 };
 
+enum op_associativity {
+    L2R, // aka left-associativity (e.g. subtract)
+    R2L  // aka right-associativity (e.g. bitwise xor)
+};
+
 enum operator {
     OP_UNKNOWN,
 
@@ -65,12 +70,14 @@ enum operator {
 
 typedef enum operator operator;
 typedef enum op_position op_position;
-
+typedef enum op_associativity op_associativity;
 
 void initialize_operator_tables();
 operator get_operator_by_token_type_and_position(token_type type, enum op_position position);
 int operator_precedence(operator op);
 op_position operator_position(operator op);
+op_associativity operator_associativity(operator op);
+bool operator_is_unary(operator op);
 const char *operator_str(operator op);
 
 extern contained_item *containing_operators;
