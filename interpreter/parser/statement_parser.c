@@ -9,8 +9,8 @@ static token *last_accepted_token;
 
 void initialize_statement_parser() {
     // anything global 
+    last_accepted_token = NULL;
 }
-
 
 static bool accept(token_type tt) {
     token *t = tokens_it->curr(tokens_it);
@@ -20,9 +20,11 @@ static bool accept(token_type tt) {
     tokens_it->next(tokens_it);
     return true;
 }
+
 static token *peek() {
     return tokens_it->curr(tokens_it);
 }
+
 static inline token *accepted() {
     return last_accepted_token;
 }
@@ -123,14 +125,13 @@ static failable_statement parse_return_statement() {
     failable_expression parsing;
     expression *return_value_expression;
 
-    if (accept(T_LPAREN)) {
+    if (accept(T_SEMICOLON)) {
+        return_value_expression = NULL;
+    } else if (accept(T_LPAREN)) {
         parsing = parse_expression(tokens_it, CM_RPAREN, false);
         if (parsing.failed) return failed_statement("cannot parse value: %s", parsing.err_msg);
         return_value_expression = parsing.result;
         if (!accept(T_SEMICOLON)) return failed_statement("was expecting ';'");
-
-    } else if (accept(T_SEMICOLON)) {
-        return_value_expression = NULL;
     } else {
         parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
         if (parsing.failed) return failed_statement("cannot parse value: %s", parsing.err_msg);
@@ -140,45 +141,28 @@ static failable_statement parse_return_statement() {
     return ok_statement(new_return_statement(return_value_expression));
 }
 
-static failable_list parse_function_arguments() {
-    list *arg_names = new_list(containing_strs);
-    while (true) {
-        if (accept(T_RPAREN))
-            break;
-        
-        token *t = peek();
-        if (token_get_type(t) != T_IDENTIFIER)
-            return failed_list("Was expecting identifier in function arg names");
-        accept(T_IDENTIFIER);
-        list_add(arg_names, (void *)token_get_data(t)); // we lose const here
-
-        if (accept(T_COMMA))
-            ;
-    }
-    return ok_list(arg_names);
-}
-
 static failable_statement parse_function_statement() {
     if (!accept(T_FUNCTION_KEYWORD)) return failed_statement("was expecting 'function'");
 
-    // allowing anonymous functions, as in javascript
+    // function name is optional
     const char *name = NULL;
-    token *name_token = peek();
-    if (token_get_type(name_token) == T_IDENTIFIER) {
-        name = token_get_data(name_token);
-        accept(token_get_type(name_token));
-    }
+    if (accept(T_IDENTIFIER))
+        name = token_get_data(accepted());
     
+    list *arg_names = new_list(containing_strs);
     if (!accept(T_LPAREN))
-        return failed_statement("was expecting arguments list after function");
-    
-    failable_list arg_names = parse_function_arguments();
-    if (arg_names.failed) return failed_statement("Parsing function arguements: %s", arg_names.err_msg);
+        return failed_statement("Was expecting arguments list after function");
+    while (!accept(T_RPAREN)) {
+        if (!accept(T_IDENTIFIER))
+            return failed_statement("Was expecting identifier in function arg names");
+        list_add(arg_names, (void *)token_get_data(accepted())); // we lose const here
+        accept(T_COMMA);
+    }
 
     failable_list stmts = parse_statements(tokens_it, SP_BLOCK_MANDATORY);
     if (stmts.failed) return failed_statement("Parsing function body: %s", stmts.err_msg);
 
-    return ok_statement(new_function_statement(name, arg_names.result, stmts.result));
+    return ok_statement(new_function_statement(name, arg_names, stmts.result));
 }
 
 failable_statement parse_statement(iterator *tokens) {

@@ -48,14 +48,12 @@ static bool accept(token_type tt) {
         tokens_iterator->next(tokens_iterator);
     return true;
 }
+
 static inline token *accepted() {
     return last_accepted_token;
 }
+
 static token* peek() {
-    // get token, but don't advance to next position
-    if (token_get_type(tokens_iterator->curr(tokens_iterator)) == T_END)
-        return tokens_iterator->curr(tokens_iterator); // emulate infinate ENDs
-    
     return tokens_iterator->curr(tokens_iterator);
 }
 
