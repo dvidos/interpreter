@@ -258,7 +258,7 @@ bool expression_parser_self_diagnostics(bool verbose) {
                 new_identifier_expression("open")
             ),
             new_list_data_expression(list_of(containing_expressions, 1,
-                new_numeric_literal_expression("text")
+                new_string_literal_expression("text")
             ))
         ), verbose)) all_passed = false;
 
