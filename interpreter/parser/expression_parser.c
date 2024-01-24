@@ -382,7 +382,8 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         create_expressions_for_higher_operators_than(OP_ARRAY_SUBSCRIPT);
         push_operator_for_later(OP_ARRAY_SUBSCRIPT);
         push_expression(subscript.result);
-
+        *state = HAVE_OPERAND;
+        return ok();
     }
 
     // if infix, push it for resolving later, and go back to want-operand
@@ -414,20 +415,14 @@ static void print_debug_information(char *title, run_state state) {
         switch (state) {
             case WANT_OPERAND: state_name = "WANT_OPERAND"; break;
             case HAVE_OPERAND: state_name = "HAVE_OPERAND"; break;
-            case FINISHED: state_name = "FINISHED"; break;
-            default: state_name = "(unknown)";
+            case FINISHED:     state_name = "FINISHED"; break;
+            default:           state_name = "(unknown)";
         }
-        fprintf(stderr, "    Curr state %s", state_name);
-
-        fprintf(stderr, ", last token "); 
-        if (accepted() == NULL)
-            fprintf(stderr, "(null)");
-        else
-            token_print(accepted(), stderr, "");
-
-        fprintf(stderr, ", next token ");
-        token_print(peek(), stderr, "");
-        fprintf(stderr, "\n");
+        fprintf(stderr, "    state=%s, accepted()=%s, peek()=%s\n",
+            state_name,
+            accepted() == NULL ? "(null)" : token_type_str(token_get_type(accepted())),
+            token_type_str(token_get_type(peek()))
+        );
 
         print_expressions_stack(stderr, "    ");
         print_operators_stack(stderr, "    ");
@@ -436,13 +431,14 @@ static void print_debug_information(char *title, run_state state) {
 failable_expression parse_expression(iterator *tokens, completion_mode completion, bool verbose) {
     // re-entrable
     tokens_iterator = tokens;
-
-    failable state_handling;
     run_state state = WANT_OPERAND;
-    push_operator_for_later(OP_SENTINEL);
 
     if (verbose)
-        print_debug_information("will enter parse_expression() loop", state);
+        print_debug_information("parse_expression() starting", state);
+        
+    failable state_handling;
+    push_operator_for_later(OP_SENTINEL);
+
     while (state != FINISHED) {
 
         switch (state) {
@@ -459,12 +455,17 @@ failable_expression parse_expression(iterator *tokens, completion_mode completio
         }
 
         if (verbose)
-            print_debug_information("after one instanceparse_expression() loop", state);
+            print_debug_information("parse_expression() step", state);
     }
 
-    if (peek_top_operator() != OP_SENTINEL)
+    operator sentinel = pop_top_operator();
+    if (sentinel != OP_SENTINEL)
         return failed_expression("Was expecting SENTINEL at the top of the queue");
-    pop_top_operator();
 
-    return ok_expression(pop_top_expression());
+    expression *result = pop_top_expression();
+
+    if (verbose)
+        print_debug_information("parse_expression() ended", state);
+    
+    return ok_expression(result);
 }
