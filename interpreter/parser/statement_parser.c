@@ -4,8 +4,8 @@
 #include "statement_parser.h"
 #include "../entities/statement.h"
 
-iterator *tokens_it;
-token *_last_accepted;
+static iterator *tokens_it;
+static token *_last_accepted_token;
 
 void initialize_statement_parser() {
     // anything global 
@@ -16,15 +16,15 @@ static bool accept(token_type tt) {
     token *t = tokens_it->curr(tokens_it);
     if (token_get_type(t) != tt)
         return false;
-    _last_accepted = t;
+    _last_accepted_token = t;
     tokens_it->next(tokens_it);
     return true;
 }
 static token *peek() {
     return tokens_it->curr(tokens_it);
 }
-static inline token *last_accepted() {
-    return _last_accepted;
+static inline token *accepted() {
+    return _last_accepted_token;
 }
 
 static bool tokens_finished() {
@@ -159,7 +159,7 @@ static failable_list parse_function_arguments() {
 }
 
 static failable_statement parse_function_statement() {
-    if (!accept(T_FUNCTION)) return failed_statement("was expecting 'function'");
+    if (!accept(T_FUNCTION_KEYWORD)) return failed_statement("was expecting 'function'");
 
     // allowing anonymous functions, as in javascript
     const char *name = NULL;
@@ -186,14 +186,14 @@ failable_statement parse_statement(iterator *tokens) {
 
     token_type tt = token_get_type(peek());
     switch (tt) {
-        case T_IF:       return parse_if_statement();
-        case T_WHILE:    return parse_while_statement();
-        case T_FOR:      return parse_for_statement();
-        case T_BREAK:    return parse_break_statement();
-        case T_CONTINUE: return parse_continue_statement();
-        case T_RETURN:   return parse_return_statement();
-        case T_FUNCTION: return parse_function_statement();
-        default:         return parse_expression_statement();
+        case T_IF:               return parse_if_statement();
+        case T_WHILE:            return parse_while_statement();
+        case T_FOR:              return parse_for_statement();
+        case T_BREAK:            return parse_break_statement();
+        case T_CONTINUE:         return parse_continue_statement();
+        case T_RETURN:           return parse_return_statement();
+        case T_FUNCTION_KEYWORD: return parse_function_statement();
+        default:                 return parse_expression_statement();
     }
 }
 

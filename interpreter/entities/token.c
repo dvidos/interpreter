@@ -61,7 +61,7 @@ static struct token_info token_infos[] = {
     { T_DOUBLE_MINUS,       "--",  "DOUBLE_MINUS" },
     { T_PERCENT,            "%",   "PERCENT" },
     { T_CARET,              "^",   "CARET" },
-    { T_QUESTION,           "?",   "QUESTION" },
+    { T_QUESTION_MARK,      "?",   "QUESTION_MARK" },
     { T_COLON,              ":",   "COLON" },
     { T_PLUS_EQUAL,         "+=",  "PLUS_EQUAL" },
     { T_MINUS_EQUAL,        "-=",  "MINUS_EQUAL" },
@@ -81,7 +81,7 @@ static struct token_info token_infos[] = {
     { T_BREAK,              "", "BREAK" },
     { T_CONTINUE,           "", "CONTINUE" },
     { T_RETURN,             "", "RETURN" },
-    { T_FUNCTION,           "", "FUNCTION" },
+    { T_FUNCTION_KEYWORD,   "", "FUNCTION" },
 
     { T_END,                "",    "END" },
     { T_MAX_VALUE,          "",    "MAX_VALUE" },

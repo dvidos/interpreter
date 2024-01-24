@@ -49,7 +49,7 @@ typedef enum token_type {
     T_DOUBLE_MINUS,
     T_PERCENT,
     T_CARET,
-    T_QUESTION,
+    T_QUESTION_MARK,
     T_COLON,
     T_PLUS_EQUAL,
     T_MINUS_EQUAL,
@@ -69,7 +69,7 @@ typedef enum token_type {
     T_BREAK,
     T_CONTINUE,
     T_RETURN,
-    T_FUNCTION,
+    T_FUNCTION_KEYWORD,
 
     T_END, // the last token of the stream
     T_MAX_VALUE // max value for the sizing of the enum

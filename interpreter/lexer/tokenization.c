@@ -67,7 +67,7 @@ static struct reserved_word {
     { "break",      T_BREAK },
     { "continue",   T_CONTINUE },
     { "return",     T_RETURN },
-    { "function",   T_FUNCTION },
+    { "function",   T_FUNCTION_KEYWORD },
 };
 
 static token_type get_reserved_word_token(const char *data) {

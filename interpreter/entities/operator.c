@@ -44,7 +44,7 @@ static struct op_info operators_flat_list[] = {
     { OP_BITWISE_OR,         10, T_PIPE,              INFIX,   L2R, "BITWISE_OR" },  // |
     { OP_LOGICAL_AND,        11, T_DOUBLE_AMPERSAND,  INFIX,   L2R, "LOGICAL_AND" },  // &&
     { OP_LOGICAL_OR,         12, T_DOUBLE_PIPE,       INFIX,   L2R, "LOGICAL_OR" },  // ||
-    { OP_SHORT_IF,           13, T_QUESTION,          INFIX,   R2L, "SHORT_IF" },  // a ? b : c
+    { OP_SHORT_IF,           13, T_QUESTION_MARK,     INFIX,   R2L, "SHORT_IF" },  // a ? b : c
     { OP_ASSIGNMENT,         14, T_EQUAL,             INFIX,   R2L, "ASSIGNMENT" },  // =
     { OP_ADD_ASSIGN,         14, T_PLUS_EQUAL,        INFIX,   R2L, "ADD_ASSIGN" },  // +=
     { OP_SUB_ASSIGN,         14, T_MINUS_EQUAL,       INFIX,   R2L, "SUB_ASSIGN" },  // -=
@@ -91,7 +91,7 @@ void initialize_operator_tables() {
     }
 }
 
-operator get_operator_by_token_type_and_position(token_type type, enum op_position position) {
+operator operator_by_type_and_position(token_type type, enum op_position position) {
     // for example, '-' can be prefix/infix, '++' can be prefix/postfix
     // or '(' in prefix is subexpression, in infix it's function call.
     struct op_info_per_token_type *info = &op_infos_per_token_type[type];

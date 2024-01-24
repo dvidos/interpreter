@@ -1,7 +1,6 @@
-/*
-function multiply(a, b) {    // <-- statement
-    return a * b;
-}
+// function multiply(a, b) {    // <-- statement
+//     return a * b;
+// }
 
 obj = {
     name: "object",
@@ -11,17 +10,7 @@ obj = {
     }
 };
 
-c = multiply(2, 3);
+// c = multiply(2, 3);
 d = obj.sum(4, 5);
 log(c);
-
-f = function() { return 2; };
-b = f();
-*/
-
-
-obj = {
-    two: function() { return 2; }
-};
-a = obj.two();
 

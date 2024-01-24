@@ -1,5 +1,6 @@
 # todo
 
+* make calling user functions and user methods possible.
 * fix / simplify both parsers (expression,statement) to have: accept(), peek(), accepted() etc.
 * symbol tables should contain info about variable type or function type, flags etc.
 * make function an expression, in order for it to be used as a value and passed around, 

@@ -28,41 +28,29 @@
 
 typedef enum run_state { WANT_OPERAND, HAVE_OPERAND, FINISHED } run_state;
 
-
 static stack *operators_stack;
 static stack *expressions_stack;
 static iterator *tokens_iterator;
-static token *prev_token;
 static token *end_token;
-static token *_last_accepted = NULL;
+static token *_last_accepted_token = NULL;
 
 void initialize_expression_parser() {
     operators_stack = new_stack(containing_operators);
     expressions_stack = new_stack(containing_expressions);
     end_token = new_token(T_END, NULL, 0, 0);
-    prev_token = new_token(T_UNKNOWN, NULL, 0, 0);
 }
 
 static bool accept(token_type tt) {
     token *t = tokens_iterator->curr(tokens_iterator);
     if (token_get_type(t) != tt)
         return false;
-    _last_accepted = t;
-    prev_token = t;
-    tokens_iterator->next(tokens_iterator);
+    _last_accepted_token = t;
+    if (token_get_type(t) != T_END)
+        tokens_iterator->next(tokens_iterator);
     return true;
 }
-static inline token *last_accepted() {
-    return _last_accepted;
-}
-static token* get_token_and_advance() {
-    // get token, advance to next position, so we can peek.
-    if (!tokens_iterator->valid(tokens_iterator))
-        return end_token;
-    
-    prev_token = tokens_iterator->curr(tokens_iterator);
-    tokens_iterator->next(tokens_iterator);
-    return prev_token;
+static inline token *accepted() {
+    return _last_accepted_token;
 }
 static token* peek() {
     // get token, but don't advance to next position
@@ -72,45 +60,35 @@ static token* peek() {
     return tokens_iterator->curr(tokens_iterator);
 }
 
-static inline operator get_token_prefix_operator(token_type tt) {
-    return get_operator_by_token_type_and_position(tt, PREFIX);
+static inline operator make_positioned_operator(token *t, op_position position) {
+    return operator_by_type_and_position(token_get_type(t), position);
 }
 
-static inline operator get_token_infix_operator(token_type tt) {
-    return get_operator_by_token_type_and_position(tt, INFIX);
+static inline bool accept_positioned_operator(op_position position) {
+    token *t = peek();
+    operator possible = make_positioned_operator(t, position);
+    if (possible == T_UNKNOWN)
+        return false; // not an operator at this position
+    
+    return accept(token_get_type(t));
 }
 
-static inline operator get_token_postfix_operator(token_type tt) {
-    return get_operator_by_token_type_and_position(tt, POSTFIX);
+static inline bool accept_operand() {
+    return accept(T_IDENTIFIER) ||
+           accept(T_NUMBER_LITERAL) ||
+           accept(T_STRING_LITERAL) ||
+           accept(T_BOOLEAN_LITERAL);
 }
 
-static inline bool is_token_operand(token_type tt) {
-    return tt == T_IDENTIFIER ||
-           tt == T_NUMBER_LITERAL ||
-           tt == T_STRING_LITERAL ||
-           tt == T_BOOLEAN_LITERAL;
-}
-
-static inline expression *get_operand_expression(token_type tt, const char *data) {
-    switch (tt) {
+static inline expression *make_operand_expression(token *t) {
+    const char *data = token_get_data(t);
+    switch (token_get_type(t)) {
         case T_IDENTIFIER: return new_identifier_expression(data);
         case T_NUMBER_LITERAL: return new_numeric_literal_expression(data);
         case T_STRING_LITERAL: return new_string_literal_expression(data);
         case T_BOOLEAN_LITERAL: return new_boolean_literal_expression(data);
     }
     return NULL;
-}
-
-static inline bool is_token_prefix_operator(token_type tt) {
-    return get_token_prefix_operator(tt) != T_UNKNOWN;
-}
-
-static inline bool is_token_infix_operator(token_type tt) {
-    return get_token_infix_operator(tt) != T_UNKNOWN;
-}
-
-static inline bool is_token_postfix_operator(token_type tt) {
-    return get_token_postfix_operator(tt) != T_UNKNOWN;
 }
 
 static inline void push_operator_for_later(operator op) {
@@ -199,34 +177,28 @@ static void create_expressions_for_higher_operators_than(operator new_op) {
 
 // --------------------------------------------
 
-static failable_bool detect_completion(token_type curr_token, completion_mode completion) {
-    if (completion == CM_END_OF_TEXT) {
+static failable_bool detect_completion(completion_mode mode) {
+
+    if (mode == CM_END_OF_TEXT) {
         // we can accept END here.
-        return ok_bool(curr_token == T_END);
-    } else if (completion == CM_SEMICOLON_OR_END){
-        return ok_bool(curr_token == T_SEMICOLON || curr_token == T_END);
+        return ok_bool(accept(T_END));
+    } else if (mode == CM_SEMICOLON_OR_END){
+        return ok_bool(accept(T_SEMICOLON) || accept(T_END));
     }
 
     // we do not accept END from here onwards
-    if (curr_token == T_END)
-        return failed_bool("Unexpected end of expression (%s), when completion mode is %d", 
-                token_type_str(curr_token), completion);
+    if (accept(T_END))
+        return failed_bool("Unexpected end of expression, when completion mode is %d", mode);
     
-    if (completion == CM_SEMICOLON) {
-        return ok_bool(curr_token == T_SEMICOLON);
-    } else if (completion == CM_RPAREN) {
-        return ok_bool(curr_token == T_RPAREN);
-    } else if (completion == CM_COMMA_OR_RPAREN) {
-        return ok_bool(curr_token == T_COMMA || curr_token == T_RPAREN);
-    } else if (completion == CM_COMMA_OR_RSQBRACKET) {
-        return ok_bool(curr_token == T_COMMA || curr_token == T_RSQBRACKET);
-    } else if (completion == CM_COMMA_OR_RBRACKET) {
-        return ok_bool(curr_token == T_COMMA || curr_token == T_RBRACKET);
-    } else if (completion == CM_COLON) {
-        return ok_bool(curr_token == T_COLON);
-    }
+    if      (mode == CM_SEMICOLON)           return ok_bool(accept(T_SEMICOLON));
+    else if (mode == CM_COLON)               return ok_bool(accept(T_COLON));
+    else if (mode == CM_RPAREN)              return ok_bool(accept(T_RPAREN));
+    else if (mode == CM_RSQBRACKET)          return ok_bool(accept(T_RSQBRACKET));
+    else if (mode == CM_COMMA_OR_RPAREN)     return ok_bool(accept(T_COMMA) || accept(T_RPAREN));
+    else if (mode == CM_COMMA_OR_RSQBRACKET) return ok_bool(accept(T_COMMA) || accept(T_RSQBRACKET));
+    else if (mode == CM_COMMA_OR_RBRACKET)   return ok_bool(accept(T_COMMA) || accept(T_RBRACKET));
 
-    return failed_bool("Unknown completion mode %d", completion);
+    return failed_bool("Unknown completion mode %d", mode);
 }
 
 static failable_expression parse_list_initializer(bool verbose) {
@@ -237,7 +209,7 @@ static failable_expression parse_list_initializer(bool verbose) {
         return ok_expression(new_list_data_expression(l));
 
     // else parse expressions until we reach end square bracket.
-    while (token_get_type(prev_token) != T_RSQBRACKET) {
+    while (token_get_type(accepted()) != T_RSQBRACKET) {
         failable_expression expr = parse_expression(tokens_iterator, CM_COMMA_OR_RSQBRACKET, verbose);
         if (expr.failed) return failed_expression("%s", expr.err_msg);
         list_add(l, expr.result);
@@ -254,12 +226,13 @@ static failable_expression parse_dict_initializer(bool verbose) {
         return ok_expression(new_dict_data_expression(d));
 
     // else parse "key":expression until we reach end square bracket.
-    while (token_get_type(prev_token) != T_RBRACKET) {
+    while (token_get_type(accepted()) != T_RBRACKET) {
         failable_expression key_expr = parse_expression(tokens_iterator, CM_COLON, verbose);
         if (key_expr.failed) return failed_expression("%s", key_expr.err_msg);
         if (expression_get_type(key_expr.result) != ET_IDENTIFIER)
             return failed_expression("Dict keys should be identifiers, got %d", expression_get_type(key_expr.result));
         const char *key = expression_get_terminal_data(key_expr.result);
+
         failable_expression val_expr = parse_expression(tokens_iterator, CM_COMMA_OR_RBRACKET, verbose);
         if (val_expr.failed) return failed_expression("%s", val_expr.err_msg);
         dict_set(d, key, val_expr.result);
@@ -277,7 +250,7 @@ static failable_expression parse_func_declaration_expression(bool verbose) {
     while (!accept(T_RPAREN)) {
         if (!accept(T_IDENTIFIER))
             return failed_expression("Expected identifier in function arg names");
-        list_add(arg_names, (void *)token_get_data(last_accepted())); // we lose const here
+        list_add(arg_names, (void *)token_get_data(accepted())); // we lose const here
         accept(T_COMMA);
     }
 
@@ -288,19 +261,15 @@ static failable_expression parse_func_declaration_expression(bool verbose) {
 }
 
 static failable parse_expression_on_want_operand(run_state *state, bool verbose) {
-    // read a token. If there are no more tokens, announce an error.
-    token *t = get_token_and_advance();
-    token_type tt = token_get_type(t);
 
-    // handle prefix ops 
-    if (is_token_prefix_operator(tt)) {
-        operator op = get_token_prefix_operator(tt);
-        push_operator_for_later(op);
+    // prefix operators come before the operand
+    if (accept_positioned_operator(PREFIX)) {
+        push_operator_for_later(make_positioned_operator(accepted(), PREFIX));
         return ok();
     }
 
-    // handle sub-expressions here, func cals are handled after having operand.
-    if (tt == T_LPAREN) {
+    // a parenthesis is a sub-expression here, func cals are handled after having operand.
+    if (accept(T_LPAREN)) {
         failable_expression sub_expression = parse_expression(tokens_iterator, CM_RPAREN, verbose);
         if (sub_expression.failed) return failed("Subexpression failed: %s", sub_expression.err_msg);
         push_expression(sub_expression.result);
@@ -308,7 +277,8 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
         return ok();
     }
 
-    if (tt == T_LSQBRACKET) {
+    // e.g. "nums = [ 1, 2, 3, 5, 8, 13 ]"
+    if (accept(T_LSQBRACKET)) {
         failable_expression list_expression = parse_list_initializer(verbose);
         if (list_expression.failed) return failed("List initialization failed: %s", list_expression.err_msg);
         push_expression(list_expression.result);
@@ -316,7 +286,8 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
         return ok();
     }
 
-    if (tt == T_LBRACKET) {
+    // e.g. "person = { name: "john", age: 30 };"
+    if (accept(T_LBRACKET)) {
         failable_expression dict_expression = parse_dict_initializer(verbose);
         if (dict_expression.failed) return failed("Dict initialization failed: %s", dict_expression.err_msg);
         push_expression(dict_expression.result);
@@ -324,8 +295,8 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
         return ok();
     }
 
-    if (tt == T_FUNCTION) {
-        // parse an inline function declaration
+    // e.g. "pie = function() { return 3.14; }"
+    if (accept(T_FUNCTION_KEYWORD)) {
         failable_expression func_expression = parse_func_declaration_expression(verbose);
         if (func_expression.failed) return failed("Parsing func declaration failed: %s", func_expression.err_msg);
         push_expression(func_expression.result);
@@ -333,28 +304,24 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
         return ok();
     }
 
-    // handle operands
-    if (is_token_operand(tt)) {
-        expression *e = get_operand_expression(tt, token_get_data(t));
-        push_expression(e);
+    if (accept_operand()) {
+        push_expression(make_operand_expression(accepted()));
         *state = HAVE_OPERAND;
         return ok();
     }
 
     // nothing else should be expected here
-    return failed("Unexpected token type %s, was expecting prefix, operand, or lparen", token_type_str(tt));
+    return failed("Unexpected token type %s, was expecting prefix, operand, or lparen", token_type_str(token_get_type(peek())));
 }
 
 static failable_list parse_function_call_arguments_expressions(bool verbose) {
     list *args = new_list(containing_expressions);
 
     // if empty args, there will be nothing to parse
-    if (token_get_type(peek()) == T_RPAREN) {
-        get_token_and_advance();
+    if (accept(T_RPAREN))
         return ok_list(args);
-    }
 
-    while (token_get_type(prev_token) != T_RPAREN) {
+    while (token_get_type(accepted()) != T_RPAREN) {
         failable_expression parse_arg = parse_expression(tokens_iterator, CM_COMMA_OR_RPAREN, verbose);
         if (parse_arg.failed)
             return failed_list("%s", parse_arg.err_msg);
@@ -377,20 +344,17 @@ static failable_expression parse_shorthand_if_pair(bool verbose) {
 }
 
 static failable parse_expression_on_have_operand(run_state *state, completion_mode completion, bool verbose) {
-    // read a token   
-    token *t = get_token_and_advance();
-    token_type tt = token_get_type(t);
 
     // if postfix, push for later, and remain in state
-    if (is_token_postfix_operator(tt)) {
-        operator op = get_token_postfix_operator(tt);
+    if (accept_positioned_operator(POSTFIX)) {
+        operator op = make_positioned_operator(accepted(), POSTFIX);
         create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
         return ok();
     }
 
-    // handle function calls, operand is function name or address
-    if (tt == T_LPAREN) {
+    // special parsing of arguments after a function call parenthesis
+    if (accept(T_LPAREN)) {
         failable_list arg_expressions = parse_function_call_arguments_expressions(verbose);
         if (arg_expressions.failed)
             return failed("%s", arg_expressions.err_msg);
@@ -401,10 +365,9 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         return ok();
     }
 
-    if (tt == T_QUESTION) {
+    if (accept(T_QUESTION_MARK)) {
         failable_expression if_parts = parse_shorthand_if_pair(verbose);
-        if (if_parts.failed)
-            return failed("%s", if_parts.err_msg);
+        if (if_parts.failed) return failed("%s", if_parts.err_msg);
         create_expressions_for_higher_operators_than(OP_SHORT_IF);
         push_operator_for_later(OP_SHORT_IF);
         push_expression(if_parts.result);
@@ -412,11 +375,19 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         return ok();
     }
 
+    // an array subscript, we must parse the ']'
+    if (accept(T_LSQBRACKET)) {
+        failable_expression subscript = parse_expression(tokens_iterator, CM_RSQBRACKET, verbose);
+        if (subscript.failed) return failed("%s", subscript.err_msg);
+        create_expressions_for_higher_operators_than(OP_ARRAY_SUBSCRIPT);
+        push_operator_for_later(OP_ARRAY_SUBSCRIPT);
+        push_expression(subscript.result);
+
+    }
+
     // if infix, push it for resolving later, and go back to want-operand
-    if (is_token_infix_operator(tt)) {
-        operator op = get_token_infix_operator(tt);
-        // here, if same operation precedence as top of stack, 
-        // maybe pop one and make one.
+    if (accept_positioned_operator(INFIX)) {
+        operator op = make_positioned_operator(accepted(), INFIX);
         create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
         *state = WANT_OPERAND;
@@ -424,16 +395,16 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     }
 
     // detect if we finished (we may be a sub-expression)
-    failable_bool completion_detection = detect_completion(tt, completion);
-    if (completion_detection.failed)
-        return failed("%s", completion_detection.err_msg);
-    if ((bool)completion_detection.result) {
+    failable_bool completion_detection = detect_completion(completion);
+    if (completion_detection.failed) return failed("%s", completion_detection.err_msg);
+    if (completion_detection.result) {
         create_expressions_for_higher_operators_than(OP_SENTINEL);
         *state = FINISHED;
         return ok();
     }
     
-    return ok();
+    // return ok();
+    return failed("have operand ran out of options??? peek() -> %s", token_type_str(token_get_type(peek())));
 }
 
 static void print_debug_information(char *title, run_state state) {
@@ -449,10 +420,10 @@ static void print_debug_information(char *title, run_state state) {
         fprintf(stderr, "    Curr state %s", state_name);
 
         fprintf(stderr, ", last token "); 
-        if (prev_token == NULL)
+        if (accepted() == NULL)
             fprintf(stderr, "(null)");
         else
-            token_print(prev_token, stderr, "");
+            token_print(accepted(), stderr, "");
 
         fprintf(stderr, ", next token ");
         token_print(peek(), stderr, "");

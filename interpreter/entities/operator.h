@@ -73,7 +73,7 @@ typedef enum op_position op_position;
 typedef enum op_associativity op_associativity;
 
 void initialize_operator_tables();
-operator get_operator_by_token_type_and_position(token_type type, enum op_position position);
+operator operator_by_type_and_position(token_type type, enum op_position position);
 int operator_precedence(operator op);
 op_position operator_position(operator op);
 op_associativity operator_associativity(operator op);
