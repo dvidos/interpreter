@@ -3,6 +3,7 @@
 
 #include "variant.h"
 #include "../containers/_module.h"
+#include "../containers/_module.h"
 
 // We want to support both callables being called,
 // with a list of variants as arguments
@@ -10,14 +11,18 @@
 
 typedef struct callable callable;
 
+typedef failable_variant callable_handler(
+    list *positional_args,
+    dict *named_args,
+    void *callable_data, // used for user defined functions
+    void *call_data   // used for execution context
+);
 
-typedef failable_variant (callable_func)(list *arguments);
-
-callable *new_callable(const char *name, const char *description, callable_func *func, variant_type ret_type, list *arg_types, bool var_args);
+callable *new_callable(const char *name, const char *description, callable_handler *func, variant_type ret_type, list *arg_types, bool variadic, void *callable_data);
 
 const char *callable_name(callable *c);
 const char *callable_description(callable *c);
-failable_variant callable_call(callable *c, list *arguments);
+failable_variant callable_call(callable *c, list *positional_args, dict *named_args, void *call_data);
 bool callables_are_equal(callable *a, callable *b);
 
 extern contained_item *containing_callables;

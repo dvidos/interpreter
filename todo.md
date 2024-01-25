@@ -1,7 +1,6 @@
 # todo
 
 * make calling user functions and user methods possible.
-* fix / simplify both parsers (expression,statement) to have: accept(), peek(), accepted() etc.
 * symbol tables should contain info about variable type or function type, flags etc.
 * make function an expression, in order for it to be used as a value and passed around, 
 returned from functions etc.
@@ -39,6 +38,7 @@ Ability to parse EBNF syntax and then parse things on the fly?
 
 # done!
 
+* fix / simplify both parsers (expression,statement) to have: accept(), peek(), accepted() etc.
 * make parsing of dictionaries `a = {key: value, ...}` and lists `b = (1, 2, ...)`
 * make log() echo to stderr, unless suppressed or redirected to a log file.
 * try out the idea of `_module.h` files

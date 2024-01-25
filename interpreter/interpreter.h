@@ -5,6 +5,6 @@
 #include "../utils/containers/_module.h"
 
 void initialize_interpreter();
-failable_variant interpret_and_execute(const char *code, const char *filename, dict *arguments, bool verbose);
+failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose);
 
 #endif

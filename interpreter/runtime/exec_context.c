@@ -3,6 +3,15 @@
 #include "../../utils/str_builder.h"
 #include "exec_context.h"
 #include "built_in_funcs.h"
+#include "symbol_table.h"
+
+
+exec_context *new_exec_context(bool verbose) {
+    exec_context *c = malloc(sizeof(exec_context));
+    c->verbose = verbose;
+    c->symbols = new_symbol_table(NULL);
+    return c;
+}
 
 
 

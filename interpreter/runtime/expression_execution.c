@@ -82,7 +82,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
 
     switch (expression_get_type(e)) {
         case ET_IDENTIFIER:
-            variant *v = dict_get(ctx->global_variables, td);
+            variant *v = resolve_symbol(ctx->symbols, td);
             if (v == NULL || variant_is_null(v))
                 return failed_variant("identifier not found \"%s\"", td);
             return ok_variant(v);
@@ -202,7 +202,11 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
 
     expression_type et = expression_get_type(lvalue);
     if (et == ET_IDENTIFIER) {
-        dict_set(ctx->global_variables, expression_get_terminal_data(lvalue), rvalue);
+        const char *name = expression_get_terminal_data(lvalue);
+        if (!symbol_exists(ctx->symbols, name))
+            register_symbol(ctx->symbols, name, rvalue);
+        else
+            update_symbol(ctx->symbols, name, rvalue);
         return ok();
 
     } else if (et == ET_BINARY_OP) {
@@ -311,14 +315,15 @@ static failable_variant make_function_call(expression *func_expr, expression *ar
         return failed_variant("function calls only support identifiers for now");
 
     fname = expression_get_terminal_data(func_expr);
-    callable *c = dict_get(ctx->callables, fname);
-    if (c == NULL) return
-        failed_variant("function '%s' not found", fname);
-    
-    failable_variant a = retrieve_value(args_expr, ctx);
-    if (a.failed) return failed_variant("error retrieving argments: %s", a.err_msg);
+    variant *v = resolve_symbol(ctx->symbols, fname);
+    if (v == NULL)               return failed_variant("function '%s' not found", fname);
+    if (!variant_is_callable(v)) return failed_variant("symbol '%s' is not a function", fname);
+    callable *c = variant_as_callable(v);
 
-    return callable_call(c, variant_as_list(a.result));
+    failable_variant args_list = retrieve_value(args_expr, ctx);
+    if (args_list.failed) return failed_variant("error retrieving arguments: %s", args_list.err_msg);
+
+    return callable_call(c, variant_as_list(args_list.result), NULL, ctx);
 }
 
 

@@ -36,7 +36,6 @@ FILES = \
 	interpreter/runtime/exec_context.c \
 	interpreter/runtime/expression_execution.c \
 	interpreter/runtime/statement_execution.c \
-	interpreter/runtime/symbol.c \
 	interpreter/runtime/symbol_table.c \
 	\
 	interpreter/interpreter.c \

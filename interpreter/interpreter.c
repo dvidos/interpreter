@@ -25,7 +25,7 @@ void initialize_interpreter() {
 }
 
 
-failable_variant interpret_and_execute(const char *code, const char *filename, dict *arguments, bool verbose) {
+failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose) {
 
     failable_list tokenization = parse_code_into_tokens(code, filename);
     if (tokenization.failed)
@@ -41,13 +41,15 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
     if (verbose)
         printf("------------- parsed statements -------------\n%s\n", list_to_string(parsing.result, "\n"));
 
-    exec_context ctx;
-    ctx.verbose = verbose;
-    ctx.callables = get_built_in_funcs_table();
-    ctx.global_variables = arguments;
+    exec_context *ctx = new_exec_context(verbose);
+    dict *built_ins = get_built_in_funcs_table();
+    for_dict(external_values, evit, str, var_name)
+        register_symbol(ctx->symbols, var_name, dict_get(external_values, var_name));
+    for_dict(built_ins, biit, str, bi_name)
+        register_symbol(ctx->symbols, bi_name, new_callable_variant(dict_get(built_ins, bi_name)));
     exec_context_log_reset();
 
-    failable_variant execution = execute_statements(parsing.result, &ctx);
+    failable_variant execution = execute_statements(parsing.result, ctx);
     if (execution.failed)
         return failed_variant("Execution failed: %s", execution.err_msg);
 

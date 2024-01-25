@@ -5,6 +5,9 @@
 #include "../failable.h"
 #include "../containers/_module.h"
 
+typedef struct callable callable;
+
+
 typedef enum variant_type {
     VT_NULL,
     VT_BOOL,
@@ -13,6 +16,7 @@ typedef enum variant_type {
     VT_STR,
     VT_LIST,
     VT_DICT,
+    VT_CALLABLE,
 
     VT_ANYTHING, // for (non) filtering function arguments
     VT_VOID,     // for functions not returning anything
@@ -27,6 +31,7 @@ variant *new_float_variant(float f);
 variant *new_str_variant(const char *p);
 variant *new_list_variant(list *l);
 variant *new_dict_variant(dict *d);
+variant *new_callable_variant(callable *c);
 
 bool variant_is_null(variant *v);
 bool variant_is_bool(variant *v);
@@ -35,6 +40,7 @@ bool variant_is_float(variant *v);
 bool variant_is_str(variant *v);
 bool variant_is_list(variant *v);
 bool variant_is_dict(variant *v);
+bool variant_is_callable(variant *v);
 variant_type variant_get_type(variant *v);
 
 bool variant_as_bool(variant *v);
@@ -43,6 +49,7 @@ float variant_as_float(variant *v);
 const char *variant_as_str(variant *v);
 list *variant_as_list(variant *v);
 dict *variant_as_dict(variant *v);
+callable *variant_as_callable(variant *v);
 
 bool variants_are_equal(variant *a, variant *b);
 const char *variant_to_string(variant *v);

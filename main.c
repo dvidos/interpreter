@@ -32,6 +32,8 @@
 bool run_self_diagnostics(bool verbose) {
     bool all_passed = true;
 
+    printf("Running diagnostics (unit tests)... ");
+
     if (!variant_self_diagnostics(verbose))
         all_passed = false;
     
@@ -53,6 +55,9 @@ bool run_self_diagnostics(bool verbose) {
     if (verbose) {
         printf("Self diagnostics %s\n", all_passed ? "PASSED" : "FAILED");
     }
+
+    printf("diagnostics %s\n", all_passed ? "PASSED" : "FAILED");
+
     return all_passed;
 }
 

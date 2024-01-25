@@ -14,15 +14,15 @@
 static list *built_in_funcs_list = NULL;
 static dict *built_in_funcs_dict = NULL;
 
-#define BUILT_IN_CALLABLE(description, name, ret_type, var_args, args_cnt, ...)  \
-    static failable_variant built_in_ ## name ## _body(list *arguments); \
+#define BUILT_IN_CALLABLE(description, name, ret_type, variadic, args_cnt, ...)  \
+    static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data); \
     static inline callable *built_in_ ## name ## _callable() { \
-        return new_callable(#name, description, built_in_ ## name ## _body, ret_type, list_of(NULL, args_cnt, ## __VA_ARGS__), var_args); \
+        return new_callable(#name, description, built_in_ ## name ## _body, ret_type, list_of(NULL, args_cnt, ## __VA_ARGS__), variadic, NULL); \
     } \
-    static failable_variant built_in_ ## name ## _body(list *args)
+    static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data)
 
-#define STR_ARG(num)    variant_as_str(list_get(args, num))
-#define INT_ARG(num)    variant_as_int(list_get(args, num))
+#define STR_ARG(num)    variant_as_str(list_get(positional_args, num))
+#define INT_ARG(num)    variant_as_int(list_get(positional_args, num))
 #define RET_STR(val)    ok_variant(new_str_variant(val))
 #define RET_INT(val)    ok_variant(new_int_variant(val))
 #define RET_VOID()      ok_variant(new_null_variant())
@@ -72,14 +72,14 @@ BUILT_IN_CALLABLE("char *getenv(char *name);", getenv, VT_STR, false, 1, VT_STR)
 str_builder *log_line_builder = NULL;
 
 BUILT_IN_CALLABLE("void log(anything, ...);", log, VT_VOID, true, 0) {
-    int args_count = list_length(args);
+    int args_count = list_length(positional_args);
 
     if (log_line_builder == NULL)
         log_line_builder = new_str_builder();
 
     str_builder_clear(log_line_builder);
     for (int i = 0; i < args_count; i++) {
-        str_builder_cat(log_line_builder, variant_to_string(list_get(args, i)));
+        str_builder_cat(log_line_builder, variant_to_string(list_get(positional_args, i)));
         if (i < args_count - 1)
             str_builder_catc(log_line_builder, ' ');
     }

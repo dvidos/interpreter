@@ -7,7 +7,6 @@
 
 #include "exec_context.h"
 #include "built_in_funcs.h"
-#include "symbol.h"
 #include "symbol_table.h"
 #include "statement_execution.h"
 

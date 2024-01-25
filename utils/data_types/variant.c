@@ -4,20 +4,22 @@
 #include <string.h>
 #include <stddef.h>
 #include "variant.h"
+#include "callable.h"
 
 
 struct variant {
     variant_type type;
     union {
-        bool b;
-        int i;
-        float f;
+        bool bool_;
+        int int_;
+        float float_;
         struct {
             char *ptr;
             int len;
         } s;
         list *list_;
         dict *dict_;
+        callable *callable_;
     } per_type;
     const char *str_repr;
 };
@@ -39,21 +41,21 @@ variant *new_null_variant() {
 variant *new_bool_variant(bool b) {
     variant *v = new_null_variant();
     v->type = VT_BOOL;
-    v->per_type.b = b;
+    v->per_type.bool_ = b;
     return v;
 }
 
 variant *new_int_variant(int i) {
     variant *v = new_null_variant();
     v->type = VT_INT;
-    v->per_type.i = i;
+    v->per_type.int_ = i;
     return v;
 }
 
 variant *new_float_variant(float f) {
     variant *v = new_null_variant();
     v->type = VT_FLOAT;
-    v->per_type.f = f;
+    v->per_type.float_ = f;
     return v;
 }
 
@@ -77,6 +79,13 @@ variant *new_dict_variant(dict *d) {
     variant *v = new_null_variant();
     v->type = VT_DICT;
     v->per_type.dict_ = d;
+    return v;
+}
+
+variant *new_callable_variant(callable *c) {
+    variant *v = new_null_variant();
+    v->type = VT_CALLABLE;
+    v->per_type.callable_ = c;
     return v;
 }
 
@@ -108,16 +117,20 @@ bool variant_is_dict(variant *v) {
     return v->type == VT_DICT;
 }
 
+bool variant_is_callable(variant *v) {
+    return v->type == VT_CALLABLE;
+}
+
 bool variant_as_bool(variant *v) {
     switch (v->type) {
         case VT_NULL:
             return false;
         case VT_BOOL:
-            return v->per_type.b;
+            return v->per_type.bool_;
         case VT_INT:
-            return v->per_type.i != 0;
+            return v->per_type.int_ != 0;
         case VT_FLOAT:
-            return v->per_type.f != 0.0;
+            return v->per_type.float_ != 0.0;
         case VT_STR:
             return (
                 strcmp(v->per_type.s.ptr, "true") == 0 || 
@@ -127,6 +140,8 @@ bool variant_as_bool(variant *v) {
             return v->per_type.list_ != NULL && list_length(v->per_type.list_) > 0;
         case VT_DICT:
             return v->per_type.dict_ != NULL && dict_count(v->per_type.dict_) > 0;
+        case VT_CALLABLE:
+            return false;
         default:
             return false;
     }
@@ -137,19 +152,21 @@ int variant_as_int(variant *v) {
         case VT_NULL:
             return 0;
         case VT_BOOL:
-            return v->per_type.b ? 1 : 0;
+            return v->per_type.bool_ ? 1 : 0;
         case VT_INT:
-            return v->per_type.i;
+            return v->per_type.int_;
         case VT_FLOAT:
-            return (int)v->per_type.f;
+            return (int)v->per_type.float_;
         case VT_STR:
             return atoi(v->per_type.s.ptr);
         case VT_LIST:
             return v->per_type.list_ == NULL ? 0 : list_length(v->per_type.list_);
         case VT_DICT:
             return v->per_type.list_ == NULL ? 0 : dict_count(v->per_type.dict_);
+        case VT_CALLABLE:
+            return 0;
         default:
-            return false;
+            return 0;
     }
 }
 
@@ -158,19 +175,21 @@ float variant_as_float(variant *v) {
         case VT_NULL:
             return 0.0;
         case VT_BOOL:
-            return v->per_type.b ? 1.0 : 0.0;
+            return v->per_type.bool_ ? 1.0 : 0.0;
         case VT_INT:
-            return (float)v->per_type.i;
+            return (float)v->per_type.int_;
         case VT_FLOAT:
-            return v->per_type.f;
+            return v->per_type.float_;
         case VT_STR:
             return atof(v->per_type.s.ptr);
         case VT_LIST:
             return v->per_type.list_ == NULL ? 0.0 : (float)list_length(v->per_type.list_);
         case VT_DICT:
             return v->per_type.list_ == NULL ? 0.0 : (float)dict_count(v->per_type.dict_);
+        case VT_CALLABLE:
+            return 0.0;
         default:
-            return false;
+            return 0.0;
     }
 }
 
@@ -179,19 +198,19 @@ const char *variant_as_str(variant *v) {
         case VT_NULL:
             return NULL;
         case VT_BOOL:
-            return v->per_type.b ? "true" : "false";
+            return v->per_type.bool_ ? "true" : "false";
         case VT_INT:
             if (v->str_repr == NULL) {
                 v->str_repr = malloc(64);
                 memset((char *)v->str_repr, 0, 64);
-                snprintf((char *)v->str_repr, 64, "%d", v->per_type.i);
+                snprintf((char *)v->str_repr, 64, "%d", v->per_type.int_);
             }
             return v->str_repr;
         case VT_FLOAT:
             if (v->str_repr == NULL) {
                 v->str_repr = malloc(64);
                 memset((char *)v->str_repr, 0, 64);
-                snprintf((char *)v->str_repr, 64, "%f", v->per_type.f);
+                snprintf((char *)v->str_repr, 64, "%f", v->per_type.float_);
             }
             return v->str_repr;
         case VT_STR:
@@ -208,6 +227,8 @@ const char *variant_as_str(variant *v) {
                     v->str_repr = dict_to_string(v->per_type.dict_, ": ", ", ");
             }
             return v->str_repr;
+        case VT_CALLABLE:
+            return callable_name(v->per_type.callable_);
         default:
             return NULL;
     }
@@ -229,6 +250,8 @@ list *variant_as_list(variant *v) {
             return v->per_type.list_;
         case VT_DICT:
             return dict_get_values(v->per_type.dict_);
+        case VT_CALLABLE:
+            return NULL;
         default:
             return NULL;
     }
@@ -250,6 +273,25 @@ dict *variant_as_dict(variant *v) {
             return new_dict(containing_variants, 10);
         case VT_DICT:
             return v->per_type.dict_;
+        case VT_CALLABLE:
+            return NULL;
+        default:
+            return NULL;
+    }
+}
+
+callable *variant_as_callable(variant *v) {
+    switch (v->type) {
+        case VT_NULL:
+        case VT_BOOL:
+        case VT_INT:
+        case VT_FLOAT:
+        case VT_STR:
+        case VT_LIST:
+        case VT_DICT:
+            return NULL;
+        case VT_CALLABLE:
+            return v->per_type.callable_;
         default:
             return NULL;
     }
@@ -275,11 +317,11 @@ bool variants_are_equal(variant *a, variant *b) {
         case VT_NULL:
             return true;
         case VT_BOOL:
-            return a->per_type.b == b->per_type.b;
+            return a->per_type.bool_ == b->per_type.bool_;
         case VT_INT:
-            return a->per_type.i == b->per_type.i;
+            return a->per_type.int_ == b->per_type.int_;
         case VT_FLOAT:
-            return a->per_type.f == b->per_type.f;
+            return a->per_type.float_ == b->per_type.float_;
         case VT_STR:
             if (a->per_type.s.len != b->per_type.s.len)
                 return false;
@@ -288,8 +330,8 @@ bool variants_are_equal(variant *a, variant *b) {
             return lists_are_equal(a->per_type.list_, b->per_type.list_);
         case VT_DICT:
             return dicts_are_equal(a->per_type.dict_, b->per_type.dict_);
-
-        // for other types, we should implement is_dict_equal() etc.
+        case VT_CALLABLE:
+            return callables_are_equal(a->per_type.callable_, b->per_type.callable_);
     }
 
     // we shouldn't get here...

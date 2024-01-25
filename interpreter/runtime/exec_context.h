@@ -2,14 +2,21 @@
 #define _EXEC_CONTEXT_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "../../utils/containers/_module.h"
+#include "symbol_table.h"
 
 
-typedef struct exec_context {
+struct exec_context {
     bool verbose;
-    dict *global_variables;
-    dict *callables;
-} exec_context;
+    symbol_table *symbols;
+    // stdin, stdout
+    // logger
+};
+
+typedef struct exec_context exec_context;
+
+exec_context *new_exec_context(bool verbose);
 
 
 
