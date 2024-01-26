@@ -337,7 +337,7 @@ static failable_expression parse_shorthand_if_pair(bool verbose) {
     if (parsing.failed) return failed_expression("%s", parsing.err_msg);
     expression *e2 = parsing.result;
 
-    return ok_expression(new_pair_expression(e1, e2));
+    return ok_expression(new_list_data_expression(list_of(containing_expressions, 2, e1, e2)));
 }
 
 static failable parse_expression_on_have_operand(run_state *state, completion_mode completion, bool verbose) {

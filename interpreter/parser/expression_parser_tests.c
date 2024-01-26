@@ -158,10 +158,10 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("a ? b : c", false,
         new_binary_op_expression(OP_SHORT_IF,
             new_identifier_expression("a"),
-            new_pair_expression(
+            new_list_data_expression(list_of(containing_expressions, 2,
                 new_identifier_expression("b"),
                 new_identifier_expression("c")
-            )
+            ))
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("a > b ? c : d", false,
@@ -170,10 +170,10 @@ bool expression_parser_self_diagnostics(bool verbose) {
                 new_identifier_expression("a"),
                 new_identifier_expression("b")
             ),
-            new_pair_expression(
+            new_list_data_expression(list_of(containing_expressions, 2,
                 new_identifier_expression("c"),
                 new_identifier_expression("d")
-            )
+            ))
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("a ? b",     true, NULL, verbose)) all_passed = false;

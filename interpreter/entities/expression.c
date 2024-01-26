@@ -17,10 +17,6 @@ struct expression {
             struct expression *op0;
             struct expression *op1;
         } operation;
-        struct pair {
-            struct expression *left;
-            struct expression *right;
-        } pair;
         struct func {
             list *arg_names;
             list *statements;
@@ -92,13 +88,6 @@ expression *new_dict_data_expression(dict *d) {
     return e;
 }
 
-expression *new_pair_expression(expression *left, expression *right) {
-    expression *e = new_expression(ET_EXPR_PAIR, OP_UNKNOWN);
-    e->per_type.pair.left = left;
-    e->per_type.pair.right = right;
-    return e;
-}
-
 expression *new_func_decl_expression(list *arg_names, list *statements) {
     expression *e = new_expression(ET_FUNC_DECL, OP_UNKNOWN);
     e->per_type.func.arg_names = arg_names;
@@ -122,7 +111,6 @@ int expression_get_operands_count(expression *e) {
         case ET_BOOLEAN_LITERAL: // fallthrough
         case ET_LIST_DATA:
         case ET_DICT_DATA:
-        case ET_EXPR_PAIR:
             return 0;
         case ET_UNARY_OP:        return 1;
         case ET_BINARY_OP:       return 2;
@@ -158,10 +146,6 @@ list *expression_get_func_arg_names(expression *e) {
     return e->type == ET_FUNC_DECL ? e->per_type.func.arg_names : NULL;
 }
 
-expression *expression_get_pair_item(expression *e, bool left) {
-    return left ? e->per_type.pair.left : e->per_type.pair.right;
-}
-
 bool expressions_are_equal(expression *a, expression *b) {
     if (a == NULL && b == NULL) return true;
     if ((a == NULL && b != NULL) || (a != NULL && b == NULL)) return false;
@@ -187,11 +171,6 @@ bool expressions_are_equal(expression *a, expression *b) {
             return false;
     } else if (a->type == ET_DICT_DATA) {
         if (!dicts_are_equal(a->per_type.dict_, b->per_type.dict_))
-            return false;
-    } else if (a->type == ET_EXPR_PAIR) {
-        if (!expressions_are_equal(a->per_type.pair.left, b->per_type.pair.left))
-            return false;
-        if (!expressions_are_equal(a->per_type.pair.right, b->per_type.pair.right))
             return false;
     }
 
@@ -227,12 +206,6 @@ const char *expression_to_string(expression *e) {
         str_builder_cat(sb, "DICT(");
         str_builder_cat(sb, dict_to_string(e->per_type.dict_, ": ", ", "));
         str_builder_cat(sb, ")");
-    } else if (e->type == ET_EXPR_PAIR) {
-        str_builder_cat(sb, "PAIR(");
-        str_builder_cat(sb, expression_to_string(e->per_type.pair.left));
-        str_builder_cat(sb, ", ");
-        str_builder_cat(sb, expression_to_string(e->per_type.pair.right));
-        str_builder_catc(sb, ')');
     } else if (e->type == ET_FUNC_DECL) {
         str_builder_cat(sb, "FUNC(");
         str_builder_cat(sb, list_to_string(e->per_type.func.arg_names, ", "));

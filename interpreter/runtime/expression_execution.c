@@ -123,16 +123,6 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
             }
             return ok_variant(new_dict_variant(values_dict));
 
-        case ET_EXPR_PAIR:
-            list *values_pair = new_list(containing_variants);
-            execution = execute_expression(expression_get_operand(e, 0), ctx);
-            if (execution.failed) return failed_variant("%s", execution.err_msg);
-            list_add(values_pair, execution.result);
-            execution = execute_expression(expression_get_operand(e, 1), ctx);
-            if (execution.failed) return failed_variant("%s", execution.err_msg);
-            list_add(values_pair, execution.result);
-            return ok_variant(new_list_variant(values_pair));
-
         case ET_UNARY_OP:
             operand1 = expression_get_operand(e, 0);
             variant1 = execute_expression(operand1, ctx);
@@ -164,7 +154,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
                 if (!dict_has(d, name)) return failed_variant("member '%s' not found in dictionary", name);
                 return ok_variant(dict_get(d, name));
 
-             } else if (op == OP_FUNC_CALL) {
+            } else if (op == OP_FUNC_CALL) {
                 return make_function_call(operand1, operand2, ctx);
 
             } else {
@@ -174,7 +164,8 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
             }
         
         case ET_FUNC_DECL:
-            // "executing" a `function () { ...}` expression merely creates a callable variant
+            // "executing" a `function () { ...}` expression 
+            // merely creates and returns a callable variant
             return ok_variant(new_callable_variant(new_callable(
                 "(user nameless expression function)",
                 "(description)",
@@ -487,7 +478,7 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
             if (!variant_is_bool(v1))
                 return failed_variant("? operator requires boolean condition");
             if (!variant_is_list(v2))
-                return failed_variant("? operator was expecting a pair (list) of arguments");
+                return failed_variant("? operator was expecting a list of 2 arguments");
             bool passed = variant_as_bool(v1);
             list *values_pair = variant_as_list(v2);
             if (list_length(values_pair) != 2)
