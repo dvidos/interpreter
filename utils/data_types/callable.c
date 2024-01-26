@@ -57,7 +57,7 @@ bool callables_are_equal(callable *a, callable *b) {
 }
 
 
-failable_variant callable_call(callable *c, list *positional_args, dict *named_args, void *call_data, dict *this_obj) {
+failable_variant callable_call(callable *c, list *positional_args, dict *named_args, void *call_data, variant *this_obj) {
     // assume we verify argument types.
     if (!c->variadic) {
         if (list_length(c->arg_types) != list_length(positional_args))

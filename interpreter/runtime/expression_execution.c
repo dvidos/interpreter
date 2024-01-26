@@ -18,7 +18,7 @@ enum comparison {
 };
 
 static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx);
-static failable_variant retrieve_value(expression *e, exec_context *ctx);
+static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **container_dict);
 static failable         store_value(expression *lvalue, exec_context *ctx, variant *rvalue);
 static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
 
@@ -26,7 +26,7 @@ static failable_variant calculate_unary_operation(operator op, variant *value, e
 static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx);
 static failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant *v2);
 
-static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx);
+static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj);
 
 
 
@@ -43,11 +43,12 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
     expression *rval_expr;
 
     if (et == ET_UNARY_OP) {
-        if (op == OP_PRE_INC || op == OP_PRE_DEC || op == OP_POST_INC || op == OP_POST_DEC) {
-            lval_expr = expression_get_operand(e, 0);
-            bool is_inc = (op == OP_PRE_INC || op == OP_POST_INC);
-            bool is_post = (op == OP_POST_INC || op == OP_POST_DEC);
-            return modify_and_store(lval_expr, is_inc ? MAS_ADD : MAS_SUB, one, is_post, ctx);
+        lval_expr = expression_get_operand(e, 0);
+        switch (op) {
+            case OP_PRE_INC:  return modify_and_store(lval_expr, MAS_ADD, one, false, ctx);
+            case OP_PRE_DEC:  return modify_and_store(lval_expr, MAS_SUB, one, false, ctx);
+            case OP_POST_INC: return modify_and_store(lval_expr, MAS_ADD, one, true, ctx);
+            case OP_POST_DEC: return modify_and_store(lval_expr, MAS_SUB, one, true, ctx);
         }
 
     } else if (et == ET_BINARY_OP) {
@@ -55,7 +56,7 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
         rval_expr = expression_get_operand(e, 1);
         switch (op) {
             case OP_ASSIGNMENT:
-                failable_variant retrieval = retrieve_value(rval_expr, ctx);
+                failable_variant retrieval = retrieve_value(rval_expr, ctx, NULL);
                 if (retrieval.failed) return failed_variant("%s", retrieval.err_msg);
                 failable storage = store_value(lval_expr, ctx, retrieval.result);
                 if (storage.failed) return failed_variant("Cannot store: %s", storage.err_msg);
@@ -75,10 +76,10 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
     }
 
     // all other expression types are not storing values
-    return retrieve_value(e, ctx);
+    return retrieve_value(e, ctx, NULL);
 }
 
-static failable_variant retrieve_value(expression *e, exec_context *ctx) {
+static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **container_dict) {
     failable_variant execution, variant1, variant2;
     operator op = expression_get_operator(e);
     const char *data = expression_get_terminal_data(e);
@@ -141,10 +142,12 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
 
             } else if (op == OP_MEMBER) {
                 if (!variant_is_dict(variant1.result)) return failed_variant("MEMBER_OF requires a dictionary as left operand");
-                dict *d = variant_as_dict(variant1.result);
                 if (expression_get_type(operand2) != ET_IDENTIFIER) return failed_variant("MEMBER_OF requires identifier as right operand");
+                dict *d = variant_as_dict(variant1.result);
                 const char *name = expression_get_terminal_data(operand2);
                 if (!dict_has(d, name)) return failed_variant("member '%s' not found in dictionary", name);
+                if (container_dict != NULL) // used as 'this' in calls
+                    *container_dict = variant1.result;
                 return ok_variant(dict_get(d, name));
 
             } else if (op == OP_FUNC_CALL) {
@@ -157,7 +160,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
             }
         
         case ET_FUNC_DECL:
-            // "executing" a `function () { ...}` expression 
+            // "retrieving" a `function () { ...}` expression 
             // merely creates and returns a callable variant
             return ok_variant(new_callable_variant(new_callable(
                 "(user nameless expression function)",
@@ -178,14 +181,14 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
     int result_int;
 
     // for now we allow variable creation via simple assignment
-    retrieval = retrieve_value(lvalue, ctx);
+    retrieval = retrieve_value(lvalue, ctx, NULL);
     if (retrieval.failed) return failed_variant("Failed retrieving lvalue: %s", retrieval.err_msg);
     original = retrieval.result;
     if (!variant_is_int(original))
         return failed_variant("Modify-and-store applies only to integers");
     original_int = variant_as_int(original);
 
-    retrieval = retrieve_value(rvalue, ctx);
+    retrieval = retrieve_value(rvalue, ctx, NULL);
     if (retrieval.failed) return failed_variant("Failed retrieving rvalue: %s", retrieval.err_msg);
     variant *operand = retrieval.result;
     if (!variant_is_int(operand))
@@ -325,18 +328,19 @@ static failable_variant calculate_comparison(enum comparison cmp, variant *v1, v
 
 static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx) {
 
-    failable_variant callable_retrieval = retrieve_value(callable_expr, ctx);
+    variant *container_dict = NULL;
+    failable_variant callable_retrieval = retrieve_value(callable_expr, ctx, &container_dict);
     if (callable_retrieval.failed) return failed_variant("%s", callable_retrieval.err_msg);
     variant *v = callable_retrieval.result;
     if (v == NULL)               return failed_variant("could not resolve call target");
     if (!variant_is_callable(v)) return failed_variant("call target is not a callable");
     callable *c = variant_as_callable(v);
 
-    failable_variant args_retrieval = retrieve_value(args_expr, ctx);
+    failable_variant args_retrieval = retrieve_value(args_expr, ctx, NULL);
     if (args_retrieval.failed) return failed_variant("error retrieving arguments: %s", args_retrieval.err_msg);
     list *arg_values = variant_as_list(args_retrieval.result);
 
-    return callable_call(c, arg_values, NULL, ctx, NULL);
+    return callable_call(c, arg_values, NULL, ctx, container_dict);
 }
 
 static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx) {
@@ -475,7 +479,7 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
     return failed_variant("Unknown binary operator %s", operator_str(op));
 }
 
-static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx) {
+static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj) {
 
     list *arg_names = expression_get_func_arg_names(expr);
     if (list_length(positional_args) != list_length(arg_names))
@@ -490,6 +494,8 @@ static failable_variant expression_function_callable_executor(list *positional_a
         for_dict(named_args, keys, str, key)
             register_symbol(local_symbols, key, dict_get(named_args, key));
     }
+    // if "this" is NULL, it means there is no object scope.
+    register_symbol(local_symbols, "this", this_obj);
     ctx->symbols = local_symbols;
         
     failable_variant result = execute_statements(expression_get_func_statements(expr), ctx);

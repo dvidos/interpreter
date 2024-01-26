@@ -15,11 +15,11 @@ static list *built_in_funcs_list = NULL;
 static dict *built_in_funcs_dict = NULL;
 
 #define BUILT_IN_CALLABLE(description, name, ret_type, variadic, args_cnt, ...)  \
-    static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data, dict *this_obj); \
+    static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj); \
     static inline callable *built_in_ ## name ## _callable() { \
         return new_callable(#name, description, built_in_ ## name ## _body, ret_type, list_of(NULL, args_cnt, ## __VA_ARGS__), variadic, NULL); \
     } \
-    static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data, dict *this_obj)
+    static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj)
 
 #define STR_ARG(num)    variant_as_str(list_get(positional_args, num))
 #define INT_ARG(num)    variant_as_int(list_get(positional_args, num))
