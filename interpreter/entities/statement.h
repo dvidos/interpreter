@@ -33,6 +33,8 @@ statement_type statement_get_type(statement *s);
 expression *statement_get_expression(statement *s, int mnemonic);
 bool statement_has_alternate_body(statement *s);
 list *statement_get_statements_body(statement *s, bool alternative);
+const char *statement_get_function_name(statement *s);
+list *statement_get_function_arg_names(statement *s);
 
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(statement);

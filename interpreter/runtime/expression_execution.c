@@ -26,7 +26,7 @@ static failable_variant calculate_unary_operation(operator op, variant *value, e
 static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx);
 static failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant *v2);
 
-failable_variant function_expression_callable_handler(list *positional_args, dict *named_args, expression *expr, exec_context *ctx);
+failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx);
 
 
 
@@ -177,9 +177,9 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx) {
         
         case ET_FUNC_DECL:
             return ok_variant(new_callable_variant(new_callable(
-                "(function expression)",
+                "(user nameless expression function)",
                 "(description)",
-                (callable_handler *)function_expression_callable_handler,
+                (callable_handler *)expression_function_callable_executor,
                 VT_NULL,
                 NULL,
                 true,
@@ -520,7 +520,7 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
 }
 
 
-failable_variant function_expression_callable_handler(list *positional_args, dict *named_args, expression *expr, exec_context *ctx) {
+failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx) {
 
     list *arg_names = expression_get_func_arg_names(expr);
     if (list_length(positional_args) != list_length(arg_names))

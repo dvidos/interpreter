@@ -130,8 +130,18 @@ list *statement_get_statements_body(statement *s, bool alternative) {
             return s->per_type.while_.body_statements;
         case ST_FOR_LOOP:
             return s->per_type.for_.body_statements;
+        case ST_FUNCTION:
+            return s->per_type.function.statements;
     }
     return NULL;
+}
+
+const char *statement_get_function_name(statement *s) {
+    return s->type == ST_FUNCTION ? s->per_type.function.name : NULL;
+}
+
+list *statement_get_function_arg_names(statement *s) {
+    return s->type == ST_FUNCTION ? s->per_type.function.arg_names : NULL;
 }
 
 const char *statement_to_string(statement *s) {

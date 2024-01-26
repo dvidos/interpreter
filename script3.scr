@@ -1,6 +1,6 @@
-// function multiply(a, b) {    // <-- statement
-//     return a * b;
-// }
+function multiply(a, b) {    // <-- statement
+    return a * b;
+}
 
 obj = {
     name: "object",
@@ -10,7 +10,8 @@ obj = {
     }
 };
 
-// c = multiply(2, 3);
+c = multiply(2, 3);
 d = obj.sum(4, 5);
-log("4 + 5 = ", d)
+log("2 * 3 = ", c);
+log("4 + 5 = ", d);
 

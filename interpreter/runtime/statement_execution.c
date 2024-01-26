@@ -11,6 +11,8 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
 static failable_variant execute_statements_once(list *statements, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return);
 static failable_variant execute_statements_in_loop(expression *condition, list *statements, expression *next, exec_context *ctx, bool *should_return);
 
+failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, statement *stmt, exec_context *ctx);
+
 
 // public entry point
 failable_variant execute_statements(list *statements, exec_context *ctx) {
@@ -100,7 +102,14 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
         return_value = execution.result;
 
     } else if (s_type == ST_FUNCTION) {
-        // here we should register the function to a callable registry
+        // this is a statement function, hence a named function. Register to symbols
+        const char *name = statement_get_function_name(stmt);
+        register_symbol(ctx->symbols, name, new_callable_variant(new_callable(
+            name, "(user statement func)", 
+            (callable_handler *)statement_function_callable_executor,
+            VT_NULL, NULL, true, 
+            stmt
+        )));
     } else {
         return failed_variant("was expecting if, while, for, expression, return, but got %s", statement_to_string(stmt));
     }
@@ -157,4 +166,29 @@ static failable_variant execute_statements_in_loop(expression *pre_condition, li
 
     return ok_variant(return_value);
 }
+
+
+failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, statement *stmt, exec_context *ctx) {
+
+    list *arg_names = statement_get_function_arg_names(stmt);
+    if (list_length(positional_args) != list_length(arg_names))
+        return failed_variant("expected %d arguments, got %d", list_length(arg_names), list_length(positional_args));
+
+    symbol_table *local_symbols = new_symbol_table(ctx->symbols);
+    if (positional_args != NULL) {
+        for (int i = 0; i < list_length(positional_args); i++)
+            register_symbol(local_symbols, list_get(arg_names, i), list_get(positional_args, i));
+    }
+    if (named_args != NULL) {
+        for_dict(named_args, keys, str, key)
+            register_symbol(local_symbols, key, dict_get(named_args, key));
+    }
+    ctx->symbols = local_symbols;
+        
+    failable_variant result = execute_statements(statement_get_statements_body(stmt, false), ctx);
+
+    ctx->symbols = local_symbols->parent;
+    return result;
+}
+
 
