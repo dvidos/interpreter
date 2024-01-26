@@ -44,6 +44,8 @@ const char *expression_get_terminal_data(expression *e);
 expression *expression_get_operand(expression *e, int index);
 list *expression_get_list_data(expression *e);
 dict *expression_get_dict_data(expression *e);
+list *expression_get_func_statements(expression *e);
+list *expression_get_func_arg_names(expression *e);
 
 const char *expression_to_string(expression *e);
 bool expressions_are_equal(expression *a, expression *b);

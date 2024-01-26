@@ -150,6 +150,14 @@ dict *expression_get_dict_data(expression *e) {
     return e->type == ET_DICT_DATA ? e->per_type.dict_ : NULL;
 }
 
+list *expression_get_func_statements(expression *e) {
+    return e->type == ET_FUNC_DECL ? e->per_type.func.statements : NULL;
+}
+
+list *expression_get_func_arg_names(expression *e) {
+    return e->type == ET_FUNC_DECL ? e->per_type.func.arg_names : NULL;
+}
+
 expression *expression_get_pair_item(expression *e, bool left) {
     return left ? e->per_type.pair.left : e->per_type.pair.right;
 }
@@ -228,7 +236,7 @@ const char *expression_to_string(expression *e) {
     } else if (e->type == ET_FUNC_DECL) {
         str_builder_cat(sb, "FUNCTION(");
         str_builder_cat(sb, list_to_string(e->per_type.func.arg_names, ", "));
-        str_builder_catc(sb, ')');
+        str_builder_catf(sb, ") { %d statements }", list_length(e->per_type.func.statements));
     }
 
     return str_builder_charptr(sb);

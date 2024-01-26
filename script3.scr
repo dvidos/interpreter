@@ -12,5 +12,5 @@ obj = {
 
 // c = multiply(2, 3);
 d = obj.sum(4, 5);
-log(c);
+log("4 + 5 = ", d)
 
