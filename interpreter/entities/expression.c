@@ -234,9 +234,9 @@ const char *expression_to_string(expression *e) {
         str_builder_cat(sb, expression_to_string(e->per_type.pair.right));
         str_builder_catc(sb, ')');
     } else if (e->type == ET_FUNC_DECL) {
-        str_builder_cat(sb, "FUNCTION(");
+        str_builder_cat(sb, "FUNC(");
         str_builder_cat(sb, list_to_string(e->per_type.func.arg_names, ", "));
-        str_builder_catf(sb, ") { %d statements }", list_length(e->per_type.func.statements));
+        str_builder_catf(sb, "){ (%d statements) }", list_length(e->per_type.func.statements));
     }
 
     return str_builder_charptr(sb);

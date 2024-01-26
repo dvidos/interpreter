@@ -1,3 +1,5 @@
+
+
 function multiply(a, b) {    // <-- statement
     return a * b;
 }
@@ -10,8 +12,13 @@ obj = {
     }
 };
 
-c = multiply(2, 3);
-d = obj.sum(4, 5);
-log("2 * 3 = ", c);
-log("4 + 5 = ", d);
+log('Calling built in function:');
+log("length of 'abc' is", strlen('abc'));
+
+log('Calling named (statement) function');
+log("2 * 3 = ", multiply(2, 3));
+
+log('Calling expression (anonymous) function');
+log("4 + 5 = ", obj.sum(4, 5));
+
 

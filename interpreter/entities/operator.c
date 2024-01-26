@@ -15,7 +15,7 @@ static struct op_info operators_flat_list[] = {
     { OP_POST_INC,            1, T_DOUBLE_PLUS,       POSTFIX, L2R, "POST_INC" },  // a++
     { OP_POST_DEC,            1, T_DOUBLE_MINUS,      POSTFIX, L2R, "POST_DEC" },  // a--
     { OP_FUNC_CALL,           1, T_LPAREN,            INFIX,   L2R, "CALL" },  // a()
-    { OP_ARRAY_SUBSCRIPT,     1, T_LSQBRACKET,        INFIX,   L2R, "ARRAY_SUBSCRIPT" },  // a[b]
+    { OP_ARRAY_SUBSCRIPT,     1, T_LSQBRACKET,        INFIX,   L2R, "ARRAY_SUBSCR" },  // a[b]
   //{ OP_STRUCT_MEMBER_PTR,   1, T_ARROW,             INFIX,   L2R, "STRUCT_MEMBER_PTR" },  // a->b
     { OP_MEMBER,              1, T_DOT,               INFIX,   L2R, "MEMBER" },  // a.b
     { OP_PRE_INC,             2, T_DOUBLE_PLUS,       PREFIX,  R2L, "PRE_INC" },  // ++a
@@ -45,7 +45,7 @@ static struct op_info operators_flat_list[] = {
     { OP_LOGICAL_AND,        11, T_DOUBLE_AMPERSAND,  INFIX,   L2R, "LOGICAL_AND" },  // &&
     { OP_LOGICAL_OR,         12, T_DOUBLE_PIPE,       INFIX,   L2R, "LOGICAL_OR" },  // ||
     { OP_SHORT_IF,           13, T_QUESTION_MARK,     INFIX,   R2L, "SHORT_IF" },  // a ? b : c
-    { OP_ASSIGNMENT,         14, T_EQUAL,             INFIX,   R2L, "ASSIGNMENT" },  // =
+    { OP_ASSIGNMENT,         14, T_EQUAL,             INFIX,   R2L, "ASSIGN" },  // =
     { OP_ADD_ASSIGN,         14, T_PLUS_EQUAL,        INFIX,   R2L, "ADD_ASSIGN" },  // +=
     { OP_SUB_ASSIGN,         14, T_MINUS_EQUAL,       INFIX,   R2L, "SUB_ASSIGN" },  // -=
     { OP_MUL_ASSIGN,         14, T_STAR_EQUAL,        INFIX,   R2L, "MUL_ASSIGN" },  // *=

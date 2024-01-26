@@ -49,6 +49,8 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
         register_symbol(ctx->symbols, bi_name, new_callable_variant(dict_get(built_ins, bi_name)));
     exec_context_log_reset();
 
+    if (verbose)
+        printf("------------- executing -------------\n");
     failable_variant execution = execute_statements(parsing.result, ctx);
     if (execution.failed)
         return failed_variant("Execution failed: %s", execution.err_msg);
