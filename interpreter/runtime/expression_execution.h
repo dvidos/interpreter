@@ -7,6 +7,8 @@
 #include "exec_context.h"
 
 
+void initialize_expression_execution();
+
 failable_variant execute_expression(expression *e, exec_context *ctx);
 
 

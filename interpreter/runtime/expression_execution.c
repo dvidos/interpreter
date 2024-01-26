@@ -20,7 +20,7 @@ enum comparison {
 static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx);
 static failable_variant retrieve_value(expression *e, exec_context *ctx);
 static failable         store_value(expression *lvalue, exec_context *ctx, variant *rvalue);
-static failable_variant make_function_call(expression *func_expr, expression *args_expr, exec_context *ctx);
+static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
 
 static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx);
 static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx);
@@ -30,7 +30,10 @@ static failable_variant expression_function_callable_executor(list *positional_a
 
 
 
-
+void initialize_expression_execution() {
+    // used for inc/dec operations
+    one = new_numeric_literal_expression("1");
+}
 
 failable_variant execute_expression(expression *e, exec_context *ctx) {
     // first concern is whether the expression stores data, or is read only
@@ -44,12 +47,7 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
             lval_expr = expression_get_operand(e, 0);
             bool is_inc = (op == OP_PRE_INC || op == OP_POST_INC);
             bool is_post = (op == OP_POST_INC || op == OP_POST_DEC);
-            if (one == NULL)
-                one = new_numeric_literal_expression("1");
             return modify_and_store(lval_expr, is_inc ? MAS_ADD : MAS_SUB, one, is_post, ctx);
-        } else {
-            // all other unary operators are not storing values
-            return retrieve_value(e, ctx);
         }
 
     } else if (et == ET_BINARY_OP) {
@@ -73,16 +71,11 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
             case OP_AND_ASSIGN: return modify_and_store(lval_expr, MAS_AND, rval_expr, false, ctx);
             case OP_OR_ASSIGN:  return modify_and_store(lval_expr, MAS_OR,  rval_expr, false, ctx);
             case OP_XOR_ASSIGN: return modify_and_store(lval_expr, MAS_XOR, rval_expr, false, ctx);
-
-            default:
-                // all other binary operators just retrieve values
-                return retrieve_value(e, ctx);
         }
-
-    } else {
-        // all other expression types are not storing values
-        return retrieve_value(e, ctx);
     }
+
+    // all other expression types are not storing values
+    return retrieve_value(e, ctx);
 }
 
 static failable_variant retrieve_value(expression *e, exec_context *ctx) {
@@ -330,18 +323,20 @@ static failable_variant calculate_comparison(enum comparison cmp, variant *v1, v
     return failed_variant("cannot compare with given operands (%s and %s)", variant_to_string(v1), variant_to_string(v2));
 }
 
-static failable_variant make_function_call(expression *func_expr, expression *args_expr, exec_context *ctx) {
+static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx) {
 
-    failable_variant target = retrieve_value(func_expr, ctx);
-    if (target.failed) return failed_variant("%s", target.err_msg);
-    if (target.result == NULL)               return failed_variant("could not resolve call target");
-    if (!variant_is_callable(target.result)) return failed_variant("call target is not a callable");
-    callable *c = variant_as_callable(target.result);
+    failable_variant callable_retrieval = retrieve_value(callable_expr, ctx);
+    if (callable_retrieval.failed) return failed_variant("%s", callable_retrieval.err_msg);
+    variant *v = callable_retrieval.result;
+    if (v == NULL)               return failed_variant("could not resolve call target");
+    if (!variant_is_callable(v)) return failed_variant("call target is not a callable");
+    callable *c = variant_as_callable(v);
 
-    failable_variant args_list = retrieve_value(args_expr, ctx);
-    if (args_list.failed) return failed_variant("error retrieving arguments: %s", args_list.err_msg);
+    failable_variant args_retrieval = retrieve_value(args_expr, ctx);
+    if (args_retrieval.failed) return failed_variant("error retrieving arguments: %s", args_retrieval.err_msg);
+    list *arg_values = variant_as_list(args_retrieval.result);
 
-    return callable_call(c, variant_as_list(args_list.result), NULL, ctx);
+    return callable_call(c, arg_values, NULL, ctx, NULL);
 }
 
 static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx) {
@@ -374,15 +369,6 @@ static failable_variant calculate_unary_operation(operator op, variant *value, e
 
 static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx) {
     switch (op) {
-        case OP_FUNC_CALL:
-            // v1 should be a callable, v2 is a list of arguments.
-            if (!variant_is_callable(v1)) return failed_variant("function call target is not a callable");
-            if (!variant_is_list(v2)) return failed_variant("function call args is not a list");
-            callable *c = variant_as_callable(v1);
-            list *args = variant_as_list(v2);
-            failable_variant execution = callable_call(c, args, NULL, ctx);
-            return execution;
-
         case OP_MULTIPLY:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) * variant_as_int(v2)));

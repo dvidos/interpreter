@@ -22,6 +22,7 @@ void initialize_interpreter() {
     initialize_expression_parser();
     initialize_statement_parser();
     initialize_built_in_funcs_table();
+    initialize_expression_execution();
 }
 
 

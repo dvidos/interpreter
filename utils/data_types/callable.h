@@ -15,14 +15,15 @@ typedef failable_variant callable_handler(
     list *positional_args,
     dict *named_args,
     void *callable_data, // used for user defined functions
-    void *call_data   // used for execution context
+    void *call_data,   // used for execution context
+    dict *this_obj
 );
 
 callable *new_callable(const char *name, const char *description, callable_handler *func, variant_type ret_type, list *arg_types, bool variadic, void *callable_data);
 
 const char *callable_name(callable *c);
 const char *callable_description(callable *c);
-failable_variant callable_call(callable *c, list *positional_args, dict *named_args, void *call_data);
+failable_variant callable_call(callable *c, list *positional_args, dict *named_args, void *call_data, dict *this_obj);
 bool callables_are_equal(callable *a, callable *b);
 
 extern contained_item *containing_callables;
