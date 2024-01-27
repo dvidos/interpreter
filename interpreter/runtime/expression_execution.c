@@ -57,9 +57,9 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
         switch (op) {
             case OP_ASSIGNMENT:
                 failable_variant retrieval = retrieve_value(rval_expr, ctx, NULL);
-                if (retrieval.failed) return failed_variant("%s", retrieval.err_msg);
+                if (retrieval.failed) return failed_variant(&retrieval, NULL);
                 failable storage = store_value(lval_expr, ctx, retrieval.result);
-                if (storage.failed) return failed_variant("Cannot store: %s", storage.err_msg);
+                if (storage.failed) return failed_variant(&storage, "Cannot store");
                 return retrieval;
             
             case OP_ADD_ASSIGN: return modify_and_store(lval_expr, MAS_ADD, rval_expr, false, ctx);
@@ -89,7 +89,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
         case ET_IDENTIFIER:
             variant *v = resolve_symbol(ctx->symbols, data);
             if (v == NULL || variant_is_null(v))
-                return failed_variant("identifier not found \"%s\"", data);
+                return failed_variant(NULL, "identifier not found \"%s\"", data);
             return ok_variant(v);
         case ET_NUMERIC_LITERAL:
             return ok_variant(new_int_variant(atoi(data)));
@@ -102,7 +102,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             list *values_list = new_list(containing_variants);
             for_list(expressions_list, list_iter, expression, list_exp) {
                 execution = execute_expression(list_exp, ctx);
-                if (execution.failed) return failed_variant("%s", execution.err_msg);
+                if (execution.failed) return failed_variant(&execution, NULL);
                 list_add(values_list, execution.result);
             }
             return ok_variant(new_list_variant(values_list));
@@ -112,7 +112,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             iterator *keys_it = dict_keys_iterator(expressions_dict);
             for_iterator(keys_it, str, key) {
                 execution = execute_expression(dict_get(expressions_dict, key), ctx);
-                if (execution.failed) return failed_variant("%s", execution.err_msg);
+                if (execution.failed) return failed_variant(&execution, NULL);
                 dict_set(values_dict, key, execution.result);
             }
             return ok_variant(new_dict_variant(values_dict));
@@ -120,7 +120,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
         case ET_UNARY_OP:
             operand1 = expression_get_operand(e, 0);
             variant1 = execute_expression(operand1, ctx);
-            if (variant1.failed) return failed_variant("%s", variant1);
+            if (variant1.failed) return failed_variant(&variant1, "Single operand execution failed");
             return calculate_unary_operation(op, variant1.result, ctx);
 
         case ET_BINARY_OP:
@@ -128,24 +128,24 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             operand1 = expression_get_operand(e, 0);
             operand2 = expression_get_operand(e, 1);
             variant1 = execute_expression(operand1, ctx);
-            if (variant1.failed) return failed_variant("Operand 1 failed: %s", variant1.err_msg);
+            if (variant1.failed) return failed_variant(&variant1, "Operand 1 failed");
 
             if (op == OP_ARRAY_SUBSCRIPT) {
-                if (!variant_is_list(variant1.result)) return failed_variant("ARRAY_SUBSCRIPT requires a list as left operand");
+                if (!variant_is_list(variant1.result)) return failed_variant(NULL, "ARRAY_SUBSCRIPT requires a list as left operand");
                 list *l = variant_as_list(variant1.result);
                 variant2 = execute_expression(operand2, ctx);
-                if (variant2.failed) return failed_variant("Operand 2 failed: %s", variant2.err_msg);
-                if (!variant_is_int(variant2.result)) return failed_variant("ARRAY_SUBSCRIPT requires a number value as right operand");
+                if (variant2.failed) return failed_variant(&variant2, "Operand 2 failed");
+                if (!variant_is_int(variant2.result)) return failed_variant(NULL, "ARRAY_SUBSCRIPT requires a number value as right operand");
                 int index = variant_as_int(variant2.result);
-                if (index >= list_length(l)) return failed_variant("array index (%d) more than max index (%d)", index, list_length(l) - 1);
+                if (index >= list_length(l)) return failed_variant(NULL, "array index (%d) more than max index (%d)", index, list_length(l) - 1);
                 return ok_variant(list_get(l, index));
 
             } else if (op == OP_MEMBER) {
-                if (!variant_is_dict(variant1.result)) return failed_variant("MEMBER_OF requires a dictionary as left operand");
-                if (expression_get_type(operand2) != ET_IDENTIFIER) return failed_variant("MEMBER_OF requires identifier as right operand");
+                if (!variant_is_dict(variant1.result)) return failed_variant(NULL, "MEMBER_OF requires a dictionary as left operand");
+                if (expression_get_type(operand2) != ET_IDENTIFIER) return failed_variant(NULL, "MEMBER_OF requires identifier as right operand");
                 dict *d = variant_as_dict(variant1.result);
                 const char *name = expression_get_terminal_data(operand2);
-                if (!dict_has(d, name)) return failed_variant("member '%s' not found in dictionary", name);
+                if (!dict_has(d, name)) return failed_variant(NULL, "member '%s' not found in dictionary", name);
                 if (container_dict != NULL) // used as 'this' in calls
                     *container_dict = variant1.result;
                 return ok_variant(dict_get(d, name));
@@ -155,7 +155,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
 
             } else {
                 variant2 = execute_expression(operand2, ctx);
-                if (variant2.failed) return failed_variant("Operand 2 failed: %s", variant2.err_msg);
+                if (variant2.failed) return failed_variant(&variant2, "Operand 2 failed");
                 return calculate_binary_operation(op, variant1.result, variant2.result, ctx);
             }
         
@@ -170,7 +170,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             )));
     }
 
-    return failed_variant("Cannot retrieve value, unknown expr type / operator");
+    return failed_variant(NULL, "Cannot retrieve value, unknown expr type / operator");
 }
 
 static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx) {
@@ -182,17 +182,17 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
 
     // for now we allow variable creation via simple assignment
     retrieval = retrieve_value(lvalue, ctx, NULL);
-    if (retrieval.failed) return failed_variant("Failed retrieving lvalue: %s", retrieval.err_msg);
+    if (retrieval.failed) return failed_variant(&retrieval, "Failed retrieving lvalue");
     original = retrieval.result;
     if (!variant_is_int(original))
-        return failed_variant("Modify-and-store applies only to integers");
+        return failed_variant(NULL, "Modify-and-store applies only to integers");
     original_int = variant_as_int(original);
 
     retrieval = retrieve_value(rvalue, ctx, NULL);
-    if (retrieval.failed) return failed_variant("Failed retrieving rvalue: %s", retrieval.err_msg);
+    if (retrieval.failed) return failed_variant(&retrieval, "Failed retrieving rvalue");
     variant *operand = retrieval.result;
     if (!variant_is_int(operand))
-        return failed_variant("Modify-and-store requires integers as operands");
+        return failed_variant(NULL, "Modify-and-store requires integers as operands");
     operand_int = variant_as_int(operand);
 
     switch (op) {
@@ -201,7 +201,7 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
         case MAS_MUL: result_int = original_int * operand_int; break;
         case MAS_DIV: 
             if (operand_int == 0)
-                return failed_variant("division by zero not possible with integers");
+                return failed_variant(NULL, "division by zero not possible with integers");
             result_int = original_int / operand_int;
             break;
         case MAS_MOD: result_int = original_int  % operand_int; break;
@@ -215,7 +215,7 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
     variant *result = new_int_variant(result_int);
     failable storing = store_value(lvalue, ctx, result);
     if (storing.failed)
-        return failed_variant("Error storing: %s", storing.err_msg);
+        return failed_variant(&storing, "Error storing");
     return ok_variant(return_original ? original : result);
 }
 
@@ -236,13 +236,13 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             // e.g. "ARRAY_SUBSCRIPT(<list_like_executionable>, <int_like_executionable>)"
             expression *op1 = expression_get_operand(lvalue, 0);
             failable_variant op1_exec = execute_expression(op1, ctx);
-            if (op1_exec.failed) return failed("%s", op1_exec.err_msg);
-            if (!variant_is_list(op1_exec.result)) return failed("Array subscripts apply only to arrays");
+            if (op1_exec.failed) return failed(NULL, "%s", op1_exec.err_msg);
+            if (!variant_is_list(op1_exec.result)) return failed(NULL, "Array subscripts apply only to arrays");
 
             expression *op2 = expression_get_operand(lvalue, 1);
             failable_variant op2_exec = execute_expression(op2, ctx);
-            if (op2_exec.failed) return failed("%s", op2_exec.err_msg);
-            if (!variant_is_int(op2_exec.result)) return failed("only integer results can be used as array indices");
+            if (op2_exec.failed) return failed(NULL, "%s", op2_exec.err_msg);
+            if (!variant_is_int(op2_exec.result)) return failed(NULL, "only integer results can be used as array indices");
 
             list *l = variant_as_list(op1_exec.result);
             int i = variant_as_int(op2_exec.result);
@@ -252,12 +252,12 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
         } else if (op == OP_MEMBER) {
             expression *op1 = expression_get_operand(lvalue, 0);
             failable_variant op1_exec = execute_expression(op1, ctx);
-            if (op1_exec.failed) return failed("%s", op1_exec.err_msg);
-            if (!variant_is_dict(op1_exec.result)) return failed("Struct members work only with identifiers");
+            if (op1_exec.failed) return failed(NULL, "%s", op1_exec.err_msg);
+            if (!variant_is_dict(op1_exec.result)) return failed(NULL, "Struct members work only with identifiers");
 
             expression *op2 = expression_get_operand(lvalue, 1);
             if (expression_get_type(op2) != ET_IDENTIFIER)
-                return failed("only identifiers can be used as structure members");
+                return failed(NULL, "only identifiers can be used as structure members");
 
             dict *d = variant_as_dict(op1_exec.result);
             const char *key = expression_get_terminal_data(op2);
@@ -265,11 +265,11 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             return ok();
 
         } else {
-            return failed("operator cannot be used as lvalue: %s", operator_str(op));
+            return failed(NULL, "operator cannot be used as lvalue: %s", operator_str(op));
         }
         
     } else {
-        return failed("expression cannot be used as lvalue: %s", expression_to_string(lvalue));
+        return failed(NULL, "expression cannot be used as lvalue: %s", expression_to_string(lvalue));
     }
 }
 
@@ -323,21 +323,21 @@ static failable_variant calculate_comparison(enum comparison cmp, variant *v1, v
         }
     }
 
-    return failed_variant("cannot compare with given operands (%s and %s)", variant_to_string(v1), variant_to_string(v2));
+    return failed_variant(NULL, "cannot compare with given operands (%s and %s)", variant_to_string(v1), variant_to_string(v2));
 }
 
 static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx) {
 
     variant *container_dict = NULL;
     failable_variant callable_retrieval = retrieve_value(callable_expr, ctx, &container_dict);
-    if (callable_retrieval.failed) return failed_variant("%s", callable_retrieval.err_msg);
+    if (callable_retrieval.failed) return failed_variant(&callable_retrieval, NULL);
     variant *v = callable_retrieval.result;
-    if (v == NULL)               return failed_variant("could not resolve call target");
-    if (!variant_is_callable(v)) return failed_variant("call target is not a callable");
+    if (v == NULL)               return failed_variant(NULL, "could not resolve call target");
+    if (!variant_is_callable(v)) return failed_variant(NULL, "call target is not a callable");
     callable *c = variant_as_callable(v);
 
     failable_variant args_retrieval = retrieve_value(args_expr, ctx, NULL);
-    if (args_retrieval.failed) return failed_variant("error retrieving arguments: %s", args_retrieval.err_msg);
+    if (args_retrieval.failed) return failed_variant(&args_retrieval, "error retrieving arguments");
     list *arg_values = variant_as_list(args_retrieval.result);
 
     return callable_call(c, arg_values, NULL, ctx, container_dict);
@@ -348,27 +348,27 @@ static failable_variant calculate_unary_operation(operator op, variant *value, e
         case OP_POSITIVE_NUM:
             if (variant_is_int(value) || variant_is_float(value))
                 return ok_variant(value);
-            return failed_variant("positive num only works for int / float values");
+            return failed_variant(NULL, "positive num only works for int / float values");
 
         case OP_NEGATIVE_NUM:
             if (variant_is_int(value))
                 return ok_variant(new_int_variant(variant_as_int(value) * -1));
             if (variant_is_float(value))
                 return ok_variant(new_float_variant(variant_as_float(value) * -1));
-            return failed_variant("negative num only works for int / float values");
+            return failed_variant(NULL, "negative num only works for int / float values");
 
         case OP_LOGICAL_NOT:
             // let's avoid implicit conversion to bool for now.
             if (variant_is_bool(value))
                 return ok_variant(new_bool_variant(!variant_as_bool(value)));
-            return failed_variant("logical not only works for bool values");
+            return failed_variant(NULL, "logical not only works for bool values");
 
         case OP_BITWISE_NOT:
             if (variant_is_int(value))
                 return ok_variant(new_int_variant(~variant_as_int(value)));
-            return failed_variant("bitwise not only works for int values");
+            return failed_variant(NULL, "bitwise not only works for int values");
     }
-    return failed_variant("Unknown unary operator %s", operator_str(op));
+    return failed_variant(NULL, "Unknown unary operator %s", operator_str(op));
 }
 
 static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx) {
@@ -384,24 +384,24 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
                     str_builder_cat(tmp, variant_as_str(v1));
                 return ok_variant(new_str_variant(str_builder_charptr(tmp)));
             }
-            return failed_variant("multiplication is only supported in int/float types");
+            return failed_variant(NULL, "multiplication is only supported in int/float types");
 
         case OP_DIVIDE:
             if (variant_is_int(v1)) {
                 int denominator = variant_as_int(v2);
-                if (denominator == 0) return failed_variant("division by zero not possible in integers");
+                if (denominator == 0) return failed_variant(NULL, "division by zero not possible in integers");
                 return ok_variant(new_int_variant(variant_as_int(v1) / denominator));
             }
             if (variant_is_float(v1)) {
                 // in floats, the result is "infinity"
                 return ok_variant(new_float_variant(variant_as_float(v1) / variant_as_float(v2)));
             }
-            return failed_variant("division is only supported in int/float types");
+            return failed_variant(NULL, "division is only supported in int/float types");
 
         case OP_MODULO:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) % variant_as_int(v2)));
-            return failed_variant("modulo is only supported in int types");
+            return failed_variant(NULL, "modulo is only supported in int types");
 
         case OP_ADD:
             if (variant_is_int(v1))
@@ -414,24 +414,24 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
                 str_builder_cat(sb, variant_as_str(v2));
                 return ok_variant(new_str_variant(str_builder_charptr(sb)));
             }
-            return failed_variant("addition is only supported in int, float, string types");
+            return failed_variant(NULL, "addition is only supported in int, float, string types");
 
         case OP_SUBTRACT:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) - variant_as_int(v2)));
             if (variant_is_float(v1))
                 return ok_variant(new_float_variant(variant_as_float(v1) - variant_as_float(v2)));
-            return failed_variant("subtraction is only supported in int/float types");
+            return failed_variant(NULL, "subtraction is only supported in int/float types");
 
         case OP_LSHIFT:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) << variant_as_int(v2)));
-            return failed_variant("left shift is only supported in int types");
+            return failed_variant(NULL, "left shift is only supported in int types");
 
         case OP_RSHIFT:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) >> variant_as_int(v2)));
-            return failed_variant("right shift is only supported in int types");
+            return failed_variant(NULL, "right shift is only supported in int types");
 
         case OP_LESS_THAN:      return calculate_comparison(COMP_LT, v1, v2);
         case OP_LESS_EQUAL:     return calculate_comparison(COMP_LE, v1, v2);
@@ -443,47 +443,47 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
         case OP_BITWISE_AND:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) & variant_as_int(v2)));
-            return failed_variant("bitwise operations only supported in int types");
+            return failed_variant(NULL, "bitwise operations only supported in int types");
         case OP_BITWISE_XOR:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) ^ variant_as_int(v2)));
-            return failed_variant("bitwise operations only supported in int types");
+            return failed_variant(NULL, "bitwise operations only supported in int types");
         case OP_BITWISE_OR:
             if (variant_is_int(v1))
                 return ok_variant(new_int_variant(variant_as_int(v1) | variant_as_int(v2)));
-            return failed_variant("bitwise operations only supported in int types");
+            return failed_variant(NULL, "bitwise operations only supported in int types");
 
         case OP_LOGICAL_AND:
             // we could do shorthand here...
             if (variant_is_bool(v1) && variant_is_bool(v2))
                 return ok_variant(new_bool_variant(variant_as_bool(v1) && variant_as_bool(v2)));
-            return failed_variant("logical operations only supported in bool types");
+            return failed_variant(NULL, "logical operations only supported in bool types");
         case OP_LOGICAL_OR:
             // we could do shorthand here...
             if (variant_is_bool(v1) && variant_is_bool(v2))
                 return ok_variant(new_bool_variant(variant_as_bool(v1) || variant_as_bool(v2)));
-            return failed_variant("logical operations only supported in bool types");
+            return failed_variant(NULL, "logical operations only supported in bool types");
 
         case OP_SHORT_IF:
             if (!variant_is_bool(v1))
-                return failed_variant("? operator requires boolean condition");
+                return failed_variant(NULL, "? operator requires boolean condition");
             if (!variant_is_list(v2))
-                return failed_variant("? operator was expecting a list of 2 arguments");
+                return failed_variant(NULL, "? operator was expecting a list of 2 arguments");
             bool passed = variant_as_bool(v1);
             list *values_pair = variant_as_list(v2);
             if (list_length(values_pair) != 2)
-                return failed_variant("? operator was expecting exactly two arguments in the list");
+                return failed_variant(NULL, "? operator was expecting exactly two arguments in the list");
             return ok_variant(list_get(values_pair, passed ? 0 : 1));
     }
 
-    return failed_variant("Unknown binary operator %s", operator_str(op));
+    return failed_variant(NULL, "Unknown binary operator %s", operator_str(op));
 }
 
 static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj) {
 
     list *arg_names = expression_get_func_arg_names(expr);
     if (list_length(positional_args) != list_length(arg_names))
-        return failed_variant("expected %d arguments, got %d", list_length(arg_names), list_length(positional_args));
+        return failed_variant(NULL, "expected %d arguments, got %d", list_length(arg_names), list_length(positional_args));
 
     symbol_table *local_symbols = new_symbol_table(ctx->symbols);
     if (positional_args != NULL) {

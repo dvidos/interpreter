@@ -30,7 +30,7 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
 
     failable_list tokenization = parse_code_into_tokens(code, filename);
     if (tokenization.failed)
-        return failed_variant("Tokenization failed: %s", tokenization.err_msg);
+        return failed_variant(&tokenization, "Tokenization failed");
     if (verbose)
         printf("------------- parsed tokens -------------\n%s\n", list_to_string(tokenization.result, ", "));
 
@@ -38,7 +38,7 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
     tokens_it->reset(tokens_it);
     failable_list parsing = parse_statements(tokens_it, SP_SEQUENTIAL_STATEMENTS);
     if (parsing.failed)
-        return failed_variant("Statement parsing failed: %s", parsing.err_msg);
+        return failed_variant(&parsing, "Statement parsing failed");
     if (verbose)
         printf("------------- parsed statements -------------\n%s\n", list_to_string(parsing.result, "\n"));
 
@@ -54,7 +54,7 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
         printf("------------- executing -------------\n");
     failable_variant execution = execute_statements(parsing.result, ctx);
     if (execution.failed)
-        return failed_variant("Execution failed: %s", execution.err_msg);
+        return failed_variant(&execution, "Execution failed");
 
     return ok_variant(execution.result);
 }

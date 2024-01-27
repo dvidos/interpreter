@@ -92,6 +92,8 @@ const char *token_to_string(token *t);
 bool tokens_are_equal(token *a, token *b);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(token);
+#define failed_token(inner, fmt, ...)  __failed_token(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+
 
 extern contained_item *containing_tokens;
 

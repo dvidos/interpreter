@@ -43,7 +43,7 @@ STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(bool)
 
 failable_list ok_list(list *value);
 #define failed_list(inner, msg, ...) \
-       __failed_list(__FILE__, __LINE__, inner, msg, ## __VA_ARGS__)
+       __failed_list(__func__, __FILE__, __LINE__, inner, msg, ## __VA_ARGS__)
 
 
 // all failables have the same initial structure, for uniform handling.

@@ -13,6 +13,7 @@ const char *str_to_string(str *s);
 
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(str);
+#define failed_str(inner, fmt, ...)  __failed_str(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 
 #endif

@@ -27,5 +27,7 @@ const char *list_to_string(list *l, const char *separator);
 
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(list);
+#define failed_list(inner, fmt, ...)  __failed_list(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+
 
 #endif

@@ -215,7 +215,7 @@ static failable_token get_token_at_code_position() {
             return ok_token(new_data_token(T_IDENTIFIER, data, code_filename, code_line_no, code_column_no));
     }
     
-    return failed_token("Unrecognized character at pos %d:%d ('%c')", code_line_no, code_column_no, *code_curr_char);
+    return failed_token(NULL, "Unrecognized character '%c' at %s:%d:%d", *code_curr_char, code_filename, code_line_no, code_column_no);
 }
 
 failable_list parse_code_into_tokens(const char *code, const char *filename) {
@@ -230,7 +230,7 @@ failable_list parse_code_into_tokens(const char *code, const char *filename) {
     while (!code_finished()) {
         failable_token t = get_token_at_code_position();
         if (t.failed)
-            return failed_list("Cannot get token: %s", t.err_msg);
+            return failed_list(&t, "Cannot get token");
         if (t.result == NULL)
             break;
         

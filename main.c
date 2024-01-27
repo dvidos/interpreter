@@ -118,12 +118,13 @@ void show_help() {
 }
 
 void execute_code(const char *code, const char *filename) {
+    printf("Executing %s...\n", filename);
     dict *values = new_dict(containing_variants, 20);
     failable_variant execution = interpret_and_execute(code, filename, values, options.verbose);
     if (execution.failed)
-        printf("Failed: %s\n", execution.err_msg);
+        failable_print(&execution);
     else
-        printf("Result: %s\n", variant_to_string(execution.result));
+        printf("Execution result: %s\n", variant_to_string(execution.result));
 }
 
 void execute_script(const char *filename) {

@@ -49,6 +49,6 @@ const char *expression_to_string(expression *e);
 bool expressions_are_equal(expression *a, expression *b);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(expression);
-
+#define failed_expression(inner, fmt, ...)  __failed_expression(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 #endif

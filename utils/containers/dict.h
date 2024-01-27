@@ -30,5 +30,6 @@ const char *dict_to_string(dict *l, const char *key_value_separator, const char 
 
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(dict);
+#define failed_dict(inner, fmt, ...)  __failed_dict(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 #endif

@@ -55,6 +55,7 @@ bool variants_are_equal(variant *a, variant *b);
 const char *variant_to_string(variant *v);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(variant);
+#define failed_variant(inner, fmt, ...)  __failed_variant(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 extern contained_item *containing_variants;
 

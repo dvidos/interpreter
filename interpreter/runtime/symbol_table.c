@@ -10,7 +10,7 @@ symbol_table *new_symbol_table(symbol_table *parent) {
 
 failable register_symbol(symbol_table *st, const char *name, variant *v) {
     if (dict_has(st->symbols, name))
-        return failed("symbol %s already registered", name);
+        return failed(NULL, "symbol %s already registered", name);
     dict_set(st->symbols, name, v);
     return ok();
 }
@@ -42,5 +42,5 @@ failable update_symbol(symbol_table *current, const char *name, variant *new_val
         }
         current = current->parent;
     }
-    return failed("Symbol %s not found", name);
+    return failed(NULL, "Symbol %s not found", name);
 }

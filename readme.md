@@ -94,7 +94,7 @@ then check the value before acting on the result. In chains of
 failable calculate_something() {
     return succeeded(ptr);
     // -- or --
-    return failed("could not understand option %d", index);
+    return failed(NULL, "could not understand option %d", index);
 }
 ```
 
@@ -103,12 +103,18 @@ When calling that function, it's really easy to check, propagate the error, or c
 ```c
 failable calculation = calculate_something();
 if (calculation.failed)
-    return failed("calculation failed: %s", calculation.err_msg);
+    return failed(NULL, "calculation failed: %s", calculation.err_msg);
 thing_needed = calculation.result;
 ````
 
-Ideas for further development include additional context (e.g. error information),
-as well as preserving a call stack, by utilizing a macro that uses `__FILE__` and `__LINE__`.
+The module is refined now, and results in highly informative error messages:
+
+```bash
+Executing script3.scr...
+    interpret_and_execute() -> "Tokenization failed", at interpreter.c:33
+    parse_code_into_tokens() -> "Cannot get token", at tokenization.c:233
+    get_token_at_code_position() -> "Unrecognized character '@' at script3.scr:27:1", at tokenization.c:218
+```
 
 ## Containers
 
