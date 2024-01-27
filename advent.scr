@@ -1,0 +1,77 @@
+// assume: input(), output(), rand(), rand_seed()
+
+function input() {
+    return "q";
+}
+function output(str) {
+
+}
+function rand() {
+    return 1;
+}
+
+// ------------------------------
+
+room = {
+    description: "Big room",
+    exits: {
+        north: false,
+        west: false,
+        south: false,
+        east: false
+    },
+    artifacts : [
+    ]
+};
+maze = {
+    rooms: []
+};
+inventory = [
+    {short: "lamp", long:"A shiny little oil lamp"}
+];
+
+function make_room() {
+    // description, exits, artifacts, etc
+}
+
+function make_maze(seed) {
+    // seed = (seed == 0) ? rand() : seed;
+    // number of rooms, connections etc
+}
+
+function print_maze() {
+}
+
+// -----------------------------
+
+function present_room() {
+
+}
+
+function handle_command(command) {
+    // north, south, pick xxx, drop xxx, use xxx etc
+}
+
+function game_loop() {
+    // present room
+    // ask for directions
+    // validate directions, decide next room or game outcome
+}
+
+function main() {
+    // ask for random game or seed
+    // prepare maze
+    // start game loop
+}
+
+// main();
+
+
+while (true) {
+    output("A random number could be", rand());
+    output("Enter command, 'quit' to quit");
+    x = input();
+    if (x == "quit")
+        break;
+    output("you said: [" + x + "]");
+}

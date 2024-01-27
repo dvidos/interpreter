@@ -268,7 +268,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     // a parenthesis is a sub-expression here, func cals are handled after having operand.
     if (accept(T_LPAREN)) {
         failable_expression sub_expression = parse_expression(tokens_iterator, CM_RPAREN, verbose);
-        if (sub_expression.failed) return failed(NULL, "Subexpression failed: %s", sub_expression.err_msg);
+        if (sub_expression.failed) return failed(&sub_expression, "Subexpression failed");
         push_expression(sub_expression.result);
         *state = HAVE_OPERAND;
         return ok();
@@ -277,7 +277,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     // e.g. "nums = [ 1, 2, 3, 5, 8, 13 ]"
     if (accept(T_LSQBRACKET)) {
         failable_expression list_expression = parse_list_initializer(verbose);
-        if (list_expression.failed) return failed(NULL, "List initialization failed: %s", list_expression.err_msg);
+        if (list_expression.failed) return failed(&list_expression, "List initialization failed");
         push_expression(list_expression.result);
         *state = HAVE_OPERAND;
         return ok();
@@ -286,7 +286,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     // e.g. "person = { name: "john", age: 30 };"
     if (accept(T_LBRACKET)) {
         failable_expression dict_expression = parse_dict_initializer(verbose);
-        if (dict_expression.failed) return failed(NULL, "Dict initialization failed: %s", dict_expression.err_msg);
+        if (dict_expression.failed) return failed(&dict_expression, "Dict initialization failed");
         push_expression(dict_expression.result);
         *state = HAVE_OPERAND;
         return ok();
@@ -295,7 +295,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     // e.g. "pie = function() { return 3.14; }"
     if (accept(T_FUNCTION_KEYWORD)) {
         failable_expression func_expression = parse_func_declaration_expression(verbose);
-        if (func_expression.failed) return failed(NULL, "Parsing func declaration failed: %s", func_expression.err_msg);
+        if (func_expression.failed) return failed(&func_expression, "Parsing func declaration failed");
         push_expression(func_expression.result);
         *state = HAVE_OPERAND;
         return ok();
@@ -308,7 +308,12 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     }
 
     // nothing else should be expected here
-    return failed(NULL, "Unexpected token type %s, was expecting prefix, operand, or lparen", token_type_str(token_get_type(peek())));
+    return failed(NULL, "Unexpected token type %s at %s:%d:%d, was expecting operand or similar value construct", 
+        token_type_str(token_get_type(peek())),
+        token_get_file_name(peek()),
+        token_get_file_line_no(peek()),
+        token_get_file_col_no(peek())
+    );
 }
 
 static failable_list parse_function_call_arguments_expressions(bool verbose) {
@@ -364,7 +369,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
 
     if (accept(T_QUESTION_MARK)) {
         failable_expression if_parts = parse_shorthand_if_pair(verbose);
-        if (if_parts.failed) return failed(NULL, "%s", if_parts.err_msg);
+        if (if_parts.failed) return failed(&if_parts, NULL);
         create_expressions_for_higher_operators_than(OP_SHORT_IF);
         push_operator_for_later(OP_SHORT_IF);
         push_expression(if_parts.result);
@@ -375,7 +380,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     // an array subscript, we must parse the ']'
     if (accept(T_LSQBRACKET)) {
         failable_expression subscript = parse_expression(tokens_iterator, CM_RSQBRACKET, verbose);
-        if (subscript.failed) return failed(NULL, "%s", subscript.err_msg);
+        if (subscript.failed) return failed(&subscript, NULL);
         create_expressions_for_higher_operators_than(OP_ARRAY_SUBSCRIPT);
         push_operator_for_later(OP_ARRAY_SUBSCRIPT);
         push_expression(subscript.result);
@@ -394,15 +399,20 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
 
     // detect if we finished (we may be a sub-expression)
     failable_bool completion_detection = detect_completion(completion);
-    if (completion_detection.failed) return failed(NULL, "%s", completion_detection.err_msg);
+    if (completion_detection.failed) return failed(&completion_detection, NULL);
     if (completion_detection.result) {
         create_expressions_for_higher_operators_than(OP_SENTINEL);
         *state = FINISHED;
         return ok();
     }
     
-    // return ok();
-    return failed(NULL, "have operand ran out of options??? peek() -> %s", token_type_str(token_get_type(peek())));
+    // nothing else should be expected here
+    return failed(NULL, "Unexpected token type %s at %s:%d:%d, was expecting operator or end", 
+        token_type_str(token_get_type(peek())),
+        token_get_file_name(peek()),
+        token_get_file_line_no(peek()),
+        token_get_file_col_no(peek())
+    );
 }
 
 static void print_debug_information(char *title, run_state state) {

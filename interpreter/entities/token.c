@@ -123,6 +123,19 @@ inline const char *token_get_data(token *t) {
     return t->data;
 }
 
+const char *token_get_file_name(token *t) {
+    return t->filename;
+}
+
+int token_get_file_line_no(token *t) {
+    return t->line_no;
+}
+
+int token_get_file_col_no(token *t) {
+    return t->column_no;
+}
+
+
 const char *token_type_str(token_type type) {
     for (int i = 0; i < sizeof(token_infos)/sizeof(token_infos[0]); i++) {
         if (token_infos[i].type == type)

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 #include "built_in_funcs.h"
 #include "exec_context.h"
 #include "../../utils/containers/_module.h"
@@ -91,6 +92,53 @@ BUILT_IN_CALLABLE("void log(anything, ...);", log, VT_VOID, true, 0) {
 
     return RET_VOID();
 }
+BUILT_IN_CALLABLE("input(); -> str", input, VT_STR, false, 0) {
+    // something like gets() ?
+    char buffer[128];
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL)
+        return failed_variant(NULL, "EOF while reading input");
+
+    if (buffer[strlen(buffer) - 1] == '\n')
+        buffer[strlen(buffer) - 1] = 0;        
+
+    char *p = malloc(strlen(buffer) + 1);
+    strcpy(p, buffer);
+    return RET_STR(p);
+}
+BUILT_IN_CALLABLE("output(<anything>);", output, VT_NULL, true, 0) {
+    int args_count = list_length(positional_args);
+    str_builder *sb = new_str_builder();
+    for (int i = 0; i < args_count; i++) {
+        str_builder_cat(sb, variant_to_string(list_get(positional_args, i)));
+        if (i < args_count - 1)
+            str_builder_catc(sb, ' ');
+    }
+    str_builder_catc(sb, '\n');
+    fputs(str_builder_charptr(sb), stdout);
+    return RET_VOID();
+}
+
+BUILT_IN_CALLABLE("srand(int);", srand, VT_NULL, false, 1, VT_INT) {
+    int seed = INT_ARG(0);
+    srand(seed == 0 ? time(NULL) : seed);
+    return RET_VOID();
+}
+
+BUILT_IN_CALLABLE("rand(); -> int", rand, VT_INT, false, 0) {
+    return RET_INT(rand());
+}
+
+BUILT_IN_CALLABLE("str(<anything>); -> str", str, VT_STR, false, 1, VT_ANYTHING) {
+    variant *v = list_get(positional_args, 0);
+    str *s = variant_to_string(v);
+    return RET_STR(s);
+}
+BUILT_IN_CALLABLE("int(<str>) -> int", int, VT_INT, false, 1, VT_STR) {
+    variant *v = list_get(positional_args, 0);
+    int i = variant_as_int(v);
+    return RET_INT(i);
+}
+
 
 static inline void add_callable(callable *c) {
     list_add(built_in_funcs_list, c);
@@ -106,6 +154,12 @@ void initialize_built_in_funcs_table() {
     add_callable(built_in_strlen_callable());
     add_callable(built_in_getenv_callable());
     add_callable(built_in_log_callable());
+    add_callable(built_in_input_callable());
+    add_callable(built_in_output_callable());
+    add_callable(built_in_rand_callable());
+    add_callable(built_in_srand_callable());
+    add_callable(built_in_str_callable());
+    add_callable(built_in_int_callable());
 }
 
 dict *get_built_in_funcs_table() {

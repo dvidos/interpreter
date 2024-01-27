@@ -65,6 +65,8 @@ failable_variant callable_call(callable *c, list *positional_args, dict *named_a
 
         for (int i = 0; i < list_length(positional_args); i++) {
             variant_type expected_type = (variant_type)list_get(c->arg_types, i);
+            if (expected_type == VT_ANYTHING)
+                continue;
             variant_type given_type = variant_get_type(list_get(positional_args, i));
             if (given_type != expected_type)
                 return failed_variant(NULL, "argument #%d expected type %d, got %d", i, expected_type, given_type);

@@ -236,12 +236,12 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             // e.g. "ARRAY_SUBSCRIPT(<list_like_executionable>, <int_like_executionable>)"
             expression *op1 = expression_get_operand(lvalue, 0);
             failable_variant op1_exec = execute_expression(op1, ctx);
-            if (op1_exec.failed) return failed(NULL, "%s", op1_exec.err_msg);
+            if (op1_exec.failed) return failed(&op1_exec, NULL);
             if (!variant_is_list(op1_exec.result)) return failed(NULL, "Array subscripts apply only to arrays");
 
             expression *op2 = expression_get_operand(lvalue, 1);
             failable_variant op2_exec = execute_expression(op2, ctx);
-            if (op2_exec.failed) return failed(NULL, "%s", op2_exec.err_msg);
+            if (op2_exec.failed) return failed(&op2_exec, NULL);
             if (!variant_is_int(op2_exec.result)) return failed(NULL, "only integer results can be used as array indices");
 
             list *l = variant_as_list(op1_exec.result);
@@ -252,7 +252,7 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
         } else if (op == OP_MEMBER) {
             expression *op1 = expression_get_operand(lvalue, 0);
             failable_variant op1_exec = execute_expression(op1, ctx);
-            if (op1_exec.failed) return failed(NULL, "%s", op1_exec.err_msg);
+            if (op1_exec.failed) return failed(&op1_exec, NULL);
             if (!variant_is_dict(op1_exec.result)) return failed(NULL, "Struct members work only with identifiers");
 
             expression *op2 = expression_get_operand(lvalue, 1);

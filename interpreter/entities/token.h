@@ -82,6 +82,9 @@ token *new_data_token(token_type type, const char *data, const char *filename, i
 
 token_type token_get_type(token *t);
 const char *token_get_data(token *t);
+const char *token_get_file_name(token *t);
+int token_get_file_line_no(token *t);
+int token_get_file_col_no(token *t);
 
 const char *token_type_str(token_type type);
 const char *token_type_parse_chars(token_type type);
