@@ -1,12 +1,66 @@
 # interpreter
 
 It started as a simple mental exercise, to see if we could parse and calculate
-an expression in the style of `1+2*3+4`. 
+an expression in the style of `1+2*3+4`, or `8-4-2`.
 
-It seems to be evolving to a full blown interpreter of a C-like language.
+The initial idea was either to execute an Excel style formula,
+or apply a calculation to big data, or something.
+It seems to be evolving to a full blown interpreter of a C-like language,
+with built-in lists, dictionaries and simple objects.
 
+## work description
 
-## a few conventions
+Process for reading the script into an Abstract Syntax Tree:
+
+* A **lexer** is converting characters into tokens. We create a trie for fast lookup.
+* A **statement parser** is parsing statements (e.g. if, while, for, etc)
+* An **expression parser** parses expressions (e.g. a=1, func() etc)
+
+Process for executing the Absract Syntax Tree:
+
+* A **statement executor** is executing the statements (blocks, loops, break, continue, return)
+* An **expression executor** is executing the expressions (assignments, math, comparisons, function calls)
+* In order to load and save values of variables we use a **symbol table**. One is created for every function we enter. If the function was anonymous member of a dictionary, the `this` symbol points to that dictionary. This emulates objects, similar to javascript.
+* There are three types of functions supported:
+  * **built in** functions: strpos(), strlen() etc.
+  * **user defined** functions, as a statement, at a script body
+  * **anonymous functions**, as an expression operand
+
+What becomes evident is:
+
+* parsing statements and expressions works in recursive descend (one can call the other)
+* executing statements and expressions works in recursive descend too.
+
+## entities (objects? classes?) in the code
+
+Objects for reading and executing the scipt / code
+
+* `token` - a semantic item in the scipt: PLUS, NUMBER, BREAK_KEYWORD etc.
+* `pperator` - operation of an expression: ADD, XOR, FUNC_CALL etc
+* `expression` - unary or binary, with an operator and subexpression(s) as operand(s)
+* `statement` - a flow control thing: IF, WHILE, BREAK, RETURN etc.
+* `symbol_table` - represents the scope of a function, in a stack format
+* `exec_context` - runtime environment a function runs under. Includes the symbol table.
+
+General support objects
+
+* `variant` - immutable values of various types: str, int, callable etc.
+* `callable` - a function that can be called with args to return a variant
+* `list` - a list of items, accessed by index
+* `dict` - a hash map of items, accessed by name
+* `stack` - a stack of items, with push, peek & pop operations
+* `queue` - a queue of items, with put, peek & get operations
+* `contained_item` - item information for containers. Facilitates comparison and debugging
+* `str_builder` - an expandable zero-terminated string buffer
+
+## memory 
+
+As this program was supposed to be short lived and execute and exit,
+no attempt was made to free any allocated memory. 
+
+---
+
+# a few conventions
 
 Here's a few things we applied in the project. 
 Mainly driven out of the nature of the C language.
@@ -250,6 +304,7 @@ variant *new_float_variant(float f);
 variant *new_str_variant(const char *p);
 variant *new_list_variant(list *l);
 variant *new_dict_variant(dict *d);
+variant *new_callable_variant(callable *c);
 ```
 
 To verify the encapsulated value type:
@@ -262,6 +317,7 @@ bool value_is_float(variant *v);
 bool value_is_str(variant *v);
 bool variant_is_list(variant *v);
 bool variant_is_dict(variant *v);
+bool variant_is_callable(variant *v);
 ```
 
 To retrieve the encapsulated value, with auto conversion, if the requested type 
@@ -274,6 +330,7 @@ float variant_as_float(variant *v);
 const char *variant_as_str(variant *v);
 list *variant_as_list(variant *v);
 dict *variant_as_dict(variant *v);
+callable *variant_as_callable(variant *v);
 ```
 
 ## String working
