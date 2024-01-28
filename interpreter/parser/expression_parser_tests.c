@@ -263,6 +263,44 @@ bool expression_parser_self_diagnostics(bool verbose) {
                 new_string_literal_expression("text")
             ))
         ), verbose)) all_passed = false;
+    
+    if (!use_case_passes("a = [ 1, 2, 3 ]", false,
+        new_binary_op_expression(OP_ASSIGNMENT,
+            new_identifier_expression("a"),
+            new_list_data_expression(list_of(containing_expressions, 3,
+                new_numeric_literal_expression("1"),
+                new_numeric_literal_expression("2"),
+                new_numeric_literal_expression("3")
+            ))
+        ), verbose)) all_passed = false;
+
+    if (!use_case_passes("a = [ 1, 2, 3, ]", false, // notice extra comma
+        new_binary_op_expression(OP_ASSIGNMENT,
+            new_identifier_expression("a"),
+            new_list_data_expression(list_of(containing_expressions, 3,
+                new_numeric_literal_expression("1"),
+                new_numeric_literal_expression("2"),
+                new_numeric_literal_expression("3")
+            ))
+        ), verbose)) all_passed = false;
+
+    if (!use_case_passes("a = { key1:1, key2:2 }", false,
+        new_binary_op_expression(OP_ASSIGNMENT,
+            new_identifier_expression("a"),
+            new_dict_data_expression(dict_of(containing_expressions, 2,
+                "key1", new_numeric_literal_expression("1"),
+                "key2", new_numeric_literal_expression("2")
+            ))
+        ), verbose)) all_passed = false;
+
+    if (!use_case_passes("a = { key1:1, key2:2, }", false, // note extra comma
+        new_binary_op_expression(OP_ASSIGNMENT,
+            new_identifier_expression("a"),
+            new_dict_data_expression(dict_of(containing_expressions, 2,
+                "key1", new_numeric_literal_expression("1"),
+                "key2", new_numeric_literal_expression("2")
+            ))
+        ), verbose)) all_passed = false;
 
     return all_passed;
 }

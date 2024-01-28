@@ -210,6 +210,8 @@ static failable_expression parse_list_initializer(bool verbose) {
         failable_expression expr = parse_expression(tokens_iterator, CM_COMMA_OR_RSQBRACKET, verbose);
         if (expr.failed) return failed_expression(&expr, NULL);
         list_add(l, expr.result);
+
+        accept(T_RSQBRACKET); // allow superfluous commas: "a = [ 1, 2, ]"
     }
 
     return ok_expression(new_list_data_expression(l));
@@ -233,6 +235,8 @@ static failable_expression parse_dict_initializer(bool verbose) {
         failable_expression val_expr = parse_expression(tokens_iterator, CM_COMMA_OR_RBRACKET, verbose);
         if (val_expr.failed) return failed_expression(&val_expr, NULL);
         dict_set(d, key, val_expr.result);
+
+        accept(T_RBRACKET); // allow superfluous commas: "a = { key1: 1, }"
     }
 
     return ok_expression(new_dict_data_expression(d));

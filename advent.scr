@@ -1,51 +1,42 @@
-// assume: input(), output(), rand(), rand_seed()
+/*
+    Trying to build a minimal thing like the Colossal Cave Adventure,
+    to test drive my interpreter, and have some fun along the way.
+*/
 
-function input() {
-    return "q";
-}
-function output(str) {
 
-}
-function rand() {
-    return 1;
-}
-
-// ------------------------------
-
-room = {
-    description: "Big room",
-    exits: {
-        north: false,
-        west: false,
-        south: false,
-        east: false
-    },
-    artifacts : [
-    ]
-};
 maze = {
     rooms: [],
     items: [],
     npcs: []
 };
 inventory = [
-    {short: "lamp", long:"A shiny little oil lamp"}
+    {short: "lamp", long: "A shiny little oil lamp"},
+    {short: "key", long: "A small key"},
 ];
-
 function make_room() {
     // description, exits, artifacts, etc
+    descriptions = ["big", "huge", "tall", "enormous", "narrow", "low-ceiling"];
+    nouns = ["room", "hall", "corridor", "passage"];
+    descr = descriptions[rand() % 6] + " " + nouns[rand() % 4];
+    exits = [
+        rand() & 1 > 0,
+        rand() & 1 > 0,
+        rand() & 1 > 0,
+        rand() & 1 > 0
+    ];
 }
 
 function make_maze() {
     num_rooms = rand() % 20;
     for (i = 0; i < num_rooms; i++) {
-        // make a room
         room = make_room();
-        // connect it
+        maze.rooms.add(room);
+        // recursively connect exits to other rooms
+        // how to add to a list? 
+        // how to add to a dict?
+        // how to walk a dict?
+        // how to see if a key exists in a dictionary
     }
-}
-
-function print_maze() {
 }
 
 // -----------------------------
@@ -60,9 +51,18 @@ function get_command() {
     return x;
 }
 
+function do_help() {
+    output("Enter verious commands in semi natural language. Usual format is <verb> <noun>. Good luck!");
+}
+function do_debug() {
+    output("maze:");
+    output(maze);
+}
 function handle_command(cmd) {
     if (cmd == "help" || cmd == "h") {
-        output("Enter verious commands in semi natural language. Usual format is <verb> <noun>. Good luck!");
+        do_help();
+    } else if (cmd == "debug") {
+        do_debug();
     } else if (cmd == "rand") {
         output("A random number is", rand());
     } else {
@@ -70,11 +70,21 @@ function handle_command(cmd) {
     }
 }
 
-function main() {
-    output("Enter numeric seed for specific game, or enter for random game");
+function establish_seed() {
+    output("Enter seed for specific game, or press enter for random game");
     s = input();
-    if (strlen(s) > 0)
-        srand(int(s));
+    if (strlen(s) == 0) {
+        srand(0);
+        s = str(rand() % 10000);
+    }
+    
+    seed = int(s);
+    output("Using " + str(seed) + " as a seed");
+    srand(int(s));
+}
+
+function main() {
+    establish_seed();
     output("Preparing game...");
     make_maze();
     
@@ -85,6 +95,8 @@ function main() {
             break;
         handle_command(cmd);
     }
+
+    return 0;
 }
 
 main();

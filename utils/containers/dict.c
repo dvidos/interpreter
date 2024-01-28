@@ -29,6 +29,19 @@ dict *new_dict(contained_item *contained_item, int capacity) {
     return d;
 }
 
+dict *dict_of(contained_item *contained_item, int pairs_count, ...) {
+    dict *d = new_dict(contained_item, pairs_count);
+    va_list args;
+    va_start(args, pairs_count);
+    while (pairs_count-- > 0) {
+        const char *key = va_arg(args, const char *);
+        void *item = va_arg(args, void *);
+        dict_set(d, key, item);
+    }
+    va_end(args);
+    return d;
+}
+
 static unsigned hash(const char *str) {
     unsigned result = 5381;
     while (*str) {

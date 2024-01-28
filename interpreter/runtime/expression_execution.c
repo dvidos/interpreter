@@ -141,7 +141,14 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
                 return ok_variant(list_get(l, index));
 
             } else if (op == OP_MEMBER) {
-                if (!variant_is_dict(variant1.result)) return failed_variant(NULL, "MEMBER_OF requires a dictionary as left operand");
+                if (!variant_is_dict(variant1.result))
+                    // if we wanted a "items.add(new_item)" 
+                    // or maybe a "items.contains(key)"
+                    // we could have a dictionary of actions per type
+                    // (list, dict, str, int)
+                    // that could also allow things like: 
+                    // name.contains("jr") or name.substr(...) or name.length() etc
+                    return failed_variant(NULL, "MEMBER_OF requires a dictionary as left operand");
                 if (expression_get_type(operand2) != ET_IDENTIFIER) return failed_variant(NULL, "MEMBER_OF requires identifier as right operand");
                 dict *d = variant_as_dict(variant1.result);
                 const char *name = expression_get_terminal_data(operand2);

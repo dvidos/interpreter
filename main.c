@@ -124,7 +124,7 @@ void execute_code(const char *code, const char *filename) {
     if (execution.failed)
         failable_print(&execution);
     else
-        printf("Execution result: %s\n", variant_to_string(execution.result));
+        printf("Execution was successful, result is %s\n", variant_to_string(execution.result));
 }
 
 void execute_script(const char *filename) {
