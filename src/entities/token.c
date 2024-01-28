@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "token.h"
-#include "../../utils/containers/_module.h"
-#include "../../utils/str_builder.h"
+#include "../utils/containers/_module.h"
+#include "../utils/str_builder.h"
 
 struct token_info {
     token_type type;

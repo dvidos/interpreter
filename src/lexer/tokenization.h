@@ -1,7 +1,7 @@
 #ifndef _TOKENIZATION_H
 #define _TOKENIZATION_H
 
-#include "../../utils/containers/_module.h"
+#include "../utils/containers/_module.h"
 #include "../entities/_module.h"
 
 void initialize_lexer();

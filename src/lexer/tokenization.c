@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "../../utils/failable.h"
+#include "../utils/failable.h"
 #include "tokenization.h"
 
 

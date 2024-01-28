@@ -11,7 +11,7 @@ with similar syntax and constructs (C, C++, javascript, C#, java etc).
 The language supports expressions, control flow statements,
 functions, both named and anonymous. No module organization is setup yet.
 
-While the language is not strongly typed (no explicit type declaration or checks), it has built in support for string, integer, float, boolean types, as well as lists, and dictionaries. No implicit type conversion is performed (e.g. cannot do `5 + "1"`). Conditions always must yield a boolean result.
+While the language is not strongly typed (no explicit type declaration or checks), it has built in support for string, integer, float, boolean types, as well as lists, and dictionaries. No implicit type conversion is performed (e.g. it will _not_ do `5 + "1"`). Conditions always must yield a boolean result.
 
 The code execution always returns a value (e.g. as in evaluating an expression),
 akin to the exit status of executing a program in shell. It can be of any type,

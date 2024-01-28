@@ -36,7 +36,7 @@ What becomes evident is:
 Objects for reading and executing the scipt / code
 
 * `token` - a semantic item in the scipt: PLUS, NUMBER, BREAK_KEYWORD etc.
-* `pperator` - operation of an expression: ADD, XOR, FUNC_CALL etc
+* `operator` - operation of an expression: ADD, XOR, FUNC_CALL etc
 * `expression` - unary or binary, with an operator and subexpression(s) as operand(s)
 * `statement` - a flow control thing: IF, WHILE, BREAK, RETURN etc.
 * `symbol_table` - represents the scope of a function, in a stack format

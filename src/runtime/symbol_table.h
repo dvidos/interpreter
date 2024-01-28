@@ -1,9 +1,9 @@
 #ifndef _SYMBOL_TABLE_H
 #define _SYMBOL_TABLE_H
 
-#include "../../utils/failable.h"
-#include "../../utils/containers/_module.h"
-#include "../../utils/data_types/variant.h"
+#include "../utils/failable.h"
+#include "../utils/containers/_module.h"
+#include "../utils/data_types/variant.h"
 
 typedef struct symbol_table {
     dict *symbols;

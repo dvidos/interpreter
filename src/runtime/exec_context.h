@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "../../utils/containers/_module.h"
+#include "../utils/containers/_module.h"
 #include "symbol_table.h"
 
 

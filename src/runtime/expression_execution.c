@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "../../utils/str_builder.h"
+#include "../utils/str_builder.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
 

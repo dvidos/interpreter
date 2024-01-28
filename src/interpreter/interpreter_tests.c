@@ -4,10 +4,10 @@
 #include "../utils/testing.h"
 #include "../utils/failable.h"
 #include "../utils/containers/_module.h"
-#include "entities/_module.h"
-#include "lexer/_module.h"
-#include "parser/_module.h"
-#include "runtime/_module.h"
+#include "../entities/_module.h"
+#include "../lexer/_module.h"
+#include "../parser/_module.h"
+#include "../runtime/_module.h"
 #include "interpreter.h"
 
 

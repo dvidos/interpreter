@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
-#include "../../utils/str_builder.h"
+#include "../utils/str_builder.h"
 #include "exec_context.h"
 #include "built_in_funcs.h"
 #include "symbol_table.h"

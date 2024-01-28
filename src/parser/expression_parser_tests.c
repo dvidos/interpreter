@@ -1,9 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "../../utils/str_builder.h"
-#include "../../utils/failable.h"
-#include "../../utils/containers/_module.h"
+#include "../utils/str_builder.h"
+#include "../utils/failable.h"
+#include "../utils/containers/_module.h"
 #include "../lexer/_module.h"
 #include "expression_parser.h"
 

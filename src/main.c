@@ -5,12 +5,12 @@
 #include "utils/file.h"
 #include "utils/containers/_module.h"
 #include "utils/data_types/_module.h"
-#include "interpreter/lexer/_module.h"
-#include "interpreter/parser/expression_parser_tests.h"
-#include "interpreter/parser/statement_parser_tests.h"
+#include "lexer/_module.h"
+#include "parser/expression_parser_tests.h"
+#include "parser/statement_parser_tests.h"
 #include "interpreter/interpreter_tests.h"
 #include "interpreter/interpreter.h"
-#include "interpreter/runtime/_module.h"
+#include "runtime/_module.h"
 
 /*
     The core of the functionality is the "interpret_and_execute()" function.
@@ -130,7 +130,7 @@ void execute_code(const char *code, const char *filename) {
 void execute_script(const char *filename) {
     failable_const_char contents = file_read(filename);
     if (contents.failed) {
-        printf("%s", contents.err_msg);
+        printf("%s\n", contents.err_msg);
         return;
     }
     execute_code(contents.result, filename);

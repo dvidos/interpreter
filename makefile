@@ -19,24 +19,24 @@ FILES = \
 	src/utils/failable.c \
 	src/utils/file.c \
 	\
-	src/interpreter/entities/operator.c \
-	src/interpreter/entities/expression.c \
-	src/interpreter/entities/statement.c \
-	src/interpreter/entities/token.c \
+	src/entities/operator.c \
+	src/entities/expression.c \
+	src/entities/statement.c \
+	src/entities/token.c \
 	\
-	src/interpreter/lexer/tokenization.c \
-	src/interpreter/lexer/tokenization_tests.c \
+	src/lexer/tokenization.c \
+	src/lexer/tokenization_tests.c \
 	\
-	src/interpreter/parser/expression_parser.c \
-	src/interpreter/parser/expression_parser_tests.c \
-	src/interpreter/parser/statement_parser.c \
-	src/interpreter/parser/statement_parser_tests.c \
+	src/parser/expression_parser.c \
+	src/parser/expression_parser_tests.c \
+	src/parser/statement_parser.c \
+	src/parser/statement_parser_tests.c \
 	\
-	src/interpreter/runtime/built_in_funcs.c \
-	src/interpreter/runtime/exec_context.c \
-	src/interpreter/runtime/expression_execution.c \
-	src/interpreter/runtime/statement_execution.c \
-	src/interpreter/runtime/symbol_table.c \
+	src/runtime/built_in_funcs.c \
+	src/runtime/exec_context.c \
+	src/runtime/expression_execution.c \
+	src/runtime/statement_execution.c \
+	src/runtime/symbol_table.c \
 	\
 	src/interpreter/interpreter.c \
 	src/interpreter/interpreter_tests.c

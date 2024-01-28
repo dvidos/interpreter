@@ -4,9 +4,9 @@
 #include <time.h>
 #include "built_in_funcs.h"
 #include "exec_context.h"
-#include "../../utils/containers/_module.h"
-#include "../../utils/data_types/_module.h"
-#include "../../utils/str_builder.h"
+#include "../utils/containers/_module.h"
+#include "../utils/data_types/_module.h"
+#include "../utils/str_builder.h"
 
 #define at_least(value, threshold)   ((value) >= (threshold) ? (value) : (threshold))
 #define at_most(value, threshold)    ((value) <= (threshold) ? (value) : (threshold))

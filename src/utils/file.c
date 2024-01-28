@@ -4,7 +4,7 @@
 
 failable_const_char file_read(const char *filepath) {
     FILE *f = fopen(filepath, "r");
-    if (f == NULL) return failed_const_char("Could not open file %s", filepath);
+    if (f == NULL) return failed_const_char(NULL, "Could not open file %s", filepath);
     fseek(f, 0, SEEK_END);
     long size = ftell(f);
 

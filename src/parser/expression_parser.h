@@ -2,7 +2,7 @@
 #define _EXPRESSION_PARSER_H
 
 #include <stdbool.h>
-#include "../../utils/iterator.h"
+#include "../utils/iterator.h"
 #include "../entities/_module.h"
 
 typedef enum completion_mode {

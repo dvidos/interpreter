@@ -4,15 +4,15 @@
 #include "../utils/testing.h"
 #include "../utils/failable.h"
 #include "../utils/containers/_module.h"
-#include "entities/_module.h"
-#include "lexer/_module.h"
-#include "parser/_module.h"
-#include "runtime/_module.h"
+#include "../entities/_module.h"
+#include "../lexer/_module.h"
+#include "../parser/_module.h"
+#include "../runtime/_module.h"
 
-#include "runtime/built_in_funcs.h"
-#include "runtime/expression_execution.h"
-#include "runtime/statement_execution.h"
-#include "runtime/exec_context.h"
+#include "../runtime/built_in_funcs.h"
+#include "../runtime/expression_execution.h"
+#include "../runtime/statement_execution.h"
+#include "../runtime/exec_context.h"
 #include "interpreter.h"
 
 
