@@ -359,7 +359,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     if (accept(T_LPAREN)) {
         failable_list arg_expressions = parse_function_call_arguments_expressions(verbose);
         if (arg_expressions.failed)
-            return failed(NULL, "%s", arg_expressions.err_msg);
+            return failed(&arg_expressions, NULL);
         create_expressions_for_higher_operators_than(OP_FUNC_CALL);
         push_operator_for_later(OP_FUNC_CALL);
         push_expression(new_list_data_expression(arg_expressions.result));

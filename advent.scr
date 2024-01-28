@@ -24,7 +24,9 @@ room = {
     ]
 };
 maze = {
-    rooms: []
+    rooms: [],
+    items: [],
+    npcs: []
 };
 inventory = [
     {short: "lamp", long:"A shiny little oil lamp"}
@@ -34,9 +36,13 @@ function make_room() {
     // description, exits, artifacts, etc
 }
 
-function make_maze(seed) {
-    // seed = (seed == 0) ? rand() : seed;
-    // number of rooms, connections etc
+function make_maze() {
+    num_rooms = rand() % 20;
+    for (i = 0; i < num_rooms; i++) {
+        // make a room
+        room = make_room();
+        // connect it
+    }
 }
 
 function print_maze() {
@@ -45,33 +51,40 @@ function print_maze() {
 // -----------------------------
 
 function present_room() {
-
+    // must have current room, describe it.
 }
 
-function handle_command(command) {
-    // north, south, pick xxx, drop xxx, use xxx etc
+function get_command() {
+    output("Enter command, 'h' for help, or 'q' to quit");
+    x = input();
+    return x;
 }
 
-function game_loop() {
-    // present room
-    // ask for directions
-    // validate directions, decide next room or game outcome
+function handle_command(cmd) {
+    if (cmd == "help" || cmd == "h") {
+        output("Enter verious commands in semi natural language. Usual format is <verb> <noun>. Good luck!");
+    } else if (cmd == "rand") {
+        output("A random number is", rand());
+    } else {
+        output("I don't know this");
+    }
 }
 
 function main() {
-    // ask for random game or seed
-    // prepare maze
-    // start game loop
+    output("Enter numeric seed for specific game, or enter for random game");
+    s = input();
+    if (strlen(s) > 0)
+        srand(int(s));
+    output("Preparing game...");
+    make_maze();
+    
+    while (true) {
+        present_room();
+        cmd = get_command();
+        if (cmd == "q" || cmd == "quit")
+            break;
+        handle_command(cmd);
+    }
 }
 
-// main();
-
-
-while (true) {
-    output("A random number could be", rand());
-    output("Enter command, 'quit' to quit");
-    x = input();
-    if (x == "quit")
-        break;
-    output("you said: [" + x + "]");
-}
+main();
