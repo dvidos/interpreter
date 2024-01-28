@@ -45,11 +45,28 @@ STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(int);
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(const_char);
 
 
-void failable_print(void *some_failable) {
+static void failable_print_reverse(void *some_failable) {
     failable *f = (failable *)some_failable;
-    while (f != NULL) {
-        const char *basename = strrchr(f->file, '/') == NULL ? f->file : strrchr(f->file, '/') + 1;
+    if (f == NULL)
+        return;
+    failable_print_reverse(f->inner);
+
+    const char *basename = strrchr(f->file, '/') == NULL ? f->file : strrchr(f->file, '/') + 1;
+    if (f->err_msg == NULL)
+        printf("    %s(), at %s:%d\n", f->func, basename, f->line);
+    else
         printf("    %s() -> \"%s\", at %s:%d\n", f->func, f->err_msg, basename, f->line);
-        f = f->inner;
-    }
+}
+
+void failable_print(void *some_failable) {
+    // failable *f = (failable *)some_failable;
+    // while (f != NULL) {
+    //     const char *basename = strrchr(f->file, '/') == NULL ? f->file : strrchr(f->file, '/') + 1;
+    //     if (f->err_msg == NULL)
+    //         printf("    %s(), at %s:%d\n", f->func, basename, f->line);
+    //     else
+    //         printf("    %s() -> \"%s\", at %s:%d\n", f->func, f->err_msg, basename, f->line);
+    //     f = f->inner;
+    // }
+    failable_print_reverse(some_failable);
 }
