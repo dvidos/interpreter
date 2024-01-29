@@ -19,12 +19,13 @@ typedef failable_variant callable_handler(
     variant *this_obj
 );
 
-callable *new_callable(const char *name, const char *description, callable_handler *func, variant_type ret_type, list *arg_types, bool variadic, void *callable_data);
+
+callable *new_callable(const char *name, callable_handler *func, void *callable_data);
 
 const char *callable_name(callable *c);
-const char *callable_description(callable *c);
 failable_variant callable_call(callable *c, list *positional_args, dict *named_args, void *call_data, variant *this_obj);
 bool callables_are_equal(callable *a, callable *b);
+const char *callable_to_string(callable *c);
 
 extern contained_item *containing_callables;
 
