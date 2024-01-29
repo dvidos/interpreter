@@ -105,9 +105,8 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
         // this is a statement function, hence a named function. Register to symbols
         const char *name = statement_get_function_name(stmt);
         register_symbol(ctx->symbols, name, new_callable_variant(new_callable(
-            name, "(user statement func)", 
+            name,
             (callable_handler *)statement_function_callable_executor,
-            VT_NULL, NULL, true, 
             stmt
         )));
     } else {

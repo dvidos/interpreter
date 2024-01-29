@@ -130,7 +130,7 @@ void execute_code(const char *code, const char *filename) {
 void execute_script(const char *filename) {
     failable_const_char contents = file_read(filename);
     if (contents.failed) {
-        printf("%s\n", contents.err_msg);
+        printf("%s", contents.err_msg);
         return;
     }
     execute_code(contents.result, filename);

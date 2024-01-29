@@ -171,9 +171,8 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             // merely creates and returns a callable variant
             return ok_variant(new_callable_variant(new_callable(
                 "(user nameless expression function)",
-                "(description)",
                 (callable_handler *)expression_function_callable_executor,
-                VT_NULL, NULL, true, e
+                e
             )));
     }
 

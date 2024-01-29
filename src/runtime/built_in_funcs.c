@@ -14,29 +14,33 @@
 
 static list *built_in_funcs_list = NULL;
 static dict *built_in_funcs_dict = NULL;
+static dict *built_in_str_methods = NULL;
+static dict *built_in_list_methods = NULL;
+static dict *built_in_dict_methods = NULL;
 
-#define BUILT_IN_CALLABLE(description, name, ret_type, variadic, args_cnt, ...)  \
+#define BUILT_IN_CALLABLE(name)  \
     static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj); \
     static inline callable *built_in_ ## name ## _callable() { \
-        return new_callable(#name, description, built_in_ ## name ## _body, ret_type, list_of(NULL, args_cnt, ## __VA_ARGS__), variadic, NULL); \
+        return new_callable(#name, built_in_ ## name ## _body, NULL); \
     } \
     static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj)
 
 #define STR_ARG(num)    variant_as_str(list_get(positional_args, num))
+#define INT_ARG(num)    variant_as_int(list_get(positional_args, num))
+#define LIST_ARG(num)   variant_as_list(list_get(positional_args, num))
+#define DICT_ARG(num)   variant_as_dict(list_get(positional_args, num))
 #define INT_ARG(num)    variant_as_int(list_get(positional_args, num))
 #define RET_STR(val)    ok_variant(new_str_variant(val))
 #define RET_INT(val)    ok_variant(new_int_variant(val))
 #define RET_VOID()      ok_variant(new_null_variant())
 
 
-BUILT_IN_CALLABLE("int strlen(char *str);", 
-                    strlen, VT_INT, false, 1, VT_STR) {
+BUILT_IN_CALLABLE(strlen) {
     const char *str = STR_ARG(0);
     return RET_INT(strlen(str));
 }
 
-BUILT_IN_CALLABLE("char *substr(char *substr, int start, int len);", 
-                    substr, VT_STR, false, 3, VT_STR, VT_INT, VT_INT) {
+BUILT_IN_CALLABLE(substr) {
     const char *str = STR_ARG(0);
     int index = INT_ARG(1);
     int len = INT_ARG(2);
@@ -54,8 +58,7 @@ BUILT_IN_CALLABLE("char *substr(char *substr, int start, int len);",
     return RET_STR(p);
 }
 
-BUILT_IN_CALLABLE("int strpos(char *heystack, char *needle);",
-                    strpos, VT_INT, false, 2, VT_STR, VT_STR) {
+BUILT_IN_CALLABLE(strpos) {
     const char *heystack = STR_ARG(0);
     const char *needle = STR_ARG(1);
 
@@ -65,14 +68,14 @@ BUILT_IN_CALLABLE("int strpos(char *heystack, char *needle);",
     return RET_INT(pos);
 }
 
-BUILT_IN_CALLABLE("char *getenv(char *name);", getenv, VT_STR, false, 1, VT_STR) {
+BUILT_IN_CALLABLE(getenv) {
     const char *name = STR_ARG(0);
     return RET_STR(getenv(name));
 }
 
 str_builder *log_line_builder = NULL;
 
-BUILT_IN_CALLABLE("void log(anything, ...);", log, VT_VOID, true, 0) {
+BUILT_IN_CALLABLE(log) {
     int args_count = list_length(positional_args);
 
     if (log_line_builder == NULL)
@@ -92,7 +95,7 @@ BUILT_IN_CALLABLE("void log(anything, ...);", log, VT_VOID, true, 0) {
 
     return RET_VOID();
 }
-BUILT_IN_CALLABLE("input(); -> str", input, VT_STR, false, 0) {
+BUILT_IN_CALLABLE(input) {
     // something like gets() ?
     char buffer[128];
     if (fgets(buffer, sizeof(buffer), stdin) == NULL)
@@ -105,7 +108,7 @@ BUILT_IN_CALLABLE("input(); -> str", input, VT_STR, false, 0) {
     strcpy(p, buffer);
     return RET_STR(p);
 }
-BUILT_IN_CALLABLE("output(<anything>);", output, VT_NULL, true, 0) {
+BUILT_IN_CALLABLE(output) {
     int args_count = list_length(positional_args);
     str_builder *sb = new_str_builder();
     for (int i = 0; i < args_count; i++) {
@@ -118,26 +121,44 @@ BUILT_IN_CALLABLE("output(<anything>);", output, VT_NULL, true, 0) {
     return RET_VOID();
 }
 
-BUILT_IN_CALLABLE("srand(int);", srand, VT_NULL, false, 1, VT_INT) {
+BUILT_IN_CALLABLE(srand) {
     int seed = INT_ARG(0);
     srand(seed == 0 ? time(NULL) : seed);
     return RET_VOID();
 }
 
-BUILT_IN_CALLABLE("rand(); -> int", rand, VT_INT, false, 0) {
+BUILT_IN_CALLABLE(rand) {
     return RET_INT(rand());
 }
 
-BUILT_IN_CALLABLE("str(<anything>); -> str", str, VT_STR, false, 1, VT_ANYTHING) {
+BUILT_IN_CALLABLE(str) {
     variant *v = list_get(positional_args, 0);
     str *s = variant_to_string(v);
     return RET_STR(s);
 }
-BUILT_IN_CALLABLE("int(<str>) -> int", int, VT_INT, false, 1, VT_STR) {
+BUILT_IN_CALLABLE(int) {
     variant *v = list_get(positional_args, 0);
     int i = variant_as_int(v);
     return RET_INT(i);
 }
+
+
+static failable_variant built_in_list_empty(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    list *l = variant_as_list(this_obj);
+    return ok_variant(new_bool_variant(list_length(l) == 0));
+}
+static failable_variant built_in_list_length(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    list *l = variant_as_list(this_obj);
+    return ok_variant(new_int_variant(list_length(l)));
+}
+static failable_variant built_in_list_add(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    list *l = variant_as_list(this_obj);
+    variant *item = list_get(positional_args, 0);
+    list_add(l, item);
+    return ok_variant(new_null_variant());
+}
+
+
 
 
 static inline void add_callable(callable *c) {
@@ -160,14 +181,30 @@ void initialize_built_in_funcs_table() {
     add_callable(built_in_srand_callable());
     add_callable(built_in_str_callable());
     add_callable(built_in_int_callable());
+
+    built_in_str_methods = new_dict(containing_callables, 16);
+    built_in_list_methods = new_dict(containing_callables, 16);
+    built_in_dict_methods = new_dict(containing_callables, 16);
+
+    dict_set(built_in_list_methods, "add", new_callable("", built_in_list_add, NULL));
+    dict_set(built_in_list_methods, "empty", new_callable("", built_in_list_empty, NULL));
+    dict_set(built_in_list_methods, "length", new_callable("", built_in_list_length, NULL));
+}
+
+void print_built_in_funcs_list() {
+    printf("Not implemented yet...\n");
 }
 
 dict *get_built_in_funcs_table() {
     return built_in_funcs_dict;
 }
-
-void print_built_in_funcs_list() {
-    for_list(built_in_funcs_list, it, callable, c) {
-        printf("  %s\n", callable_description(c));
-    }
+dict *get_built_in_str_methods_dictionary() {
+    return built_in_str_methods;
 }
+dict *get_built_in_list_methods_dictionary() {
+    return built_in_list_methods;
+}
+dict *get_built_in_dict_methods_dictionary() {
+    return built_in_dict_methods;
+}
+
