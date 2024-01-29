@@ -1,5 +1,7 @@
 # todo
 
+* MUST keep track in expressions or operators of the source file and line.
+
 * create built-in methods for the built-in types. See OP_MEMBER execution.
   * list: add, length, indexof, to_string
   * dict: add, set, contains, indexof, to_string

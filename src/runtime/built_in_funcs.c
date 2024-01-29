@@ -34,6 +34,13 @@ static dict *built_in_dict_methods = NULL;
 #define RET_INT(val)    ok_variant(new_int_variant(val))
 #define RET_VOID()      ok_variant(new_null_variant())
 
+#define BUILT_IN_METHOD(target_obj_type, name, function)  \
+    dict_set(built_in_ ## target_obj_type ## _methods, \
+        #name, \
+        new_callable_variant( \
+            new_callable("", function, NULL) \
+        ) \
+    ) \
 
 BUILT_IN_CALLABLE(strlen) {
     const char *str = STR_ARG(0);
@@ -186,9 +193,10 @@ void initialize_built_in_funcs_table() {
     built_in_list_methods = new_dict(containing_callables, 16);
     built_in_dict_methods = new_dict(containing_callables, 16);
 
-    dict_set(built_in_list_methods, "add", new_callable("", built_in_list_add, NULL));
-    dict_set(built_in_list_methods, "empty", new_callable("", built_in_list_empty, NULL));
-    dict_set(built_in_list_methods, "length", new_callable("", built_in_list_length, NULL));
+    BUILT_IN_METHOD(list, add, built_in_list_add);
+    BUILT_IN_METHOD(list, empty, built_in_list_empty);
+    BUILT_IN_METHOD(list, length, built_in_list_length);
+    // TODO: now that we know they work... fill in the rest!
 }
 
 void print_built_in_funcs_list() {

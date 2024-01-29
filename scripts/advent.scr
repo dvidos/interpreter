@@ -24,6 +24,9 @@ function make_room() {
         rand() & 1 > 0,
         rand() & 1 > 0
     ];
+    room = {type:"room", descr:descr, exits:exits};
+    output("Room is:", room);
+    return room;
 }
 
 function make_maze() {

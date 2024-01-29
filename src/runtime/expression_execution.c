@@ -3,6 +3,7 @@
 #include "../utils/str_builder.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
+#include "built_in_funcs.h"
 
 // used for pre/post increment/decrement
 static expression *one = NULL;
@@ -18,8 +19,9 @@ enum comparison {
 };
 
 static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx);
-static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **container_dict);
+static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **this_value);
 static failable         store_value(expression *lvalue, exec_context *ctx, variant *rvalue);
+static failable_variant retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value);
 static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
 
 static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx);
@@ -79,7 +81,7 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
     return retrieve_value(e, ctx, NULL);
 }
 
-static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **container_dict) {
+static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **this_value) {
     failable_variant execution, variant1, variant2;
     operator op = expression_get_operator(e);
     const char *data = expression_get_terminal_data(e);
@@ -127,10 +129,10 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             op = expression_get_operator(e);
             operand1 = expression_get_operand(e, 0);
             operand2 = expression_get_operand(e, 1);
-            variant1 = execute_expression(operand1, ctx);
-            if (variant1.failed) return failed_variant(&variant1, "Operand 1 failed");
 
             if (op == OP_ARRAY_SUBSCRIPT) {
+                variant1 = execute_expression(operand1, ctx);
+                if (variant1.failed) return failed_variant(&variant1, "Operand 1 failed");
                 if (!variant_is_list(variant1.result)) return failed_variant(NULL, "ARRAY_SUBSCRIPT requires a list as left operand");
                 list *l = variant_as_list(variant1.result);
                 variant2 = execute_expression(operand2, ctx);
@@ -141,26 +143,14 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
                 return ok_variant(list_get(l, index));
 
             } else if (op == OP_MEMBER) {
-                if (!variant_is_dict(variant1.result))
-                    // if we wanted a "items.add(new_item)" 
-                    // or maybe a "items.contains(key)"
-                    // we could have a dictionary of actions per type
-                    // (list, dict, str, int)
-                    // that could also allow things like: 
-                    // name.contains("jr") or name.substr(...) or name.length() etc
-                    return failed_variant(NULL, "MEMBER_OF requires a dictionary as left operand");
-                if (expression_get_type(operand2) != ET_IDENTIFIER) return failed_variant(NULL, "MEMBER_OF requires identifier as right operand");
-                dict *d = variant_as_dict(variant1.result);
-                const char *name = expression_get_terminal_data(operand2);
-                if (!dict_has(d, name)) return failed_variant(NULL, "member '%s' not found in dictionary", name);
-                if (container_dict != NULL) // used as 'this' in calls
-                    *container_dict = variant1.result;
-                return ok_variant(dict_get(d, name));
+                return retrieve_member(operand1, operand2, ctx, this_value);
 
             } else if (op == OP_FUNC_CALL) {
                 return make_function_call(operand1, operand2, ctx);
 
             } else {
+                variant1 = execute_expression(operand1, ctx);
+                if (variant1.failed) return failed_variant(&variant1, "Operand 1 failed");
                 variant2 = execute_expression(operand2, ctx);
                 if (variant2.failed) return failed_variant(&variant2, "Operand 2 failed");
                 return calculate_binary_operation(op, variant1.result, variant2.result, ctx);
@@ -332,21 +322,62 @@ static failable_variant calculate_comparison(enum comparison cmp, variant *v1, v
     return failed_variant(NULL, "cannot compare with given operands (%s and %s)", variant_to_string(v1), variant_to_string(v2));
 }
 
+static failable_variant retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value) {
+    /* some objects, like a list, may behave as a dict,
+    in the sense of methods, e.g. "list1.length()", or "items.add(item)"
+    */
+    failable_variant obj_eval = execute_expression(object, ctx);
+    if (obj_eval.failed) return failed_variant(&obj_eval, NULL);
+    variant *obj = obj_eval.result;
+    if (this_value != NULL)
+        *this_value = obj;
+    
+    if (expression_get_type(member) != ET_IDENTIFIER)
+        return failed_variant(NULL, "MEMBER_OF requires identifier as right operand");
+    const char *member_name = expression_get_terminal_data(member);
+    
+    dict *d = NULL;
+    if (variant_is_dict(obj)) {
+        // find member in normal members, fallback to built-it methods
+        d = variant_as_dict(obj);
+        if (dict_has(d, member_name))
+            return ok_variant(dict_get(d, member_name));
+        
+        d = get_built_in_dict_methods_dictionary();
+        if (dict_has(d, member_name))
+            return ok_variant(dict_get(d, member_name));
+
+    } else if (variant_is_list(obj)) {
+        d = get_built_in_list_methods_dictionary();
+        if (dict_has(d, member_name))
+            return ok_variant(dict_get(d, member_name));
+        
+    } else if (variant_is_str(obj)) {
+        d = get_built_in_str_methods_dictionary();
+        if (dict_has(d, member_name))
+            return ok_variant(dict_get(d, member_name));
+    }
+                    
+    return failed_variant(NULL, "member '%s' not found in object", member_name);
+}
+
 static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx) {
 
-    variant *container_dict = NULL;
-    failable_variant callable_retrieval = retrieve_value(callable_expr, ctx, &container_dict);
+    variant *this_value = NULL;
+    failable_variant callable_retrieval = retrieve_value(callable_expr, ctx, &this_value);
     if (callable_retrieval.failed) return failed_variant(&callable_retrieval, NULL);
     variant *v = callable_retrieval.result;
-    if (v == NULL)               return failed_variant(NULL, "could not resolve call target");
-    if (!variant_is_callable(v)) return failed_variant(NULL, "call target is not a callable");
+
+    if (v == NULL) return failed_variant(NULL, "could not resolve call target");
+    if (!variant_is_callable(v))
+        return failed_variant(NULL, "call target is not a callable");
     callable *c = variant_as_callable(v);
 
     failable_variant args_retrieval = retrieve_value(args_expr, ctx, NULL);
     if (args_retrieval.failed) return failed_variant(&args_retrieval, "error retrieving arguments");
     list *arg_values = variant_as_list(args_retrieval.result);
 
-    return callable_call(c, arg_values, NULL, ctx, container_dict);
+    return callable_call(c, arg_values, NULL, ctx, this_value);
 }
 
 static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx) {
