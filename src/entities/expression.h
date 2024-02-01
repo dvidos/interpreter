@@ -5,19 +5,7 @@
 #include "../utils/data_types/_module.h"
 #include "../utils/containers/_module.h"
 #include "operator_type.h"
-
-
-typedef enum expression_type {
-    ET_IDENTIFIER,
-    ET_NUMERIC_LITERAL,
-    ET_STRING_LITERAL,
-    ET_BOOLEAN_LITERAL,
-    ET_UNARY_OP,
-    ET_BINARY_OP,
-    ET_LIST_DATA,
-    ET_DICT_DATA,
-    ET_FUNC_DECL, // person.fullname = function() { return this.first + " " + this.last; }
-} expression_type;
+#include "expression_type.h"
 
 typedef struct expression expression;
 

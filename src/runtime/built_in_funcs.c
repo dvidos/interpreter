@@ -25,11 +25,10 @@ static dict *built_in_dict_methods = NULL;
     } \
     static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj)
 
-#define STR_ARG(num)    variant_as_str(list_get(positional_args, num))
-#define INT_ARG(num)    variant_as_int(list_get(positional_args, num))
-#define LIST_ARG(num)   variant_as_list(list_get(positional_args, num))
-#define DICT_ARG(num)   variant_as_dict(list_get(positional_args, num))
-#define INT_ARG(num)    variant_as_int(list_get(positional_args, num))
+#define STR_ARG(num)    (num >= list_length(positional_args)) ? NULL : variant_as_str(list_get(positional_args, num))
+#define INT_ARG(num)    (num >= list_length(positional_args)) ? 0 : variant_as_int(list_get(positional_args, num))
+#define LIST_ARG(num)   (num >= list_length(positional_args)) ? NULL : variant_as_list(list_get(positional_args, num))
+#define DICT_ARG(num)   (num >= list_length(positional_args)) ? NULL : variant_as_dict(list_get(positional_args, num))
 #define RET_STR(val)    ok_variant(new_str_variant(val))
 #define RET_INT(val)    ok_variant(new_int_variant(val))
 #define RET_VOID()      ok_variant(new_null_variant())
