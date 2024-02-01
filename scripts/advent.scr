@@ -6,15 +6,8 @@
 
 maze = {
     rooms: [],
-    items: [],
-    npcs: []
 };
-inventory = [
-    {short: "lamp", long: "A shiny little oil lamp"},
-    {short: "key", long: "A small key"},
-];
 function make_room() {
-    // description, exits, artifacts, etc
     descriptions = ["big", "huge", "tall", "enormous", "narrow", "low-ceiling"];
     nouns = ["room", "hall", "corridor", "passage"];
     descr = descriptions[rand() % 6] + " " + nouns[rand() % 4];
@@ -24,11 +17,10 @@ function make_room() {
         rand() & 1 > 0,
         rand() & 1 > 0
     ];
-    room = {type:"room", descr:descr, exits:exits};
+    room = {descr:descr, exits:exits};
     output("Room is:", room);
     return room;
 }
-
 function make_maze() {
     num_rooms = rand() % 20;
     for (i = 0; i < num_rooms; i++) {
@@ -55,7 +47,7 @@ function get_command() {
 }
 
 function do_help() {
-    output("Enter verious commands in semi natural language. Usual format is <verb> <noun>. Good luck!");
+    output("Enter various commands in semi natural language. Usual format is <verb> <noun>. Good luck!");
 }
 function do_debug() {
     output("maze:");

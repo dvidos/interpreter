@@ -1,5 +1,7 @@
 # todo
 
+* extract the various "types" (token type, statement type, expression type, 
+value type) on separate files, to allow better management.
 * MUST keep track in expressions or operators of the source file and line.
 
 * create built-in methods for the built-in types. See OP_MEMBER execution.
@@ -16,8 +18,6 @@
 * reorg folders into src, scripts, docs etc?
 * where do we go with this? graphics? pipelines?
 
-* extract the various "types" (token type, statement type, expression type, value type) on
-separate files, to allow better management.
 * [maybe] consider removing getter functions and allow direct reading of struct members.
 for speed. and simplicity.
 * make better iterators, minimal ask from conntainers.
@@ -37,7 +37,11 @@ through macros, akin to failables...
 
 ## later
 
-Ability to parse EBNF syntax and then parse things on the fly?
+* Maybe have an interactive way to navigate the AST code and structures...
+* Maybe start implementing memory management for the exeuted code, therefore
+keeping track of variables and memory, ala Rust.
+* Ability to parse EBNF syntax and then parse things on the fly?
+
 
 
 

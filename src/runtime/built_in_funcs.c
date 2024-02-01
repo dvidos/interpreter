@@ -165,6 +165,14 @@ static failable_variant built_in_list_add(list *positional_args, dict *named_arg
     return ok_variant(new_null_variant());
 }
 
+static failable_variant built_in_dict_empty(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    dict *d = variant_as_dict(this_obj);
+    return ok_variant(new_bool_variant(dict_is_empty(d)));
+}
+static failable_variant built_in_dict_length(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    dict *d = variant_as_dict(this_obj);
+    return ok_variant(new_int_variant(dict_count(d)));
+}
 
 
 
@@ -197,6 +205,9 @@ void initialize_built_in_funcs_table() {
     BUILT_IN_METHOD(list, empty, built_in_list_empty);
     BUILT_IN_METHOD(list, length, built_in_list_length);
     // TODO: now that we know they work... fill in the rest!
+
+    BUILT_IN_METHOD(dict, empty, built_in_dict_empty);
+    BUILT_IN_METHOD(dict, length, built_in_dict_length);
 }
 
 void print_built_in_funcs_list() {
