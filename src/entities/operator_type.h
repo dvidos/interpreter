@@ -4,14 +4,14 @@
 #include "token.h"
 
 
-enum op_position {
+enum op_type_position {
     POS_UNKNOWN,
     PREFIX,
     POSTFIX,
     INFIX,
 };
 
-enum op_associativity {
+enum op_type_associativity {
     L2R, // aka left-associativity (e.g. subtract)
     R2L  // aka right-associativity (e.g. bitwise xor)
 };
@@ -69,14 +69,14 @@ enum operator_type {
 };
 
 typedef enum operator_type operator_type;
-typedef enum op_position op_position;
-typedef enum op_associativity op_associativity;
+typedef enum op_type_position op_type_position;
+typedef enum op_type_associativity op_type_associativity;
 
 void initialize_operator_type_tables();
-operator_type operator_type_by_token_and_position(token_type type, enum op_position position);
+operator_type operator_type_by_token_and_position(token_type type, enum op_type_position position);
 int operator_type_precedence(operator_type op);
-op_position operator_type_position(operator_type op);
-op_associativity operator_type_associativity(operator_type op);
+op_type_position operator_type_position(operator_type op);
+op_type_associativity operator_type_associativity(operator_type op);
 bool operator_type_is_unary(operator_type op);
 const char *operator_type_str(operator_type op);
 

@@ -1,17 +1,17 @@
 #include <string.h>
 #include "operator_type.h"
 
-struct op_info {
+struct op_type_info {
     operator_type op;
     int priority;
     token_type token_type;
-    op_position position;
-    op_associativity associativity;
+    op_type_position position;
+    op_type_associativity associativity;
     const char *name;
 };
 
 // first entries more precedent than later entries
-static struct op_info operators_flat_list[] = {
+static struct op_type_info operators_flat_list[] = {
     { OP_POST_INC,            1, T_DOUBLE_PLUS,       POSTFIX, L2R, "POST_INC" },  // a++
     { OP_POST_DEC,            1, T_DOUBLE_MINUS,      POSTFIX, L2R, "POST_DEC" },  // a--
     { OP_FUNC_CALL,           1, T_LPAREN,            INFIX,   L2R, "CALL" },  // a()
@@ -59,42 +59,42 @@ static struct op_info operators_flat_list[] = {
     { OP_SENTINEL,          999, T_UNKNOWN,           POS_UNKNOWN, L2R, "SENTINEL" },
 };
 
-struct op_info_per_token_type {
+struct op_type_info_per_token_type {
     operator_type prefix_op;
     operator_type infix_op;
     operator_type postfix_op;
 };
-struct op_info_per_operator {
-    op_position position;
-    op_associativity associativity;
+struct op_type_info_per_operator {
+    op_type_position position;
+    op_type_associativity associativity;
     int priority;
     const char *name;
 };
-static struct op_info_per_token_type op_infos_per_token_type[T_MAX_VALUE + 1];
-static struct op_info_per_operator   op_infos_per_operator[OP_MAX_VALUE + 1];
+static struct op_type_info_per_token_type op_type_infos_per_token_type[T_MAX_VALUE + 1];
+static struct op_type_info_per_operator   op_type_infos_per_operator[OP_MAX_VALUE + 1];
 
 void initialize_operator_type_tables() {
-    memset(op_infos_per_token_type, 0, sizeof(op_infos_per_token_type));
-    memset(op_infos_per_operator, 0, sizeof(op_infos_per_operator));
+    memset(op_type_infos_per_token_type, 0, sizeof(op_type_infos_per_token_type));
+    memset(op_type_infos_per_operator, 0, sizeof(op_type_infos_per_operator));
 
     for (int i = 0; i < sizeof(operators_flat_list)/sizeof(operators_flat_list[0]); i++) {
-        struct op_info *info = &operators_flat_list[i];
+        struct op_type_info *info = &operators_flat_list[i];
 
-        if      (info->position == PREFIX)  op_infos_per_token_type[info->token_type].prefix_op  = info->op;
-        else if (info->position == INFIX)   op_infos_per_token_type[info->token_type].infix_op   = info->op;
-        else if (info->position == POSTFIX) op_infos_per_token_type[info->token_type].postfix_op = info->op;
+        if      (info->position == PREFIX)  op_type_infos_per_token_type[info->token_type].prefix_op  = info->op;
+        else if (info->position == INFIX)   op_type_infos_per_token_type[info->token_type].infix_op   = info->op;
+        else if (info->position == POSTFIX) op_type_infos_per_token_type[info->token_type].postfix_op = info->op;
 
-        op_infos_per_operator[info->op].position       = info->position;
-        op_infos_per_operator[info->op].associativity  = info->associativity;
-        op_infos_per_operator[info->op].priority       = info->priority;
-        op_infos_per_operator[info->op].name           = info->name;
+        op_type_infos_per_operator[info->op].position       = info->position;
+        op_type_infos_per_operator[info->op].associativity  = info->associativity;
+        op_type_infos_per_operator[info->op].priority       = info->priority;
+        op_type_infos_per_operator[info->op].name           = info->name;
     }
 }
 
-operator_type operator_type_by_token_and_position(token_type type, enum op_position position) {
+operator_type operator_type_by_token_and_position(token_type type, enum op_type_position position) {
     // for example, '-' can be prefix/infix, '++' can be prefix/postfix
     // or '(' in prefix is subexpression, in infix it's function call.
-    struct op_info_per_token_type *info = &op_infos_per_token_type[type];
+    struct op_type_info_per_token_type *info = &op_type_infos_per_token_type[type];
     if      (position == PREFIX)  return info->prefix_op;
     else if (position == INFIX)   return info->infix_op;
     else if (position == POSTFIX) return info->postfix_op;
@@ -102,24 +102,24 @@ operator_type operator_type_by_token_and_position(token_type type, enum op_posit
 }
 
 int operator_type_precedence(operator_type op) {
-    return op_infos_per_operator[op].priority;
+    return op_type_infos_per_operator[op].priority;
 }
 
-op_position operator_type_position(operator_type op) {
-    return op_infos_per_operator[op].position;
+op_type_position operator_type_position(operator_type op) {
+    return op_type_infos_per_operator[op].position;
 }
 
-op_associativity operator_type_associativity(operator_type op) {
-    return op_infos_per_operator[op].associativity;
+op_type_associativity operator_type_associativity(operator_type op) {
+    return op_type_infos_per_operator[op].associativity;
 }
 
 bool operator_type_is_unary(operator_type op) {
-    op_position pos = operator_type_position(op);
+    op_type_position pos = operator_type_position(op);
     return pos == PREFIX || pos == POSTFIX;
 }
 
 const char *operator_type_str(operator_type op) {
-    return op_infos_per_operator[op].name;
+    return op_type_infos_per_operator[op].name;
 }
 
 bool operators_are_equal(operator_type a, operator_type b) {

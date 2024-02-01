@@ -57,11 +57,11 @@ static token* peek() {
     return tokens_iterator->curr(tokens_iterator);
 }
 
-static inline operator_type make_positioned_operator(token *t, op_position position) {
+static inline operator_type make_positioned_operator(token *t, op_type_position position) {
     return operator_type_by_token_and_position(token_get_type(t), position);
 }
 
-static inline bool accept_positioned_operator(op_position position) {
+static inline bool accept_positioned_operator(op_type_position position) {
     token *t = peek();
     operator_type possible = make_positioned_operator(t, position);
     if (possible == T_UNKNOWN)
@@ -130,7 +130,7 @@ static void make_one_expression_from_top_operator() {
     operator_type op = pop_top_operator();
     expression *new_expr;
 
-    op_position pos = operator_type_position(op);
+    op_type_position pos = operator_type_position(op);
     if (pos == PREFIX || pos == POSTFIX) {
         expression *operand1 = pop_top_expression();
         new_expr = new_unary_op_expression(op, operand1);
@@ -153,7 +153,7 @@ static void create_expressions_for_higher_operators_than(operator_type new_op) {
         operator_type top_op = peek_top_operator();
         int top_precedence = operator_type_precedence(top_op);
         bool top_is_unary = operator_type_is_unary(top_op);
-        op_associativity top_assoc = operator_type_associativity(top_op);
+        op_type_associativity top_assoc = operator_type_associativity(top_op);
 
         bool top_is_higher;
         if (top_op == OP_SENTINEL)

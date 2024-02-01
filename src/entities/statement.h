@@ -2,19 +2,9 @@
 #define _STATEMENT_H
 
 #include "../utils/failable.h"
+#include "statement_type.h"
 #include "expression.h"
 
-
-typedef enum statement_type {
-    ST_EXPRESSION,
-    ST_IF,
-    ST_WHILE,
-    ST_FOR_LOOP,
-    ST_CONTINUE,
-    ST_BREAK,
-    ST_RETURN,
-    ST_FUNCTION,
-} statement_type;
 
 typedef struct statement statement;
 
