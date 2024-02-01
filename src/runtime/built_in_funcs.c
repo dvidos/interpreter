@@ -177,7 +177,7 @@ static failable_variant built_in_dict_keys(list *positional_args, dict *named_ar
     dict *d = variant_as_dict(this_obj);
     list *result = new_list(containing_strs);
     for_dict(d, it, str, key)
-        list_add(result, key);
+        list_add(result, (void *)key); // we lose const here
     return ok_variant(new_list_variant(result));
 }
 static failable_variant built_in_dict_values(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {

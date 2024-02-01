@@ -34,7 +34,7 @@ static iterator *tokens_iterator;
 static token *last_accepted_token = NULL;
 
 void initialize_expression_parser() {
-    operators_stack = new_stack(containing_operators);
+    operators_stack = new_stack(containing_operator_types);
     expressions_stack = new_stack(containing_expressions);
     last_accepted_token = NULL;
 }
@@ -57,15 +57,15 @@ static token* peek() {
     return tokens_iterator->curr(tokens_iterator);
 }
 
-static inline operator make_positioned_operator(token *t, op_position position) {
-    return operator_by_type_and_position(token_get_type(t), position);
+static inline operator_type make_positioned_operator(token *t, op_position position) {
+    return operator_type_by_token_and_position(token_get_type(t), position);
 }
 
 static inline bool accept_positioned_operator(op_position position) {
     token *t = peek();
-    operator possible = make_positioned_operator(t, position);
+    operator_type possible = make_positioned_operator(t, position);
     if (possible == T_UNKNOWN)
-        return false; // not an operator at this position
+        return false; // not an operator_type at this position
     
     return accept(token_get_type(t));
 }
@@ -88,16 +88,16 @@ static inline expression *make_operand_expression(token *t) {
     return NULL;
 }
 
-static inline void push_operator_for_later(operator op) {
+static inline void push_operator_for_later(operator_type op) {
     stack_push(operators_stack, (void *)op);
 }
 
-static inline operator peek_top_operator() {
-    return (operator)stack_peek(operators_stack);
+static inline operator_type peek_top_operator() {
+    return (operator_type)stack_peek(operators_stack);
 }
 
-static inline operator pop_top_operator() {
-    return (operator)stack_pop(operators_stack);
+static inline operator_type pop_top_operator() {
+    return (operator_type)stack_pop(operators_stack);
 }
 
 static void print_operators_stack(FILE *stream, char *prefix) {
@@ -127,10 +127,10 @@ static void print_expressions_stack(FILE *stream, char *prefix) {
 // --------------------------------------------
 
 static void make_one_expression_from_top_operator() {
-    operator op = pop_top_operator();
+    operator_type op = pop_top_operator();
     expression *new_expr;
 
-    op_position pos = operator_position(op);
+    op_position pos = operator_type_position(op);
     if (pos == PREFIX || pos == POSTFIX) {
         expression *operand1 = pop_top_expression();
         new_expr = new_unary_op_expression(op, operand1);
@@ -142,18 +142,18 @@ static void make_one_expression_from_top_operator() {
     push_expression(new_expr);
 }
 
-static void create_expressions_for_higher_operators_than(operator new_op) {
+static void create_expressions_for_higher_operators_than(operator_type new_op) {
     // the operators stack always has the highest precedence ops at the top.
     // if we want to add a smaller precedence, we pop them into expressions
-    // this assumes the use of the SENTINEL, the lowest priority operator
+    // this assumes the use of the SENTINEL, the lowest priority operator_type
     // left-associated operators allow equal precedence to be popped,
     // so that 8-4-2 => (8-4)-2 and not 8-(4-2).
-    int new_precedence = operator_precedence(new_op);
+    int new_precedence = operator_type_precedence(new_op);
     while (true) {
-        operator top_op = peek_top_operator();
-        int top_precedence = operator_precedence(top_op);
-        bool top_is_unary = operator_is_unary(top_op);
-        op_associativity top_assoc = operator_associativity(top_op);
+        operator_type top_op = peek_top_operator();
+        int top_precedence = operator_type_precedence(top_op);
+        bool top_is_unary = operator_type_is_unary(top_op);
+        op_associativity top_assoc = operator_type_associativity(top_op);
 
         bool top_is_higher;
         if (top_op == OP_SENTINEL)
@@ -353,7 +353,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
 
     // if postfix, push for later, and remain in state
     if (accept_positioned_operator(POSTFIX)) {
-        operator op = make_positioned_operator(accepted(), POSTFIX);
+        operator_type op = make_positioned_operator(accepted(), POSTFIX);
         create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
         return ok();
@@ -394,7 +394,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
 
     // if infix, push it for resolving later, and go back to want-operand
     if (accept_positioned_operator(INFIX)) {
-        operator op = make_positioned_operator(accepted(), INFIX);
+        operator_type op = make_positioned_operator(accepted(), INFIX);
         create_expressions_for_higher_operators_than(op);
         push_operator_for_later(op);
         *state = WANT_OPERAND;
@@ -411,7 +411,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     }
     
     // nothing else should be expected here
-    return failed(NULL, "Unexpected token type %s at %s:%d:%d, was expecting operator or end", 
+    return failed(NULL, "Unexpected token type %s at %s:%d:%d, was expecting operator_type or end", 
         token_type_str(token_get_type(peek())),
         token_get_file_name(peek()),
         token_get_file_line_no(peek()),
@@ -469,7 +469,7 @@ failable_expression parse_expression(iterator *tokens, completion_mode completio
             print_debug_information("parse_expression() step", state);
     }
 
-    operator sentinel = pop_top_operator();
+    operator_type sentinel = pop_top_operator();
     if (sentinel != OP_SENTINEL)
         return failed_expression(NULL, "Was expecting SENTINEL at the top of the queue");
 

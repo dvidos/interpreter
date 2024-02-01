@@ -18,7 +18,7 @@
 
 void initialize_interpreter() {
     initialize_lexer();
-    initialize_operator_tables();
+    initialize_operator_type_tables();
     initialize_expression_parser();
     initialize_statement_parser();
     initialize_built_in_funcs_table();

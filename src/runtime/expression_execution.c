@@ -24,8 +24,8 @@ static failable         store_value(expression *lvalue, exec_context *ctx, varia
 static failable_variant retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value);
 static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
 
-static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx);
-static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx);
+static failable_variant calculate_unary_operation(operator_type op, variant *value, exec_context *ctx);
+static failable_variant calculate_binary_operation(operator_type op, variant *v1, variant *v2, exec_context *ctx);
 static failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant *v2);
 
 static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj);
@@ -40,7 +40,7 @@ void initialize_expression_execution() {
 failable_variant execute_expression(expression *e, exec_context *ctx) {
     // first concern is whether the expression stores data, or is read only
     expression_type et = expression_get_type(e);
-    operator op = expression_get_operator(e);
+    operator_type op = expression_get_operator(e);
     expression *lval_expr;
     expression *rval_expr;
 
@@ -83,7 +83,7 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
 
 static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **this_value) {
     failable_variant execution, variant1, variant2;
-    operator op = expression_get_operator(e);
+    operator_type op = expression_get_operator(e);
     const char *data = expression_get_terminal_data(e);
     expression *operand1, *operand2;
 
@@ -166,7 +166,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             )));
     }
 
-    return failed_variant(NULL, "Cannot retrieve value, unknown expr type / operator");
+    return failed_variant(NULL, "Cannot retrieve value, unknown expr type / operator_type");
 }
 
 static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx) {
@@ -227,7 +227,7 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
         return ok();
 
     } else if (et == ET_BINARY_OP) {
-        operator op = expression_get_operator(lvalue);
+        operator_type op = expression_get_operator(lvalue);
         if (op == OP_ARRAY_SUBSCRIPT) {
             // e.g. "ARRAY_SUBSCRIPT(<list_like_executionable>, <int_like_executionable>)"
             expression *op1 = expression_get_operand(lvalue, 0);
@@ -261,7 +261,7 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             return ok();
 
         } else {
-            return failed(NULL, "operator cannot be used as lvalue: %s", operator_str(op));
+            return failed(NULL, "operator_type cannot be used as lvalue: %s", operator_type_str(op));
         }
         
     } else {
@@ -380,7 +380,7 @@ static failable_variant make_function_call(expression *callable_expr, expression
     return callable_call(c, arg_values, NULL, ctx, this_value);
 }
 
-static failable_variant calculate_unary_operation(operator op, variant *value, exec_context *ctx) {
+static failable_variant calculate_unary_operation(operator_type op, variant *value, exec_context *ctx) {
     switch (op) {
         case OP_POSITIVE_NUM:
             if (variant_is_int(value) || variant_is_float(value))
@@ -405,10 +405,10 @@ static failable_variant calculate_unary_operation(operator op, variant *value, e
                 return ok_variant(new_int_variant(~variant_as_int(value)));
             return failed_variant(NULL, "bitwise not only works for int values");
     }
-    return failed_variant(NULL, "Unknown unary operator %s", operator_str(op));
+    return failed_variant(NULL, "Unknown unary operator_type %s", operator_type_str(op));
 }
 
-static failable_variant calculate_binary_operation(operator op, variant *v1, variant *v2, exec_context *ctx) {
+static failable_variant calculate_binary_operation(operator_type op, variant *v1, variant *v2, exec_context *ctx) {
     switch (op) {
         case OP_MULTIPLY:
             if (variant_is_int(v1))
@@ -503,17 +503,17 @@ static failable_variant calculate_binary_operation(operator op, variant *v1, var
 
         case OP_SHORT_IF:
             if (!variant_is_bool(v1))
-                return failed_variant(NULL, "? operator requires boolean condition");
+                return failed_variant(NULL, "? operator_type requires boolean condition");
             if (!variant_is_list(v2))
-                return failed_variant(NULL, "? operator was expecting a list of 2 arguments");
+                return failed_variant(NULL, "? operator_type was expecting a list of 2 arguments");
             bool passed = variant_as_bool(v1);
             list *values_pair = variant_as_list(v2);
             if (list_length(values_pair) != 2)
-                return failed_variant(NULL, "? operator was expecting exactly two arguments in the list");
+                return failed_variant(NULL, "? operator_type was expecting exactly two arguments in the list");
             return ok_variant(list_get(values_pair, passed ? 0 : 1));
     }
 
-    return failed_variant(NULL, "Unknown binary operator %s", operator_str(op));
+    return failed_variant(NULL, "Unknown binary operator_type %s", operator_type_str(op));
 }
 
 static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj) {

@@ -6,7 +6,7 @@
 #include "../utils/containers/_module.h"
 #include "../lexer/_module.h"
 #include "../entities/expression.h"
-#include "../entities/operator.h"
+#include "../entities/operator_type.h"
 #include "../entities/statement.h"
 #include "expression_parser.h"
 #include "statement_parser.h"

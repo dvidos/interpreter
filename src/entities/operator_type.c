@@ -1,8 +1,8 @@
 #include <string.h>
-#include "operator.h"
+#include "operator_type.h"
 
 struct op_info {
-    operator op;
+    operator_type op;
     int priority;
     token_type token_type;
     op_position position;
@@ -60,9 +60,9 @@ static struct op_info operators_flat_list[] = {
 };
 
 struct op_info_per_token_type {
-    operator prefix_op;
-    operator infix_op;
-    operator postfix_op;
+    operator_type prefix_op;
+    operator_type infix_op;
+    operator_type postfix_op;
 };
 struct op_info_per_operator {
     op_position position;
@@ -73,7 +73,7 @@ struct op_info_per_operator {
 static struct op_info_per_token_type op_infos_per_token_type[T_MAX_VALUE + 1];
 static struct op_info_per_operator   op_infos_per_operator[OP_MAX_VALUE + 1];
 
-void initialize_operator_tables() {
+void initialize_operator_type_tables() {
     memset(op_infos_per_token_type, 0, sizeof(op_infos_per_token_type));
     memset(op_infos_per_operator, 0, sizeof(op_infos_per_operator));
 
@@ -91,7 +91,7 @@ void initialize_operator_tables() {
     }
 }
 
-operator operator_by_type_and_position(token_type type, enum op_position position) {
+operator_type operator_type_by_token_and_position(token_type type, enum op_position position) {
     // for example, '-' can be prefix/infix, '++' can be prefix/postfix
     // or '(' in prefix is subexpression, in infix it's function call.
     struct op_info_per_token_type *info = &op_infos_per_token_type[type];
@@ -101,33 +101,33 @@ operator operator_by_type_and_position(token_type type, enum op_position positio
     else return OP_UNKNOWN;
 }
 
-int operator_precedence(operator op) {
+int operator_type_precedence(operator_type op) {
     return op_infos_per_operator[op].priority;
 }
 
-op_position operator_position(operator op) {
+op_position operator_type_position(operator_type op) {
     return op_infos_per_operator[op].position;
 }
 
-op_associativity operator_associativity(operator op) {
+op_associativity operator_type_associativity(operator_type op) {
     return op_infos_per_operator[op].associativity;
 }
 
-bool operator_is_unary(operator op) {
-    op_position pos = operator_position(op);
+bool operator_type_is_unary(operator_type op) {
+    op_position pos = operator_type_position(op);
     return pos == PREFIX || pos == POSTFIX;
 }
 
-const char *operator_str(operator op) {
+const char *operator_type_str(operator_type op) {
     return op_infos_per_operator[op].name;
 }
 
-bool operators_are_equal(operator a, operator b) {
+bool operators_are_equal(operator_type a, operator_type b) {
     return a == b;
 }
 
-contained_item *containing_operators = &(contained_item){
-    .type_name = "operator",
+contained_item *containing_operator_types = &(contained_item){
+    .type_name = "operator_type",
     .are_equal = (are_equal_func)operators_are_equal,
-    .to_string = (to_string_func)operator_str
+    .to_string = (to_string_func)operator_type_str
 };

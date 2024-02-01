@@ -8,7 +8,7 @@
 
 struct expression {
     expression_type type;
-    operator op;
+    operator_type op;
     union {
         const char *terminal_data;
         list *list_;
@@ -31,7 +31,7 @@ contained_item *containing_expressions = &(contained_item){
     .hash      = NULL
 };
 
-static expression *new_expression(expression_type type, operator op) {
+static expression *new_expression(expression_type type, operator_type op) {
     expression *e = malloc(sizeof(expression));
     memset(e, 0, sizeof(expression));
     e->type = type;
@@ -63,13 +63,13 @@ expression *new_boolean_literal_expression(const char *data) {
     return e;
 }
 
-expression *new_unary_op_expression(operator op, expression *operand) {
+expression *new_unary_op_expression(operator_type op, expression *operand) {
     expression *e = new_expression(ET_UNARY_OP, op);
     e->per_type.operation.op0 = operand;
     return e;
 }
 
-expression *new_binary_op_expression(operator op, expression *left, expression *right) {
+expression *new_binary_op_expression(operator_type op, expression *left, expression *right) {
     expression *e = new_expression(ET_BINARY_OP, op);
     e->per_type.operation.op0 = left;
     e->per_type.operation.op1 = right;
@@ -99,7 +99,7 @@ expression_type expression_get_type(expression *e) {
     return e->type;
 }
 
-operator expression_get_operator(expression *e) {
+operator_type expression_get_operator(expression *e) {
     return e->op;
 }
 
@@ -189,11 +189,11 @@ const char *expression_to_string(expression *e) {
     } else if (e->type == ET_BOOLEAN_LITERAL) {
         str_builder_catf(sb, "BOOL(%s)", e->per_type.terminal_data);
     } else if (e->type == ET_UNARY_OP) {
-        str_builder_catf(sb, "%s(", operator_str(e->op));
+        str_builder_catf(sb, "%s(", operator_type_str(e->op));
         str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
         str_builder_catc(sb, ')');
     } else if (e->type == ET_BINARY_OP) {
-        str_builder_catf(sb, "%s(", operator_str(e->op));
+        str_builder_catf(sb, "%s(", operator_type_str(e->op));
         str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
         str_builder_cat(sb, ", ");
         str_builder_cat(sb, expression_to_string(e->per_type.operation.op1));

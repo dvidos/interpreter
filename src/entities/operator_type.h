@@ -16,7 +16,7 @@ enum op_associativity {
     R2L  // aka right-associativity (e.g. bitwise xor)
 };
 
-enum operator {
+enum operator_type {
     OP_UNKNOWN,
 
     OP_FUNC_CALL,          // a()
@@ -68,18 +68,18 @@ enum operator {
     OP_MAX_VALUE // to discover the size of the enum
 };
 
-typedef enum operator operator;
+typedef enum operator_type operator_type;
 typedef enum op_position op_position;
 typedef enum op_associativity op_associativity;
 
-void initialize_operator_tables();
-operator operator_by_type_and_position(token_type type, enum op_position position);
-int operator_precedence(operator op);
-op_position operator_position(operator op);
-op_associativity operator_associativity(operator op);
-bool operator_is_unary(operator op);
-const char *operator_str(operator op);
+void initialize_operator_type_tables();
+operator_type operator_type_by_token_and_position(token_type type, enum op_position position);
+int operator_type_precedence(operator_type op);
+op_position operator_type_position(operator_type op);
+op_associativity operator_type_associativity(operator_type op);
+bool operator_type_is_unary(operator_type op);
+const char *operator_type_str(operator_type op);
 
-extern contained_item *containing_operators;
+extern contained_item *containing_operator_types;
 
 #endif
