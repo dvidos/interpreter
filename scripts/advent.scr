@@ -3,7 +3,6 @@
     to test drive my interpreter, and have some fun along the way.
 */
 
-
 maze = {
     rooms: [],
 };
@@ -36,6 +35,8 @@ function make_maze() {
 
 // -----------------------------
 
+function print_maze() {
+}
 function present_room() {
     // must have current room, describe it.
 }

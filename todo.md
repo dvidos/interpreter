@@ -2,6 +2,7 @@
 
 * extract the various "types" (token type, statement type, expression type, 
 value type) on separate files, to allow better management.
+
 * MUST keep track in expressions or operators of the source file and line.
 
 * create built-in methods for the built-in types. See OP_MEMBER execution.
@@ -31,8 +32,7 @@ object, e.g. a json object, not only per text line or bytes.
 convert to function pointers, and implement discrete functions for each case.
 This should speed up runtime a ton.
 
-* experiment with idea of declaration & implementation of strongly typed containers
-through macros, akin to failables...
+* experiment with idea of declaration & implementation of strongly typed containers through macros, akin to failables...
 
 
 ## later
@@ -41,7 +41,7 @@ through macros, akin to failables...
 * Maybe start implementing memory management for the exeuted code, therefore
 keeping track of variables and memory, ala Rust.
 * Ability to parse EBNF syntax and then parse things on the fly?
-
+* Make a debugger, with ability to step, and investigate variables!!!!!
 
 
 

@@ -1,0 +1,10 @@
+// test grabbing value and updating from a different call stack.
+// in java, lambdas take local scope
+// in python, they can only access global variables
+
+a = 1;
+function function_factory(b) {
+    return function(c) { return a + b + c; }
+}
+f = function_factory(2);
+six = f(3)

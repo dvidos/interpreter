@@ -173,6 +173,20 @@ static failable_variant built_in_dict_length(list *positional_args, dict *named_
     dict *d = variant_as_dict(this_obj);
     return ok_variant(new_int_variant(dict_count(d)));
 }
+static failable_variant built_in_dict_keys(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    dict *d = variant_as_dict(this_obj);
+    list *result = new_list(containing_strs);
+    for_dict(d, it, str, key)
+        list_add(result, key);
+    return ok_variant(new_list_variant(result));
+}
+static failable_variant built_in_dict_values(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    dict *d = variant_as_dict(this_obj);
+    list *result = new_list(containing_strs);
+    for_dict(d, it, str, key)
+        list_add(result, dict_get(d, key));
+    return ok_variant(new_list_variant(result));
+}
 
 
 
@@ -204,10 +218,13 @@ void initialize_built_in_funcs_table() {
     BUILT_IN_METHOD(list, add, built_in_list_add);
     BUILT_IN_METHOD(list, empty, built_in_list_empty);
     BUILT_IN_METHOD(list, length, built_in_list_length);
-    // TODO: now that we know they work... fill in the rest!
 
     BUILT_IN_METHOD(dict, empty, built_in_dict_empty);
     BUILT_IN_METHOD(dict, length, built_in_dict_length);
+    BUILT_IN_METHOD(dict, keys, built_in_dict_keys);
+    BUILT_IN_METHOD(dict, values, built_in_dict_values);
+
+    // TODO: now that we know they work... fill in the rest!
 }
 
 void print_built_in_funcs_list() {
