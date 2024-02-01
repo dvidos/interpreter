@@ -22,6 +22,7 @@ FILES = \
 	src/entities/operator_type.c \
 	src/entities/expression.c \
 	src/entities/statement.c \
+	src/entities/token_type.c \
 	src/entities/token.c \
 	\
 	src/lexer/tokenization.c \
