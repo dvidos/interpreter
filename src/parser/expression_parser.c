@@ -7,7 +7,7 @@
 #include "expression_parser.h"
 #include "statement_parser.h"
 #include "../lexer/_module.h"
-
+#include "../entities/operator.h"
 
 /*
     The shunting yard algorithm, for parsing operators according to precedence,
@@ -34,7 +34,7 @@ static iterator *tokens_iterator;
 static token *last_accepted_token = NULL;
 
 void initialize_expression_parser() {
-    operators_stack = new_stack(containing_operator_types);
+    operators_stack = new_stack(containing_operators);
     expressions_stack = new_stack(containing_expressions);
     last_accepted_token = NULL;
 }
@@ -77,27 +77,27 @@ static inline bool accept_operand() {
            accept(T_BOOLEAN_LITERAL);
 }
 
-static inline expression *make_operand_expression(token *t) {
-    const char *data = token_get_data(t);
-    switch (token_get_type(t)) {
-        case T_IDENTIFIER: return new_identifier_expression(data);
-        case T_NUMBER_LITERAL: return new_numeric_literal_expression(data);
-        case T_STRING_LITERAL: return new_string_literal_expression(data);
-        case T_BOOLEAN_LITERAL: return new_boolean_literal_expression(data);
+static inline expression *make_operand_expression(token *token) {
+    const char *data = token_get_data(token);
+    switch (token_get_type(token)) {
+        case T_IDENTIFIER: return new_identifier_expression(data, token);
+        case T_NUMBER_LITERAL: return new_numeric_literal_expression(data, token);
+        case T_STRING_LITERAL: return new_string_literal_expression(data, token);
+        case T_BOOLEAN_LITERAL: return new_boolean_literal_expression(data, token);
     }
     return NULL;
 }
 
-static inline void push_operator_for_later(operator_type op) {
-    stack_push(operators_stack, (void *)op);
+static inline void push_operator(operator_type op, token *token) {
+    stack_push(operators_stack, new_operator(op, token));
 }
 
-static inline operator_type peek_top_operator() {
-    return (operator_type)stack_peek(operators_stack);
+static inline operator *peek_top_operator() {
+    return stack_peek(operators_stack);
 }
 
-static inline operator_type pop_top_operator() {
-    return (operator_type)stack_pop(operators_stack);
+static inline operator *pop_top_operator() {
+    return stack_pop(operators_stack);
 }
 
 static void print_operators_stack(FILE *stream, char *prefix) {
@@ -127,18 +127,22 @@ static void print_expressions_stack(FILE *stream, char *prefix) {
 // --------------------------------------------
 
 static void make_one_expression_from_top_operator() {
-    operator_type op = pop_top_operator();
+    operator *op = pop_top_operator();
+    operator_type op_type = operator_get_type(op);
+    token *token = operator_get_token(op);
+    op_type_position pos = operator_type_position(op_type);
     expression *new_expr;
 
-    op_type_position pos = operator_type_position(op);
     if (pos == PREFIX || pos == POSTFIX) {
         expression *operand1 = pop_top_expression();
-        new_expr = new_unary_op_expression(op, operand1);
+        new_expr = new_unary_op_expression(op_type, token, operand1);
     } else if (pos == INFIX) {
+        // note that we pop the second first, as it was pushed last
         expression *operand2 = pop_top_expression();
         expression *operand1 = pop_top_expression();
-        new_expr = new_binary_op_expression(op, operand1, operand2);
+        new_expr = new_binary_op_expression(op_type, token, operand1, operand2);
     }
+    
     push_expression(new_expr);
 }
 
@@ -150,13 +154,14 @@ static void create_expressions_for_higher_operators_than(operator_type new_op) {
     // so that 8-4-2 => (8-4)-2 and not 8-(4-2).
     int new_precedence = operator_type_precedence(new_op);
     while (true) {
-        operator_type top_op = peek_top_operator();
-        int top_precedence = operator_type_precedence(top_op);
-        bool top_is_unary = operator_type_is_unary(top_op);
-        op_type_associativity top_assoc = operator_type_associativity(top_op);
+        operator *top_op = peek_top_operator();
+        operator_type top_type = operator_get_type(top_op);
+        int top_precedence = operator_type_precedence(top_type);
+        bool top_is_unary = operator_type_is_unary(top_type);
+        op_type_associativity top_assoc = operator_type_associativity(top_type);
 
         bool top_is_higher;
-        if (top_op == OP_SENTINEL)
+        if (top_type == OP_SENTINEL)
             top_is_higher = false;
         else if (top_is_unary)
             top_is_higher = top_precedence <= new_precedence;
@@ -198,12 +203,12 @@ static failable_bool detect_completion(completion_mode mode) {
     return failed_bool(NULL, "Unknown completion mode %d", mode);
 }
 
-static failable_expression parse_list_initializer(bool verbose) {
+static failable_expression parse_list_initializer(bool verbose, token *initial_token) {
     list *l = new_list(containing_expressions);
 
     // [] = empty list
     if (accept(T_RSQBRACKET))
-        return ok_expression(new_list_data_expression(l));
+        return ok_expression(new_list_data_expression(l, initial_token));
 
     // else parse expressions until we reach end square bracket.
     while (token_get_type(accepted()) != T_RSQBRACKET) {
@@ -214,15 +219,15 @@ static failable_expression parse_list_initializer(bool verbose) {
         accept(T_RSQBRACKET); // allow superfluous commas: "a = [ 1, 2, ]"
     }
 
-    return ok_expression(new_list_data_expression(l));
+    return ok_expression(new_list_data_expression(l, initial_token));
 }
 
-static failable_expression parse_dict_initializer(bool verbose) {
+static failable_expression parse_dict_initializer(bool verbose, token *initial_token) {
     dict *d = new_dict(containing_expressions, 64);
 
     // {} = empty dict
     if (accept(T_RBRACKET))
-        return ok_expression(new_dict_data_expression(d));
+        return ok_expression(new_dict_data_expression(d, initial_token));
 
     // else parse "key":expression until we reach end square bracket.
     while (token_get_type(accepted()) != T_RBRACKET) {
@@ -239,10 +244,10 @@ static failable_expression parse_dict_initializer(bool verbose) {
         accept(T_RBRACKET); // allow superfluous commas: "a = { key1: 1, }"
     }
 
-    return ok_expression(new_dict_data_expression(d));
+    return ok_expression(new_dict_data_expression(d, initial_token));
 }
 
-static failable_expression parse_func_declaration_expression(bool verbose) {
+static failable_expression parse_func_declaration_expression(bool verbose, token *initial_token) {
     // past 'function', expected: "( [args] ) { [statements] }"
     if (!accept(T_LPAREN))
         return failed_expression(NULL, "Expected '(' after function");
@@ -258,14 +263,14 @@ static failable_expression parse_func_declaration_expression(bool verbose) {
     failable_list statements_parsing = parse_statements(tokens_iterator, SP_BLOCK_MANDATORY);
     if (statements_parsing.failed) return failed_expression(&statements_parsing, "Failed parsing function body");
 
-    return ok_expression(new_func_decl_expression(arg_names, statements_parsing.result));
+    return ok_expression(new_func_decl_expression(arg_names, statements_parsing.result, initial_token));
 }
 
 static failable parse_expression_on_want_operand(run_state *state, bool verbose) {
 
     // prefix operators come before the operand
     if (accept_positioned_operator(PREFIX)) {
-        push_operator_for_later(make_positioned_operator(accepted(), PREFIX));
+        push_operator(make_positioned_operator(accepted(), PREFIX), accepted());
         return ok();
     }
 
@@ -280,7 +285,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 
     // e.g. "nums = [ 1, 2, 3, 5, 8, 13 ]"
     if (accept(T_LSQBRACKET)) {
-        failable_expression list_expression = parse_list_initializer(verbose);
+        failable_expression list_expression = parse_list_initializer(verbose, accepted());
         if (list_expression.failed) return failed(&list_expression, "List initialization failed");
         push_expression(list_expression.result);
         *state = HAVE_OPERAND;
@@ -289,7 +294,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 
     // e.g. "person = { name: "john", age: 30 };"
     if (accept(T_LBRACKET)) {
-        failable_expression dict_expression = parse_dict_initializer(verbose);
+        failable_expression dict_expression = parse_dict_initializer(verbose, accepted());
         if (dict_expression.failed) return failed(&dict_expression, "Dict initialization failed");
         push_expression(dict_expression.result);
         *state = HAVE_OPERAND;
@@ -298,7 +303,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 
     // e.g. "pie = function() { return 3.14; }"
     if (accept(T_FUNCTION_KEYWORD)) {
-        failable_expression func_expression = parse_func_declaration_expression(verbose);
+        failable_expression func_expression = parse_func_declaration_expression(verbose, accepted());
         if (func_expression.failed) return failed(&func_expression, "Parsing func declaration failed");
         push_expression(func_expression.result);
         *state = HAVE_OPERAND;
@@ -341,12 +346,13 @@ static failable_expression parse_shorthand_if_pair(bool verbose) {
     failable_expression parsing = parse_expression(tokens_iterator, CM_COLON, verbose);
     if (parsing.failed) return failed_expression(&parsing, NULL);
     expression *e1 = parsing.result;
+    token *colon_token = accepted();
 
     parsing = parse_expression(tokens_iterator, CM_END_OF_TEXT, verbose);
     if (parsing.failed) return failed_expression(&parsing, NULL);
     expression *e2 = parsing.result;
 
-    return ok_expression(new_list_data_expression(list_of(containing_expressions, 2, e1, e2)));
+    return ok_expression(new_list_data_expression(list_of(containing_expressions, 2, e1, e2), colon_token));
 }
 
 static failable parse_expression_on_have_operand(run_state *state, completion_mode completion, bool verbose) {
@@ -355,27 +361,29 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     if (accept_positioned_operator(POSTFIX)) {
         operator_type op = make_positioned_operator(accepted(), POSTFIX);
         create_expressions_for_higher_operators_than(op);
-        push_operator_for_later(op);
+        push_operator(op, accepted());
         return ok();
     }
 
     // special parsing of arguments after a function call parenthesis
     if (accept(T_LPAREN)) {
+        token *initial_token = accepted();
         failable_list arg_expressions = parse_function_call_arguments_expressions(verbose);
         if (arg_expressions.failed)
             return failed(&arg_expressions, NULL);
         create_expressions_for_higher_operators_than(OP_FUNC_CALL);
-        push_operator_for_later(OP_FUNC_CALL);
-        push_expression(new_list_data_expression(arg_expressions.result));
+        push_operator(OP_FUNC_CALL, initial_token);
+        push_expression(new_list_data_expression(arg_expressions.result, initial_token));
         *state = HAVE_OPERAND;
         return ok();
     }
 
     if (accept(T_QUESTION_MARK)) {
+        token *initial_token = accepted();
         failable_expression if_parts = parse_shorthand_if_pair(verbose);
         if (if_parts.failed) return failed(&if_parts, NULL);
         create_expressions_for_higher_operators_than(OP_SHORT_IF);
-        push_operator_for_later(OP_SHORT_IF);
+        push_operator(OP_SHORT_IF, initial_token);
         push_expression(if_parts.result);
         *state = HAVE_OPERAND;
         return ok();
@@ -383,10 +391,11 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
 
     // an array subscript, we must parse the ']'
     if (accept(T_LSQBRACKET)) {
+        token *initial_token = accepted();
         failable_expression subscript = parse_expression(tokens_iterator, CM_RSQBRACKET, verbose);
         if (subscript.failed) return failed(&subscript, NULL);
         create_expressions_for_higher_operators_than(OP_ARRAY_SUBSCRIPT);
-        push_operator_for_later(OP_ARRAY_SUBSCRIPT);
+        push_operator(OP_ARRAY_SUBSCRIPT, initial_token);
         push_expression(subscript.result);
         *state = HAVE_OPERAND;
         return ok();
@@ -396,7 +405,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     if (accept_positioned_operator(INFIX)) {
         operator_type op = make_positioned_operator(accepted(), INFIX);
         create_expressions_for_higher_operators_than(op);
-        push_operator_for_later(op);
+        push_operator(op, accepted());
         *state = WANT_OPERAND;
         return ok();
     }
@@ -448,7 +457,7 @@ failable_expression parse_expression(iterator *tokens, completion_mode completio
         print_debug_information("parse_expression() starting", state);
         
     failable state_handling;
-    push_operator_for_later(OP_SENTINEL);
+    push_operator(OP_SENTINEL, NULL);
 
     while (state != FINISHED) {
 
@@ -469,8 +478,8 @@ failable_expression parse_expression(iterator *tokens, completion_mode completio
             print_debug_information("parse_expression() step", state);
     }
 
-    operator_type sentinel = pop_top_operator();
-    if (sentinel != OP_SENTINEL)
+    operator *sentinel = pop_top_operator();
+    if (operator_get_type(sentinel) != OP_SENTINEL)
         return failed_expression(NULL, "Was expecting SENTINEL at the top of the queue");
 
     expression *result = pop_top_expression();

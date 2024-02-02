@@ -8,6 +8,7 @@
 
 struct expression {
     expression_type type;
+    token *token;
     operator_type op;
     union {
         const char *terminal_data;
@@ -31,65 +32,66 @@ contained_item *containing_expressions = &(contained_item){
     .hash      = NULL
 };
 
-static expression *new_expression(expression_type type, operator_type op) {
+static expression *new_expression(expression_type type, token *token, operator_type op) {
     expression *e = malloc(sizeof(expression));
     memset(e, 0, sizeof(expression));
     e->type = type;
+    e->token = token;
     e->op = op;
     return e;
 }
 
-expression *new_identifier_expression(const char *data) {
-    expression *e = new_expression(ET_IDENTIFIER, OP_UNKNOWN);
+expression *new_identifier_expression(const char *data, token *token) {
+    expression *e = new_expression(ET_IDENTIFIER, token, OP_UNKNOWN);
     e->per_type.terminal_data = data;
     return e;
 }
 
-expression *new_numeric_literal_expression(const char *data) {
-    expression *e = new_expression(ET_NUMERIC_LITERAL, OP_UNKNOWN);
+expression *new_numeric_literal_expression(const char *data, token *token) {
+    expression *e = new_expression(ET_NUMERIC_LITERAL, token, OP_UNKNOWN);
     e->per_type.terminal_data = data;
     return e;
 }
 
-expression *new_string_literal_expression(const char *data) {
-    expression *e = new_expression(ET_STRING_LITERAL, OP_UNKNOWN);
+expression *new_string_literal_expression(const char *data, token *token) {
+    expression *e = new_expression(ET_STRING_LITERAL, token, OP_UNKNOWN);
     e->per_type.terminal_data = data;
     return e;
 }
 
-expression *new_boolean_literal_expression(const char *data) {
-    expression *e = new_expression(ET_BOOLEAN_LITERAL, OP_UNKNOWN);
+expression *new_boolean_literal_expression(const char *data, token *token) {
+    expression *e = new_expression(ET_BOOLEAN_LITERAL, token, OP_UNKNOWN);
     e->per_type.terminal_data = data;
     return e;
 }
 
-expression *new_unary_op_expression(operator_type op, expression *operand) {
-    expression *e = new_expression(ET_UNARY_OP, op);
+expression *new_unary_op_expression(operator_type op, token *token, expression *operand) {
+    expression *e = new_expression(ET_UNARY_OP, token, op);
     e->per_type.operation.op0 = operand;
     return e;
 }
 
-expression *new_binary_op_expression(operator_type op, expression *left, expression *right) {
-    expression *e = new_expression(ET_BINARY_OP, op);
+expression *new_binary_op_expression(operator_type op, token *token, expression *left, expression *right) {
+    expression *e = new_expression(ET_BINARY_OP, token, op);
     e->per_type.operation.op0 = left;
     e->per_type.operation.op1 = right;
     return e;
 }
 
-expression *new_list_data_expression(list *l) {
-    expression *e = new_expression(ET_LIST_DATA, OP_UNKNOWN);
+expression *new_list_data_expression(list *l, token *token) {
+    expression *e = new_expression(ET_LIST_DATA, token, OP_UNKNOWN);
     e->per_type.list_ = l;
     return e;
 }
 
-expression *new_dict_data_expression(dict *d) {
-    expression *e = new_expression(ET_DICT_DATA, OP_UNKNOWN);
+expression *new_dict_data_expression(dict *d, token *token) {
+    expression *e = new_expression(ET_DICT_DATA, token, OP_UNKNOWN);
     e->per_type.dict_ = d;
     return e;
 }
 
-expression *new_func_decl_expression(list *arg_names, list *statements) {
-    expression *e = new_expression(ET_FUNC_DECL, OP_UNKNOWN);
+expression *new_func_decl_expression(list *arg_names, list *statements, token *token) {
+    expression *e = new_expression(ET_FUNC_DECL, token, OP_UNKNOWN);
     e->per_type.func.arg_names = arg_names;
     e->per_type.func.statements = statements;
     return e;
@@ -97,6 +99,10 @@ expression *new_func_decl_expression(list *arg_names, list *statements) {
 
 expression_type expression_get_type(expression *e) {
     return e->type;
+}
+
+token *expression_get_token(expression *e) {
+    return e->token;
 }
 
 operator_type expression_get_operator(expression *e) {

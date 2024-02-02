@@ -63,32 +63,32 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("a+", true, NULL, verbose)) all_passed = false;
 
     if (!use_case_passes("a+1", false,
-        new_binary_op_expression(OP_ADD, 
-            new_identifier_expression("a"),
-            new_numeric_literal_expression("1")
+        new_binary_op_expression(OP_ADD, NULL,
+            new_identifier_expression("a", NULL),
+            new_numeric_literal_expression("1", NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("1+2*3+4", false,
-        new_binary_op_expression(OP_ADD, 
-            new_binary_op_expression(OP_ADD, 
-                new_numeric_literal_expression("1"),
-                new_binary_op_expression(OP_MULTIPLY, 
-                    new_numeric_literal_expression("2"),
-                    new_numeric_literal_expression("3")
+        new_binary_op_expression(OP_ADD, NULL, 
+            new_binary_op_expression(OP_ADD, NULL, 
+                new_numeric_literal_expression("1", NULL),
+                new_binary_op_expression(OP_MULTIPLY, NULL, 
+                    new_numeric_literal_expression("2", NULL),
+                    new_numeric_literal_expression("3", NULL)
                 )
             ),
-            new_numeric_literal_expression("4")
+            new_numeric_literal_expression("4", NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("(1+2)*(3+4)", false,
-        new_binary_op_expression(OP_MULTIPLY, 
-            new_binary_op_expression(OP_ADD, 
-                new_numeric_literal_expression("1"),
-                new_numeric_literal_expression("2")
+        new_binary_op_expression(OP_MULTIPLY, NULL, 
+            new_binary_op_expression(OP_ADD, NULL, 
+                new_numeric_literal_expression("1", NULL),
+                new_numeric_literal_expression("2", NULL)
             ),
-            new_binary_op_expression(OP_ADD, 
-                new_numeric_literal_expression("3"),
-                new_numeric_literal_expression("4")
+            new_binary_op_expression(OP_ADD, NULL, 
+                new_numeric_literal_expression("3", NULL),
+                new_numeric_literal_expression("4", NULL)
             )
         ), verbose)) all_passed = false;
 
@@ -98,82 +98,82 @@ bool expression_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("time(1,2", true, NULL, verbose)) all_passed = false;
 
     if (!use_case_passes("time()", false,
-        new_binary_op_expression(OP_FUNC_CALL,
-            new_identifier_expression("time"),
-            new_list_data_expression(list_of(containing_expressions, 0))
+        new_binary_op_expression(OP_FUNC_CALL, NULL,
+            new_identifier_expression("time", NULL),
+            new_list_data_expression(list_of(containing_expressions, 0), NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("round(3.14)", false,
-        new_binary_op_expression(OP_FUNC_CALL,
-            new_identifier_expression("round"),
+        new_binary_op_expression(OP_FUNC_CALL, NULL,
+            new_identifier_expression("round", NULL),
             new_list_data_expression(list_of(containing_expressions, 1,
-                new_numeric_literal_expression("3.14")
-            ))
+                new_numeric_literal_expression("3.14", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("round(3.14, 2)", false,
-        new_binary_op_expression(OP_FUNC_CALL,
-            new_identifier_expression("round"),
+        new_binary_op_expression(OP_FUNC_CALL, NULL,
+            new_identifier_expression("round", NULL),
             new_list_data_expression(list_of(containing_expressions, 2,
-                new_numeric_literal_expression("3.14"),
-                new_numeric_literal_expression("2")
-            ))
+                new_numeric_literal_expression("3.14", NULL),
+                new_numeric_literal_expression("2", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("pow(8, 2) + 1", false,
-        new_binary_op_expression(OP_ADD,
-            new_binary_op_expression(OP_FUNC_CALL,
-                new_identifier_expression("pow"),
+        new_binary_op_expression(OP_ADD, NULL,
+            new_binary_op_expression(OP_FUNC_CALL, NULL,
+                new_identifier_expression("pow", NULL),
                 new_list_data_expression(list_of(containing_expressions, 2,
-                    new_numeric_literal_expression("8"),
-                    new_numeric_literal_expression("2")
-                ))
+                    new_numeric_literal_expression("8", NULL),
+                    new_numeric_literal_expression("2", NULL)
+                ), NULL)
             ),
-            new_numeric_literal_expression("1")
+            new_numeric_literal_expression("1", NULL)
     ), verbose)) all_passed = false;
 
     if (!use_case_passes("a == 0", false,
-        new_binary_op_expression(OP_EQUAL,
-            new_identifier_expression("a"),
-            new_numeric_literal_expression("0")
+        new_binary_op_expression(OP_EQUAL, NULL,
+            new_identifier_expression("a", NULL),
+            new_numeric_literal_expression("0", NULL)
         ), verbose)) all_passed = false;
     
     if (!use_case_passes("iif(left(a, 1) == '0', 'number', 'letter')", false,
-        new_binary_op_expression(OP_FUNC_CALL,
-            new_identifier_expression("iif"),
+        new_binary_op_expression(OP_FUNC_CALL, NULL,
+            new_identifier_expression("iif", NULL),
             new_list_data_expression(list_of(containing_expressions, 3, 
-                new_binary_op_expression(OP_EQUAL, 
-                    new_binary_op_expression(OP_FUNC_CALL,
-                        new_identifier_expression("left"),
+                new_binary_op_expression(OP_EQUAL, NULL, 
+                    new_binary_op_expression(OP_FUNC_CALL, NULL,
+                        new_identifier_expression("left", NULL),
                         new_list_data_expression(list_of(containing_expressions, 2, 
-                            new_identifier_expression("a"),
-                            new_numeric_literal_expression("1")
-                        ))),
-                    new_string_literal_expression("0")),
-                new_string_literal_expression("number"),
-                new_string_literal_expression("letter")
-            ))
+                            new_identifier_expression("a", NULL),
+                            new_numeric_literal_expression("1", NULL)
+                        ), NULL)),
+                    new_string_literal_expression("0", NULL)),
+                new_string_literal_expression("number", NULL),
+                new_string_literal_expression("letter", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
     
     if (!use_case_passes("a ? b : c", false,
-        new_binary_op_expression(OP_SHORT_IF,
-            new_identifier_expression("a"),
+        new_binary_op_expression(OP_SHORT_IF, NULL,
+            new_identifier_expression("a", NULL),
             new_list_data_expression(list_of(containing_expressions, 2,
-                new_identifier_expression("b"),
-                new_identifier_expression("c")
-            ))
+                new_identifier_expression("b", NULL),
+                new_identifier_expression("c", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("a > b ? c : d", false,
-        new_binary_op_expression(OP_SHORT_IF,
-            new_binary_op_expression(OP_GREATER_THAN,
-                new_identifier_expression("a"),
-                new_identifier_expression("b")
+        new_binary_op_expression(OP_SHORT_IF, NULL,
+            new_binary_op_expression(OP_GREATER_THAN, NULL,
+                new_identifier_expression("a", NULL),
+                new_identifier_expression("b", NULL)
             ),
             new_list_data_expression(list_of(containing_expressions, 2,
-                new_identifier_expression("c"),
-                new_identifier_expression("d")
-            ))
+                new_identifier_expression("c", NULL),
+                new_identifier_expression("d", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("a ? b",     true, NULL, verbose)) all_passed = false;
@@ -183,123 +183,123 @@ bool expression_parser_self_diagnostics(bool verbose) {
     // we need left-to-right association, not right-to-left
     // we want "1+2+3" => "(1+2)+3", not "1+(2+3)"
     if (!use_case_passes("1+2+3", false,
-        new_binary_op_expression(OP_ADD,
-            new_binary_op_expression(OP_ADD, 
-                new_numeric_literal_expression("1"),
-                new_numeric_literal_expression("2")
+        new_binary_op_expression(OP_ADD, NULL,
+            new_binary_op_expression(OP_ADD, NULL, 
+                new_numeric_literal_expression("1", NULL),
+                new_numeric_literal_expression("2", NULL)
             ),
-            new_numeric_literal_expression("3")
+            new_numeric_literal_expression("3", NULL)
         ), verbose)) all_passed = false;
 
     // important difference: "(8-4)-2" = 2, while "8-(4-2)" = 6
     if (!use_case_passes("8-4-2", false,
-        new_binary_op_expression(OP_SUBTRACT,
-            new_binary_op_expression(OP_SUBTRACT, 
-                new_numeric_literal_expression("8"),
-                new_numeric_literal_expression("4")
+        new_binary_op_expression(OP_SUBTRACT, NULL,
+            new_binary_op_expression(OP_SUBTRACT, NULL, 
+                new_numeric_literal_expression("8", NULL),
+                new_numeric_literal_expression("4", NULL)
             ),
-            new_numeric_literal_expression("2")
+            new_numeric_literal_expression("2", NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("team.leader.name", false,
-        new_binary_op_expression(OP_MEMBER,
-            new_binary_op_expression(OP_MEMBER,
-                new_identifier_expression("team"),
-                new_identifier_expression("leader")
+        new_binary_op_expression(OP_MEMBER, NULL,
+            new_binary_op_expression(OP_MEMBER, NULL,
+                new_identifier_expression("team", NULL),
+                new_identifier_expression("leader", NULL)
             ),
-            new_identifier_expression("name")
+            new_identifier_expression("name", NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("persons[2][3]", false,
-        new_binary_op_expression(OP_ARRAY_SUBSCRIPT,
-            new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
-                new_identifier_expression("persons"),
-                new_numeric_literal_expression("2")
+        new_binary_op_expression(OP_ARRAY_SUBSCRIPT, NULL,
+            new_binary_op_expression(OP_ARRAY_SUBSCRIPT, NULL, 
+                new_identifier_expression("persons", NULL),
+                new_numeric_literal_expression("2", NULL)
             ),
-            new_numeric_literal_expression("3")
+            new_numeric_literal_expression("3", NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("person.children[2]", false,
-        new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
-            new_binary_op_expression(OP_MEMBER,
-                new_identifier_expression("person"),
-                new_identifier_expression("children")
+        new_binary_op_expression(OP_ARRAY_SUBSCRIPT, NULL, 
+            new_binary_op_expression(OP_MEMBER, NULL,
+                new_identifier_expression("person", NULL),
+                new_identifier_expression("children", NULL)
             ),
-            new_numeric_literal_expression("2")
+            new_numeric_literal_expression("2", NULL)
         ) , verbose)) all_passed = false;
 
     if (!use_case_passes("obj.method('hi')", false,
-        new_binary_op_expression(OP_FUNC_CALL,
-            new_binary_op_expression(OP_MEMBER, 
-                new_identifier_expression("obj"),
-                new_identifier_expression("method")
+        new_binary_op_expression(OP_FUNC_CALL, NULL,
+            new_binary_op_expression(OP_MEMBER, NULL, 
+                new_identifier_expression("obj", NULL),
+                new_identifier_expression("method", NULL)
             ),
             new_list_data_expression(list_of(containing_expressions, 1,
-                new_string_literal_expression("hi")
-            ))
+                new_string_literal_expression("hi", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
     
     if (!use_case_passes("methods[2]('hi')", false,
-        new_binary_op_expression(OP_FUNC_CALL,
-            new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
-                new_identifier_expression("methods"),
-                new_numeric_literal_expression("2")
+        new_binary_op_expression(OP_FUNC_CALL, NULL,
+            new_binary_op_expression(OP_ARRAY_SUBSCRIPT, NULL, 
+                new_identifier_expression("methods", NULL),
+                new_numeric_literal_expression("2", NULL)
             ),
             new_list_data_expression(list_of(containing_expressions, 1,
-                new_string_literal_expression("hi")
-            ))
+                new_string_literal_expression("hi", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
     
     if (!use_case_passes("handles[2].open('text')", false,
-        new_binary_op_expression(OP_FUNC_CALL,
-            new_binary_op_expression(OP_MEMBER, 
-                new_binary_op_expression(OP_ARRAY_SUBSCRIPT, 
-                    new_identifier_expression("handles"),
-                    new_numeric_literal_expression("2")
+        new_binary_op_expression(OP_FUNC_CALL, NULL,
+            new_binary_op_expression(OP_MEMBER, NULL, 
+                new_binary_op_expression(OP_ARRAY_SUBSCRIPT, NULL, 
+                    new_identifier_expression("handles", NULL),
+                    new_numeric_literal_expression("2", NULL)
                 ),
-                new_identifier_expression("open")
+                new_identifier_expression("open", NULL)
             ),
             new_list_data_expression(list_of(containing_expressions, 1,
-                new_string_literal_expression("text")
-            ))
+                new_string_literal_expression("text", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
     
     if (!use_case_passes("a = [ 1, 2, 3 ]", false,
-        new_binary_op_expression(OP_ASSIGNMENT,
-            new_identifier_expression("a"),
+        new_binary_op_expression(OP_ASSIGNMENT, NULL,
+            new_identifier_expression("a", NULL),
             new_list_data_expression(list_of(containing_expressions, 3,
-                new_numeric_literal_expression("1"),
-                new_numeric_literal_expression("2"),
-                new_numeric_literal_expression("3")
-            ))
+                new_numeric_literal_expression("1", NULL),
+                new_numeric_literal_expression("2", NULL),
+                new_numeric_literal_expression("3", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("a = [ 1, 2, 3, ]", false, // notice extra comma
-        new_binary_op_expression(OP_ASSIGNMENT,
-            new_identifier_expression("a"),
+        new_binary_op_expression(OP_ASSIGNMENT, NULL,
+            new_identifier_expression("a", NULL),
             new_list_data_expression(list_of(containing_expressions, 3,
-                new_numeric_literal_expression("1"),
-                new_numeric_literal_expression("2"),
-                new_numeric_literal_expression("3")
-            ))
+                new_numeric_literal_expression("1", NULL),
+                new_numeric_literal_expression("2", NULL),
+                new_numeric_literal_expression("3", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("a = { key1:1, key2:2 }", false,
-        new_binary_op_expression(OP_ASSIGNMENT,
-            new_identifier_expression("a"),
+        new_binary_op_expression(OP_ASSIGNMENT, NULL,
+            new_identifier_expression("a", NULL),
             new_dict_data_expression(dict_of(containing_expressions, 2,
-                "key1", new_numeric_literal_expression("1"),
-                "key2", new_numeric_literal_expression("2")
-            ))
+                "key1", new_numeric_literal_expression("1", NULL),
+                "key2", new_numeric_literal_expression("2", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
 
     if (!use_case_passes("a = { key1:1, key2:2, }", false, // note extra comma
-        new_binary_op_expression(OP_ASSIGNMENT,
-            new_identifier_expression("a"),
+        new_binary_op_expression(OP_ASSIGNMENT, NULL,
+            new_identifier_expression("a", NULL),
             new_dict_data_expression(dict_of(containing_expressions, 2,
-                "key1", new_numeric_literal_expression("1"),
-                "key2", new_numeric_literal_expression("2")
-            ))
+                "key1", new_numeric_literal_expression("1", NULL),
+                "key2", new_numeric_literal_expression("2", NULL)
+            ), NULL)
         ), verbose)) all_passed = false;
 
     return all_passed;

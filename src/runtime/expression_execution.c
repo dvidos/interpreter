@@ -34,7 +34,7 @@ static failable_variant expression_function_callable_executor(list *positional_a
 
 void initialize_expression_execution() {
     // used for inc/dec operations
-    one = new_numeric_literal_expression("1");
+    one = new_numeric_literal_expression("1", NULL);
 }
 
 failable_variant execute_expression(expression *e, exec_context *ctx) {
