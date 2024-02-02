@@ -12,6 +12,7 @@ FILES = \
 	src/utils/containers/list.c \
 	src/utils/containers/stack.c \
 	src/utils/containers/queue.c \
+	src/utils/containers/pair.c \
 	src/utils/containers/contained_item.c \
 	src/utils/containers/containers_tests.c \
 	\
