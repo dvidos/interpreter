@@ -24,7 +24,7 @@ log("4 + 5 = ", obj.sum(4, 5));
 
 log('Calling method with "this" keyword');
 log("age is ", obj.age()); 
-@
+// @
 
 strlen('abc');
 multiply(2, 3);

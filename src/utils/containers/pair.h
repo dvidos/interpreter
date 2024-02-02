@@ -19,5 +19,6 @@ const char *pair_to_string(pair *p, const char *separator);
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(pair);
 #define failed_pair(inner, fmt, ...)  __failed_pair(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
+extern contained_item *containing_pairs;
 
 #endif

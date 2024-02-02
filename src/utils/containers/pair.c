@@ -65,14 +65,18 @@ bool pairs_are_equal(pair *a, pair *b) {
 const char *pair_to_string(pair *p, const char *separator) {
     str_builder *sb = new_str_builder();
 
-    if (p->left_item != NULL && p->left_item->to_string != NULL)
+    if (p->left == NULL)
+        str_builder_cat(sb, "(null)");
+    else if (p->left_item != NULL && p->left_item->to_string != NULL)
         str_builder_cat(sb, p->left_item->to_string(p->left));
     else
         str_builder_catf(sb, "@0x%p", p->left);
 
     str_builder_cat(sb, separator);
 
-    if (p->right_item != NULL && p->right_item->to_string != NULL)
+    if (p->right == NULL)
+        str_builder_cat(sb, "(null)");
+    else if (p->right_item != NULL && p->right_item->to_string != NULL)
         str_builder_cat(sb, p->right_item->to_string(p->right));
     else
         str_builder_catf(sb, "@0x%p", p->right);
@@ -80,4 +84,17 @@ const char *pair_to_string(pair *p, const char *separator) {
     return str_builder_charptr(sb);
 }
 
+
+const char *default_pair_to_string(pair *p) {
+    return pair_to_string(p, "-");
+}
+
+
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(pair);
+
+contained_item *containing_pairs = &(contained_item){
+    .type_name = "pair",
+    .are_equal = (are_equal_func)pairs_are_equal,
+    .to_string = (to_string_func)default_pair_to_string,
+    .hash      = NULL
+};

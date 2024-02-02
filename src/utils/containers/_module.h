@@ -7,6 +7,7 @@
 #include "dict.h"
 #include "stack.h"
 #include "queue.h"
+#include "pair.h"
 
 #include "containers_tests.h"
 

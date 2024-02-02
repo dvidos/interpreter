@@ -7,7 +7,6 @@
 #include "expression_parser.h"
 #include "statement_parser.h"
 #include "../lexer/_module.h"
-#include "../entities/operator.h"
 
 /*
     The shunting yard algorithm, for parsing operators according to precedence,
@@ -34,7 +33,7 @@ static iterator *tokens_iterator;
 static token *last_accepted_token = NULL;
 
 void initialize_expression_parser() {
-    operators_stack = new_stack(containing_operators);
+    operators_stack = new_stack(containing_pairs);
     expressions_stack = new_stack(containing_expressions);
     last_accepted_token = NULL;
 }
@@ -88,15 +87,18 @@ static inline expression *make_operand_expression(token *token) {
     return NULL;
 }
 
-static inline void push_operator(operator_type op, token *token) {
-    stack_push(operators_stack, new_operator(op, token));
+static inline void push_operator_pair(operator_type op, token *token) {
+    stack_push(operators_stack, new_pair(
+        containing_operator_types, (void *)op, 
+        containing_tokens, token
+    ));
 }
 
-static inline operator *peek_top_operator() {
+static inline pair *peek_top_operator_pair() {
     return stack_peek(operators_stack);
 }
 
-static inline operator *pop_top_operator() {
+static inline pair *pop_top_operator_pair() {
     return stack_pop(operators_stack);
 }
 
@@ -127,9 +129,9 @@ static void print_expressions_stack(FILE *stream, char *prefix) {
 // --------------------------------------------
 
 static void make_one_expression_from_top_operator() {
-    operator *op = pop_top_operator();
-    operator_type op_type = operator_get_type(op);
-    token *token = operator_get_token(op);
+    pair *p = pop_top_operator_pair();
+    operator_type op_type = (operator_type)pair_get_left(p);
+    token *token = pair_get_right(p);
     op_type_position pos = operator_type_position(op_type);
     expression *new_expr;
 
@@ -154,8 +156,8 @@ static void create_expressions_for_higher_operators_than(operator_type new_op) {
     // so that 8-4-2 => (8-4)-2 and not 8-(4-2).
     int new_precedence = operator_type_precedence(new_op);
     while (true) {
-        operator *top_op = peek_top_operator();
-        operator_type top_type = operator_get_type(top_op);
+        pair *top_pair = peek_top_operator_pair();
+        operator_type top_type = (operator_type)pair_get_left(top_pair);
         int top_precedence = operator_type_precedence(top_type);
         bool top_is_unary = operator_type_is_unary(top_type);
         op_type_associativity top_assoc = operator_type_associativity(top_type);
@@ -270,7 +272,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 
     // prefix operators come before the operand
     if (accept_positioned_operator(PREFIX)) {
-        push_operator(make_positioned_operator(accepted(), PREFIX), accepted());
+        push_operator_pair(make_positioned_operator(accepted(), PREFIX), accepted());
         return ok();
     }
 
@@ -361,7 +363,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     if (accept_positioned_operator(POSTFIX)) {
         operator_type op = make_positioned_operator(accepted(), POSTFIX);
         create_expressions_for_higher_operators_than(op);
-        push_operator(op, accepted());
+        push_operator_pair(op, accepted());
         return ok();
     }
 
@@ -372,7 +374,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         if (arg_expressions.failed)
             return failed(&arg_expressions, NULL);
         create_expressions_for_higher_operators_than(OP_FUNC_CALL);
-        push_operator(OP_FUNC_CALL, initial_token);
+        push_operator_pair(OP_FUNC_CALL, initial_token);
         push_expression(new_list_data_expression(arg_expressions.result, initial_token));
         *state = HAVE_OPERAND;
         return ok();
@@ -383,7 +385,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         failable_expression if_parts = parse_shorthand_if_pair(verbose);
         if (if_parts.failed) return failed(&if_parts, NULL);
         create_expressions_for_higher_operators_than(OP_SHORT_IF);
-        push_operator(OP_SHORT_IF, initial_token);
+        push_operator_pair(OP_SHORT_IF, initial_token);
         push_expression(if_parts.result);
         *state = HAVE_OPERAND;
         return ok();
@@ -395,7 +397,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
         failable_expression subscript = parse_expression(tokens_iterator, CM_RSQBRACKET, verbose);
         if (subscript.failed) return failed(&subscript, NULL);
         create_expressions_for_higher_operators_than(OP_ARRAY_SUBSCRIPT);
-        push_operator(OP_ARRAY_SUBSCRIPT, initial_token);
+        push_operator_pair(OP_ARRAY_SUBSCRIPT, initial_token);
         push_expression(subscript.result);
         *state = HAVE_OPERAND;
         return ok();
@@ -405,7 +407,7 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     if (accept_positioned_operator(INFIX)) {
         operator_type op = make_positioned_operator(accepted(), INFIX);
         create_expressions_for_higher_operators_than(op);
-        push_operator(op, accepted());
+        push_operator_pair(op, accepted());
         *state = WANT_OPERAND;
         return ok();
     }
@@ -457,7 +459,7 @@ failable_expression parse_expression(iterator *tokens, completion_mode completio
         print_debug_information("parse_expression() starting", state);
         
     failable state_handling;
-    push_operator(OP_SENTINEL, NULL);
+    push_operator_pair(OP_SENTINEL, NULL);
 
     while (state != FINISHED) {
 
@@ -478,8 +480,8 @@ failable_expression parse_expression(iterator *tokens, completion_mode completio
             print_debug_information("parse_expression() step", state);
     }
 
-    operator *sentinel = pop_top_operator();
-    if (operator_get_type(sentinel) != OP_SENTINEL)
+    pair *sentinel_pair = pop_top_operator_pair();
+    if ((operator_type)pair_get_left(sentinel_pair) != OP_SENTINEL)
         return failed_expression(NULL, "Was expecting SENTINEL at the top of the queue");
 
     expression *result = pop_top_expression();
