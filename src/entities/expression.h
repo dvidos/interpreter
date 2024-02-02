@@ -17,9 +17,8 @@ expression *new_identifier_expression(const char *data, token *token);
 expression *new_numeric_literal_expression(const char *data, token *token);
 expression *new_string_literal_expression(const char *data, token *token);
 expression *new_boolean_literal_expression(const char *data, token *token);
-
-expression *new_unary_op_expression(operator_type op, token *token, expression *operand);
-expression *new_binary_op_expression(operator_type op, token *token, expression *left, expression *right);
+expression *new_unary_expression(operator_type op, token *token, expression *operand);
+expression *new_binary_expression(operator_type op, token *token, expression *left, expression *right);
 expression *new_list_data_expression(list *data, token *token);
 expression *new_dict_data_expression(dict *data, token *token);
 expression *new_func_decl_expression(list *arg_names, list *statements, token *token);

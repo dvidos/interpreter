@@ -135,12 +135,12 @@ static void make_one_expression_from_top_operator() {
 
     if (pos == PREFIX || pos == POSTFIX) {
         expression *operand1 = pop_top_expression();
-        new_expr = new_unary_op_expression(op_type, token, operand1);
+        new_expr = new_unary_expression(op_type, token, operand1);
     } else if (pos == INFIX) {
         // note that we pop the second first, as it was pushed last
         expression *operand2 = pop_top_expression();
         expression *operand1 = pop_top_expression();
-        new_expr = new_binary_op_expression(op_type, token, operand1, operand2);
+        new_expr = new_binary_expression(op_type, token, operand1, operand2);
     }
     
     push_expression(new_expr);

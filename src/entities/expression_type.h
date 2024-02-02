@@ -10,7 +10,7 @@ typedef enum expression_type {
     ET_BINARY_OP,  // e.g. !validated
     ET_LIST_DATA,  // e.g. fruits = ['apple', 'orange'];
     ET_DICT_DATA,  // e.g. person = { name:"John", age:99 };
-    ET_FUNC_DECL,  // e.g. person.fullname = function() { return this.first + " " + this.last; }
+    ET_FUNC_DECL,  // e.g. cube = function(a) { return a * a * a; }
 } expression_type;
 
 

@@ -15,8 +15,8 @@ struct expression {
         list *list_;
         dict *dict_;
         struct operation {
-            struct expression *op0;
-            struct expression *op1;
+            struct expression *operand1;
+            struct expression *operand2;
         } operation;
         struct func {
             list *arg_names;
@@ -65,16 +65,16 @@ expression *new_boolean_literal_expression(const char *data, token *token) {
     return e;
 }
 
-expression *new_unary_op_expression(operator_type op, token *token, expression *operand) {
+expression *new_unary_expression(operator_type op, token *token, expression *operand) {
     expression *e = new_expression(ET_UNARY_OP, token, op);
-    e->per_type.operation.op0 = operand;
+    e->per_type.operation.operand1 = operand;
     return e;
 }
 
-expression *new_binary_op_expression(operator_type op, token *token, expression *left, expression *right) {
+expression *new_binary_expression(operator_type op, token *token, expression *left, expression *right) {
     expression *e = new_expression(ET_BINARY_OP, token, op);
-    e->per_type.operation.op0 = left;
-    e->per_type.operation.op1 = right;
+    e->per_type.operation.operand1 = left;
+    e->per_type.operation.operand2 = right;
     return e;
 }
 
@@ -130,8 +130,8 @@ const char *expression_get_terminal_data(expression *e) {
 
 expression *expression_get_operand(expression *e, int index) {
     switch (index) {
-        case 0: return e->per_type.operation.op0;
-        case 1: return e->per_type.operation.op1;
+        case 0: return e->per_type.operation.operand1;
+        case 1: return e->per_type.operation.operand2;
         default: return 0;
     }
 }
@@ -165,12 +165,12 @@ bool expressions_are_equal(expression *a, expression *b) {
         if (strcmp(a->per_type.terminal_data, b->per_type.terminal_data) != 0)
             return false;
     } else if (a->type == ET_UNARY_OP) {
-        if (!expressions_are_equal(a->per_type.operation.op0, b->per_type.operation.op0))
+        if (!expressions_are_equal(a->per_type.operation.operand1, b->per_type.operation.operand1))
             return false;
     } else if (a->type == ET_BINARY_OP) {
-        if (!expressions_are_equal(a->per_type.operation.op0, b->per_type.operation.op0))
+        if (!expressions_are_equal(a->per_type.operation.operand1, b->per_type.operation.operand1))
             return false;
-        if (!expressions_are_equal(a->per_type.operation.op1, b->per_type.operation.op1))
+        if (!expressions_are_equal(a->per_type.operation.operand2, b->per_type.operation.operand2))
             return false;
     } else if (a->type == ET_LIST_DATA) {
         if (!lists_are_equal(a->per_type.list_, b->per_type.list_))
@@ -196,13 +196,13 @@ const char *expression_to_string(expression *e) {
         str_builder_catf(sb, "BOOL(%s)", e->per_type.terminal_data);
     } else if (e->type == ET_UNARY_OP) {
         str_builder_catf(sb, "%s(", operator_type_to_string(e->op));
-        str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
+        str_builder_cat(sb, expression_to_string(e->per_type.operation.operand1));
         str_builder_catc(sb, ')');
     } else if (e->type == ET_BINARY_OP) {
         str_builder_catf(sb, "%s(", operator_type_to_string(e->op));
-        str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
+        str_builder_cat(sb, expression_to_string(e->per_type.operation.operand1));
         str_builder_cat(sb, ", ");
-        str_builder_cat(sb, expression_to_string(e->per_type.operation.op1));
+        str_builder_cat(sb, expression_to_string(e->per_type.operation.operand2));
         str_builder_catc(sb, ')');
     } else if (e->type == ET_LIST_DATA) {
         str_builder_cat(sb, "LIST(");
