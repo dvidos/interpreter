@@ -29,6 +29,9 @@ static dict *built_in_dict_methods = NULL;
 #define INT_ARG(num)    (num >= list_length(positional_args)) ? 0 : variant_as_int(list_get(positional_args, num))
 #define LIST_ARG(num)   (num >= list_length(positional_args)) ? NULL : variant_as_list(list_get(positional_args, num))
 #define DICT_ARG(num)   (num >= list_length(positional_args)) ? NULL : variant_as_dict(list_get(positional_args, num))
+#define CALL_ARG(num)   (num >= list_length(positional_args)) ? NULL : variant_as_callable(list_get(positional_args, num))
+#define VARNT_ARG(num)  (num >= list_length(positional_args)) ? NULL : list_get(positional_args, num)
+
 #define RET_STR(val)    ok_variant(new_str_variant(val))
 #define RET_INT(val)    ok_variant(new_int_variant(val))
 #define RET_VOID()      ok_variant(new_null_variant())
@@ -163,6 +166,58 @@ static failable_variant built_in_list_add(list *positional_args, dict *named_arg
     list_add(l, item);
     return ok_variant(new_null_variant());
 }
+static failable_variant built_in_list_filter(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    list *l = variant_as_list(this_obj);
+    list *result = new_list(list_contained_item(l));
+    callable *func = CALL_ARG(0);
+    int index = 0;
+    for_list(l, it, void, ptr) {
+        list *func_args = list_of(containing_variants, 3,
+            ptr, new_int_variant(index), this_obj);
+        failable_variant call = callable_call(func, func_args, NULL, NULL, NULL);
+        if (call.failed) return failed_variant(&call, NULL);
+        if (!variant_is_bool(call.result)) 
+            return failed_variant(NULL, "filter requires a function returning boolean");
+        bool passed = variant_as_bool(call.result);
+        if (passed)
+            list_add(result, ptr);
+        index++;
+    }
+    return ok_variant(new_list_variant(result));
+}
+static failable_variant built_in_list_map(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    list *l = variant_as_list(this_obj);
+    list *result = new_list(list_contained_item(l));
+    callable *func = CALL_ARG(0);
+    int index = 0;
+    for_list(l, it, void, ptr) {
+        list *func_args = list_of(containing_variants, 3,
+            ptr, new_int_variant(index), this_obj);
+        failable_variant call = callable_call(func, func_args, NULL, NULL, NULL);
+        if (call.failed) return failed_variant(&call, NULL);
+        list_add(result, call.result);
+        index++;
+    }
+    return ok_variant(new_list_variant(result));
+}
+static failable_variant built_in_list_reduce(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
+    list *l = variant_as_list(this_obj);
+    list *result = new_list(list_contained_item(l));
+    callable *func = CALL_ARG(0);
+    variant *accumulator = VARNT_ARG(1);
+    if (accumulator == NULL)
+        accumulator = new_null_variant();
+    int index = 0;
+    for_list(l, it, void, ptr) {
+        list *func_args = list_of(containing_variants, 4,
+            accumulator, ptr, new_int_variant(index), this_obj);
+        failable_variant new_accum = callable_call(func, func_args, NULL, NULL, NULL);
+        if (new_accum.failed) return failed_variant(&new_accum, NULL);
+        accumulator = new_accum.result;
+        index++;
+    }
+    return ok_variant(new_list_variant(result));
+}
 
 static failable_variant built_in_dict_empty(list *positional_args, dict *named_args, void *callable_data, void *call_data, variant *this_obj) {
     dict *d = variant_as_dict(this_obj);
@@ -217,6 +272,9 @@ void initialize_built_in_funcs_table() {
     BUILT_IN_METHOD(list, add, built_in_list_add);
     BUILT_IN_METHOD(list, empty, built_in_list_empty);
     BUILT_IN_METHOD(list, length, built_in_list_length);
+    BUILT_IN_METHOD(list, filter, built_in_list_filter);
+    BUILT_IN_METHOD(list, map, built_in_list_map);
+    BUILT_IN_METHOD(list, reduce, built_in_list_reduce);
 
     BUILT_IN_METHOD(dict, empty, built_in_dict_empty);
     BUILT_IN_METHOD(dict, length, built_in_dict_length);

@@ -37,6 +37,10 @@ list *list_of(contained_item *contained_item, int items_count, ...) {
     return l;
 }
 
+contained_item *list_contained_item(list *l) {
+    return l->contained_item;
+}
+
 int list_length(list *l) {
     return l->length;
 }

@@ -10,6 +10,7 @@ typedef struct list list;
 
 list *new_list(contained_item *contained_item);
 list *list_of(contained_item *contained_item, int items, ...);
+contained_item *list_contained_item(list *l);
 
 int   list_length(list *l);
 void  list_add(list *l, void *item);
