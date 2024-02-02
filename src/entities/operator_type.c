@@ -118,16 +118,16 @@ bool operator_type_is_unary(operator_type op) {
     return pos == PREFIX || pos == POSTFIX;
 }
 
-const char *operator_type_str(operator_type op) {
+const char *operator_type_to_string(operator_type op) {
     return op_type_infos_per_operator[op].name;
 }
 
-bool operators_are_equal(operator_type a, operator_type b) {
+bool operator_types_are_equal(operator_type a, operator_type b) {
     return a == b;
 }
 
 contained_item *containing_operator_types = &(contained_item){
     .type_name = "operator_type",
-    .are_equal = (are_equal_func)operators_are_equal,
-    .to_string = (to_string_func)operator_type_str
+    .are_equal = (are_equal_func)operator_types_are_equal,
+    .to_string = (to_string_func)operator_type_to_string
 };

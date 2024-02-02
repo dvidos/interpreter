@@ -189,11 +189,11 @@ const char *expression_to_string(expression *e) {
     } else if (e->type == ET_BOOLEAN_LITERAL) {
         str_builder_catf(sb, "BOOL(%s)", e->per_type.terminal_data);
     } else if (e->type == ET_UNARY_OP) {
-        str_builder_catf(sb, "%s(", operator_type_str(e->op));
+        str_builder_catf(sb, "%s(", operator_type_to_string(e->op));
         str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
         str_builder_catc(sb, ')');
     } else if (e->type == ET_BINARY_OP) {
-        str_builder_catf(sb, "%s(", operator_type_str(e->op));
+        str_builder_catf(sb, "%s(", operator_type_to_string(e->op));
         str_builder_cat(sb, expression_to_string(e->per_type.operation.op0));
         str_builder_cat(sb, ", ");
         str_builder_cat(sb, expression_to_string(e->per_type.operation.op1));

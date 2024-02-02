@@ -1,5 +1,5 @@
-#ifndef _OPERATOR_H
-#define _OPERATOR_H
+#ifndef _OPERATOR_TYPE_H
+#define _OPERATOR_TYPE_H
 
 #include "token.h"
 
@@ -78,7 +78,7 @@ int operator_type_precedence(operator_type op);
 op_type_position operator_type_position(operator_type op);
 op_type_associativity operator_type_associativity(operator_type op);
 bool operator_type_is_unary(operator_type op);
-const char *operator_type_str(operator_type op);
+const char *operator_type_to_string(operator_type op);
 
 extern contained_item *containing_operator_types;
 

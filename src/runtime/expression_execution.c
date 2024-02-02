@@ -261,7 +261,7 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             return ok();
 
         } else {
-            return failed(NULL, "operator_type cannot be used as lvalue: %s", operator_type_str(op));
+            return failed(NULL, "operator_type cannot be used as lvalue: %s", operator_type_to_string(op));
         }
         
     } else {
@@ -405,7 +405,7 @@ static failable_variant calculate_unary_operation(operator_type op, variant *val
                 return ok_variant(new_int_variant(~variant_as_int(value)));
             return failed_variant(NULL, "bitwise not only works for int values");
     }
-    return failed_variant(NULL, "Unknown unary operator_type %s", operator_type_str(op));
+    return failed_variant(NULL, "Unknown unary operator_type %s", operator_type_to_string(op));
 }
 
 static failable_variant calculate_binary_operation(operator_type op, variant *v1, variant *v2, exec_context *ctx) {
@@ -513,7 +513,7 @@ static failable_variant calculate_binary_operation(operator_type op, variant *v1
             return ok_variant(list_get(values_pair, passed ? 0 : 1));
     }
 
-    return failed_variant(NULL, "Unknown binary operator_type %s", operator_type_str(op));
+    return failed_variant(NULL, "Unknown binary operator_type %s", operator_type_to_string(op));
 }
 
 static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj) {

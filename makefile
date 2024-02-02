@@ -20,6 +20,7 @@ FILES = \
 	src/utils/file.c \
 	\
 	src/entities/operator_type.c \
+	src/entities/operator.c \
 	src/entities/expression.c \
 	src/entities/statement.c \
 	src/entities/token_type.c \
