@@ -52,12 +52,10 @@ bool run_self_diagnostics(bool verbose) {
     if (!interpreter_self_diagnostics(verbose))
         all_passed = false;
 
-    if (verbose) {
-        printf("Self diagnostics %s\n", all_passed ? "PASSED" : "FAILED");
-    }
-
-    printf("diagnostics %s\n", all_passed ? "PASSED" : "FAILED");
-
+    if (!built_in_self_diagnostics(verbose))
+        all_passed = false;
+    
+    printf("...diagnostics %s\n", all_passed ? "PASSED" : "FAILED");
     return all_passed;
 }
 

@@ -4,6 +4,7 @@
 #include "expression_execution.h"
 #include "statement_execution.h"
 #include "built_in_funcs.h"
+#include "stack_frame.h"
 
 // used for pre/post increment/decrement
 static expression *one = NULL;
@@ -89,7 +90,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
 
     switch (expression_get_type(e)) {
         case ET_IDENTIFIER:
-            variant *v = resolve_symbol(ctx->symbols, data);
+            variant *v = exec_context_resolve_symbol(ctx, data);
             if (v == NULL || variant_is_null(v))
                 return failed_variant(NULL, "identifier not found \"%s\"", data);
             return ok_variant(v);
@@ -220,10 +221,10 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
     expression_type et = expression_get_type(lvalue);
     if (et == ET_IDENTIFIER) {
         const char *name = expression_get_terminal_data(lvalue);
-        if (!symbol_exists(ctx->symbols, name))
-            register_symbol(ctx->symbols, name, rvalue);
+        if (exec_context_symbol_exists(ctx, name))
+            exec_context_update_symbol(ctx, name, rvalue);
         else
-            update_symbol(ctx->symbols, name, rvalue);
+            exec_context_register_symbol(ctx, name, rvalue);
         return ok();
 
     } else if (et == ET_BINARY_OP) {
@@ -519,24 +520,16 @@ static failable_variant calculate_binary_operation(operator_type op, variant *v1
 static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj) {
 
     list *arg_names = expression_get_func_arg_names(expr);
-    if (list_length(positional_args) != list_length(arg_names))
-        return failed_variant(NULL, "expected %d arguments, got %d", list_length(arg_names), list_length(positional_args));
+    if (list_length(positional_args) < list_length(arg_names))
+        return failed_variant(NULL, "expected %d arguments, got only %d", list_length(arg_names), list_length(positional_args));
 
-    symbol_table *local_symbols = new_symbol_table(ctx->symbols);
-    if (positional_args != NULL) {
-        for (int i = 0; i < list_length(positional_args); i++)
-            register_symbol(local_symbols, list_get(arg_names, i), list_get(positional_args, i));
-    }
-    if (named_args != NULL) {
-        for_dict(named_args, keys, str, key)
-            register_symbol(local_symbols, key, dict_get(named_args, key));
-    }
-    // if "this" is NULL, it means there is no object scope.
-    register_symbol(local_symbols, "this", this_obj);
-    ctx->symbols = local_symbols;
-        
+    stack_frame *f = new_stack_frame("expr_func");
+    stack_frame_initialization(f, arg_names, positional_args, named_args, this_obj);
+    exec_context_push_stack_frame(ctx, f);
+
     failable_variant result = execute_statements(expression_get_func_statements(expr), ctx);
+    
+    exec_context_pop_stack_frame(ctx);
 
-    ctx->symbols = local_symbols->parent;
     return result;
 }

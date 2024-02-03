@@ -6,8 +6,10 @@
 
 
 #include "exec_context.h"
+#include "stack_frame.h"
 #include "built_in_funcs.h"
-#include "symbol_table.h"
 #include "statement_execution.h"
+
+#include "built_in_funcs_tests.h"
 
 #endif

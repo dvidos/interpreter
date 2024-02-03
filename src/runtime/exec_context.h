@@ -4,19 +4,32 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "../utils/containers/_module.h"
-#include "symbol_table.h"
+#include "stack_frame.h"
 
 
 struct exec_context {
     bool verbose;
-    symbol_table *symbols;
+    dict *global_symbols;
+    stack *stack_frames;
     // stdin, stdout
     // logger
+    // metrics?
+    // debugger? (breakpoints, etc)
 };
 
 typedef struct exec_context exec_context;
 
 exec_context *new_exec_context(bool verbose);
+
+stack_frame *exec_context_get_curr_stack_frame(exec_context *c);
+failable exec_context_push_stack_frame(exec_context *c, stack_frame *f);
+failable exec_context_pop_stack_frame(exec_context *c);
+
+variant *exec_context_resolve_symbol(exec_context *c, const char *name);
+bool exec_context_symbol_exists(exec_context *c, const char *name);
+failable exec_context_register_symbol(exec_context *c, const char *name, variant *v);
+failable exec_context_update_symbol(exec_context *c, const char *name, variant *v);
+
 
 
 

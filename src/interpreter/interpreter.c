@@ -44,10 +44,10 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
 
     exec_context *ctx = new_exec_context(verbose);
     dict *built_ins = get_built_in_funcs_table();
-    for_dict(external_values, evit, str, var_name)
-        register_symbol(ctx->symbols, var_name, dict_get(external_values, var_name));
-    for_dict(built_ins, biit, str, bi_name)
-        register_symbol(ctx->symbols, bi_name, new_callable_variant(dict_get(built_ins, bi_name)));
+    for_dict(external_values, ev_it, str, var_name)
+        exec_context_register_symbol(ctx, var_name, dict_get(external_values, var_name));
+    for_dict(built_ins, bi_it, str, bltin_name)
+        exec_context_register_symbol(ctx, bltin_name, new_callable_variant(dict_get(built_ins, bltin_name)));
     exec_context_log_reset();
 
     if (verbose)

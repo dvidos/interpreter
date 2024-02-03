@@ -108,17 +108,27 @@ The following built in functions are supported per type:
   * length()
   * add(item)
   * [n] -- retrieves the item
+  * filter(func) -- takes a `func(item, index, list)` callable and returns the filtered items
+  * map(func) -- takes a `func(item, index, list)` callable and returns the mapped items
+  * reduce(func, accum) -- takes a `func(accum, item, index, list)` callable and returns the reduced value
 * dicts
   * empty()
   * length()
   * contains(key)
   * .m -- retrieves the member
+  * keys()  -- returns a list of the keys
+  * values()  -- returns a list of the values
 * strings
   * empty()
   * length()
   * contains(substring)
-  * indexof(substring)
+  * indexOf(substring)
+  * lastIndexOf(substring)
   * substr(start, length)
+  * left(length)
+  * right(length)
+  * startsWith(s)
+  * endsWith(s)
 
 To iterate over a list, use `for`. To iterate over a dict, use a ... ???
 

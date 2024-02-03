@@ -35,10 +35,11 @@ FILES = \
 	src/parser/statement_parser_tests.c \
 	\
 	src/runtime/built_in_funcs.c \
+	src/runtime/built_in_funcs_tests.c \
 	src/runtime/exec_context.c \
 	src/runtime/expression_execution.c \
 	src/runtime/statement_execution.c \
-	src/runtime/symbol_table.c \
+	src/runtime/stack_frame.c \
 	\
 	src/interpreter/interpreter.c \
 	src/interpreter/interpreter_tests.c

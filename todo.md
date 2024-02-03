@@ -1,9 +1,15 @@
 # todo
 
-* extract the various "types" (token type, statement type, expression type, 
-value type) on separate files, to allow better management.
 
-* MUST keep track in expressions or operators of the source file and line.
+* separate the built in functions into separate files, based on the object they attach to.
+* create tests to prove the built in functions
+* fix the context of a function call, we need the current and the global 
+symbol table, not all the functions in between. We may also need the module table. Fix an object for the context (e.g. stack_frame) and stop using the 
+stack of symbol tables.
+* write tests to prove scope visibility and symbol resolution.
+
+* find a way to make `foreach()` iterators, and allow scripted objects
+to expose iterators behavior. For example to expose reset/curr/move.
 
 * create built-in methods for the built-in types. See OP_MEMBER execution.
   * list: add, length, indexof, to_string
@@ -47,6 +53,9 @@ keeping track of variables and memory, ala Rust.
 
 # done!
 
+* extract the various "types" (token type, statement type, expression type, 
+value type) on separate files, to allow better management.
+* MUST keep track in expressions or operators of the source file and line.
 * improve the failable() with nesting
 * make calling user functions and user methods possible.
 * symbol tables should contain info about variable type or function type, flags etc.

@@ -104,7 +104,7 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
     } else if (s_type == ST_FUNCTION) {
         // this is a statement function, hence a named function. Register to symbols
         const char *name = statement_get_function_name(stmt);
-        register_symbol(ctx->symbols, name, new_callable_variant(new_callable(
+        exec_context_register_symbol(ctx, name, new_callable_variant(new_callable(
             name,
             (callable_handler *)statement_function_callable_executor,
             stmt
@@ -170,23 +170,16 @@ static failable_variant execute_statements_in_loop(expression *pre_condition, li
 failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, statement *stmt, exec_context *ctx) {
 
     list *arg_names = statement_get_function_arg_names(stmt);
-    if (list_length(positional_args) != list_length(arg_names))
+    if (list_length(positional_args) < list_length(arg_names))
         return failed_variant(NULL, "expected %d arguments, got %d", list_length(arg_names), list_length(positional_args));
 
-    symbol_table *local_symbols = new_symbol_table(ctx->symbols);
-    if (positional_args != NULL) {
-        for (int i = 0; i < list_length(positional_args); i++)
-            register_symbol(local_symbols, list_get(arg_names, i), list_get(positional_args, i));
-    }
-    if (named_args != NULL) {
-        for_dict(named_args, keys, str, key)
-            register_symbol(local_symbols, key, dict_get(named_args, key));
-    }
-    ctx->symbols = local_symbols;
-        
+    stack_frame *f = new_stack_frame("statement_func");
+    stack_frame_initialization(f, arg_names, positional_args, named_args, NULL);
+    exec_context_push_stack_frame(ctx, f);
+    
     failable_variant result = execute_statements(statement_get_statements_body(stmt, false), ctx);
 
-    ctx->symbols = local_symbols->parent;
+    exec_context_pop_stack_frame(ctx);
     return result;
 }
 
