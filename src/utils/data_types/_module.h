@@ -3,8 +3,9 @@
 
 #include <stdbool.h>
 #include "variant.h"
-#include "str.h"
 #include "callable.h"
+#include "exec_context.h"
+#include "stack_frame.h"
 
 bool variant_self_diagnostics();
 

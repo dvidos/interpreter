@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "../utils/str.h"
 #include "../utils/str_builder.h"
 #include "../utils/containers/_module.h"
 #include "statement.h"

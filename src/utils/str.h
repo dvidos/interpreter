@@ -1,7 +1,7 @@
 #ifndef _STR_H
 #define _STR_H
 
-#include "../containers/_module.h"
+#include "containers/_module.h"
 
 
 typedef const char str;

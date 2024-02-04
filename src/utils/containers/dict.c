@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include "../str.h"
 #include "../str_builder.h"
 #include "../data_types/_module.h"
 #include "dict.h"

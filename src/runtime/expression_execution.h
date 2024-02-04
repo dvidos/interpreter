@@ -4,7 +4,6 @@
 #include "../utils/data_types/_module.h"
 #include "../utils/containers/_module.h"
 #include "../entities/_module.h"
-#include "exec_context.h"
 
 
 void initialize_expression_execution();

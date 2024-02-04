@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "stack_frame.h"
-#include "../utils/containers/_module.h"
+#include "../containers/_module.h"
+#include "../str.h"
 
 
 struct stack_frame {

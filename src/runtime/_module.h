@@ -4,9 +4,6 @@
 
 #include "../utils/containers/_module.h"
 
-
-#include "exec_context.h"
-#include "stack_frame.h"
 #include "built_in_funcs.h"
 #include "statement_execution.h"
 

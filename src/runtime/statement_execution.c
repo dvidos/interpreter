@@ -4,14 +4,14 @@
 #include "../utils/data_types/_module.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
-#include "exec_context.h"
+
 
 static failable_bool check_condition(expression *condition, exec_context *ctx);
 static failable_variant execute_single_statement(statement *stmt, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return);
 static failable_variant execute_statements_once(list *statements, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return);
 static failable_variant execute_statements_in_loop(expression *condition, list *statements, expression *next, exec_context *ctx, bool *should_return);
 
-failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, statement *stmt, exec_context *ctx);
+failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx);
 
 
 // public entry point
@@ -106,7 +106,7 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
         const char *name = statement_get_function_name(stmt);
         exec_context_register_symbol(ctx, name, new_callable_variant(new_callable(
             name,
-            (callable_handler *)statement_function_callable_executor,
+            statement_function_callable_executor,
             stmt
         )));
     } else {
@@ -167,8 +167,9 @@ static failable_variant execute_statements_in_loop(expression *pre_condition, li
 }
 
 
-failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, statement *stmt, exec_context *ctx) {
+failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
 
+    statement *stmt = (statement *)callable_data;
     list *arg_names = statement_get_function_arg_names(stmt);
     if (list_length(positional_args) < list_length(arg_names))
         return failed_variant(NULL, "expected %d arguments, got %d", list_length(arg_names), list_length(positional_args));

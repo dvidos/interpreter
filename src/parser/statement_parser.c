@@ -1,4 +1,5 @@
 #include <string.h>
+#include "../utils/str.h"
 #include "../lexer/_module.h"
 #include "expression_parser.h"
 #include "statement_parser.h"

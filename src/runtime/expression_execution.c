@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
+#include "../utils/str.h"
 #include "../utils/str_builder.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
 #include "built_in_funcs.h"
-#include "stack_frame.h"
 
 // used for pre/post increment/decrement
 static expression *one = NULL;
@@ -29,7 +29,7 @@ static failable_variant calculate_unary_operation(operator_type op, variant *val
 static failable_variant calculate_binary_operation(operator_type op, variant *v1, variant *v2, exec_context *ctx);
 static failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant *v2);
 
-static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj);
+static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx);
 
 
 
@@ -162,7 +162,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             // merely creates and returns a callable variant
             return ok_variant(new_callable_variant(new_callable(
                 "(user nameless expression function)",
-                (callable_handler *)expression_function_callable_executor,
+                expression_function_callable_executor,
                 e
             )));
     }
@@ -378,7 +378,7 @@ static failable_variant make_function_call(expression *callable_expr, expression
     if (args_retrieval.failed) return failed_variant(&args_retrieval, "error retrieving arguments");
     list *arg_values = variant_as_list(args_retrieval.result);
 
-    return callable_call(c, arg_values, NULL, ctx, this_value);
+    return callable_call(c, arg_values, NULL, this_value, ctx);
 }
 
 static failable_variant calculate_unary_operation(operator_type op, variant *value, exec_context *ctx) {
@@ -517,7 +517,14 @@ static failable_variant calculate_binary_operation(operator_type op, variant *v1
     return failed_variant(NULL, "Unknown binary operator_type %s", operator_type_to_string(op));
 }
 
-static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, expression *expr, exec_context *ctx, variant *this_obj) {
+static failable_variant expression_function_callable_executor(
+    list *positional_args, 
+    dict *named_args, 
+    void *callable_data, 
+    variant *this_obj,
+    exec_context *ctx
+) {
+    expression *expr = (expression *)callable_data;
 
     list *arg_names = expression_get_func_arg_names(expr);
     if (list_length(positional_args) < list_length(arg_names))
