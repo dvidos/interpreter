@@ -52,21 +52,11 @@ static void failable_print_reverse(void *some_failable) {
     failable_print_reverse(f->inner);
 
     const char *basename = strrchr(f->file, '/') == NULL ? f->file : strrchr(f->file, '/') + 1;
-    if (f->err_msg == NULL)
-        printf("    %s(), at %s:%d\n", f->func, basename, f->line);
-    else
-        printf("    %s() -> \"%s\", at %s:%d\n", f->func, f->err_msg, basename, f->line);
+    const char *msg = (f->err_msg == NULL) ? "" : f->err_msg;
+    printf("    %s() %s at %s:%d\n", f->func, msg, basename, f->line);
 }
 
 void failable_print(void *some_failable) {
-    // failable *f = (failable *)some_failable;
-    // while (f != NULL) {
-    //     const char *basename = strrchr(f->file, '/') == NULL ? f->file : strrchr(f->file, '/') + 1;
-    //     if (f->err_msg == NULL)
-    //         printf("    %s(), at %s:%d\n", f->func, basename, f->line);
-    //     else
-    //         printf("    %s() -> \"%s\", at %s:%d\n", f->func, f->err_msg, basename, f->line);
-    //     f = f->inner;
-    // }
+    printf("\n");
     failable_print_reverse(some_failable);
 }

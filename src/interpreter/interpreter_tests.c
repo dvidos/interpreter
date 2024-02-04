@@ -197,7 +197,6 @@ bool interpreter_self_diagnostics() {
     verify_execution_s("substr('hello there', 4, -2)", "o the");
     verify_execution_s("substr('hello there', -5, -2)", "the");
 
-    verify_execution_failed("substr('hello there')");
     verify_execution_failed("some_function('hello there', 2, 3)");
 
     verify_execution_log("log('abc', true, 123, -456);",

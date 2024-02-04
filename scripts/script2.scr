@@ -1,11 +1,22 @@
-for (i = 0; i < 50; i++) {
+
+for (i = 0; i < 30; i++) {
     if (i % 3 == 0 && i % 5 == 0)
-        log('Fizz Buzz');
+        output('Fizz Buzz');
     else if (i % 3 == 0)
-        log('Fizz');
+        output('Fizz');
     else if (i % 5 == 0)
-        log('Buzz');
+        output('Buzz');
     else
-        log(i);
+        output(i);
 }
+
+function fibonacci(i) {
+    if (i <= 2) return i;
+    return (fibonacci(i - 1) + fibonacci(i - 2));
+}
+
+for (i = 0; i < 11; i++) {
+    output("Fibonacci of", i, "is", fibonacci(i));
+}
+
 return 0;
