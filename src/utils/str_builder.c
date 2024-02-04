@@ -33,19 +33,19 @@ static void ensure_capacity(str_builder *sb, int len_needed) {
     }
 }
 
-void str_builder_cat(str_builder *sb, const char *str) {
+void str_builder_add(str_builder *sb, const char *str) {
     ensure_capacity(sb, strlen(str));
     strcat(sb->buffer, str);
     sb->length += strlen(str);
 }
 
-void str_builder_catc(str_builder *sb, char chr) {
+void str_builder_addc(str_builder *sb, char chr) {
     ensure_capacity(sb, 1);
     sb->buffer[sb->length++] = chr;
     sb->buffer[sb->length] = '\0';
 }
 
-void str_builder_catf(str_builder *sb, char *fmt, ...) {
+void str_builder_addf(str_builder *sb, char *fmt, ...) {
     char tmp[128];
 
     va_list args;
@@ -53,7 +53,7 @@ void str_builder_catf(str_builder *sb, char *fmt, ...) {
     vsnprintf(tmp, sizeof(tmp), fmt, args);
     va_end(args);
 
-    str_builder_cat(sb, tmp);
+    str_builder_add(sb, tmp);
 }
 
 const char *str_builder_charptr(str_builder *sb) {

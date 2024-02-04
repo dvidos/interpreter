@@ -5,6 +5,17 @@
 #include "stack_frame.h"
 
 
+struct exec_context {
+    bool verbose;
+    dict *global_symbols;
+    stack *stack_frames;
+    // stdin, stdout
+    // logger
+    // metrics?
+    // debugger? (breakpoints, etc)
+};
+
+
 exec_context *new_exec_context(bool verbose) {
     exec_context *c = malloc(sizeof(exec_context));
     c->verbose = verbose;
@@ -99,15 +110,15 @@ void exec_context_log_line(const char *line) {
     if (exec_context_log == NULL)
         exec_context_log = new_str_builder();
 
-    str_builder_cat(exec_context_log, line);
-    str_builder_cat(exec_context_log, "\n");
+    str_builder_add(exec_context_log, line);
+    str_builder_add(exec_context_log, "\n");
 }
 
 void exec_context_log_str(const char *str) {
     if (exec_context_log == NULL)
         exec_context_log = new_str_builder();
 
-    str_builder_cat(exec_context_log, str);
+    str_builder_add(exec_context_log, str);
 }
 
 const char *exec_context_get_log() {

@@ -118,12 +118,12 @@ const char *queue_to_string(queue *q, const char *separator) {
     queue_entry *e = q->exit;
     while (e != NULL) {
         if (e != q->exit)
-            str_builder_cat(sb, separator);
+            str_builder_add(sb, separator);
         
         if (q->contained_item != NULL && q->contained_item->to_string != NULL)
-            str_builder_cat(sb, q->contained_item->to_string(e->item));
+            str_builder_add(sb, q->contained_item->to_string(e->item));
         else
-            str_builder_catf(sb, "@0x%p", e->item);
+            str_builder_addf(sb, "@0x%p", e->item);
         
         e = e->next;
     }

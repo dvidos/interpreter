@@ -66,20 +66,20 @@ const char *pair_to_string(pair *p, const char *separator) {
     str_builder *sb = new_str_builder();
 
     if (p->left == NULL)
-        str_builder_cat(sb, "(null)");
+        str_builder_add(sb, "(null)");
     else if (p->left_item != NULL && p->left_item->to_string != NULL)
-        str_builder_cat(sb, p->left_item->to_string(p->left));
+        str_builder_add(sb, p->left_item->to_string(p->left));
     else
-        str_builder_catf(sb, "@0x%p", p->left);
+        str_builder_addf(sb, "@0x%p", p->left);
 
-    str_builder_cat(sb, separator);
+    str_builder_add(sb, separator);
 
     if (p->right == NULL)
-        str_builder_cat(sb, "(null)");
+        str_builder_add(sb, "(null)");
     else if (p->right_item != NULL && p->right_item->to_string != NULL)
-        str_builder_cat(sb, p->right_item->to_string(p->right));
+        str_builder_add(sb, p->right_item->to_string(p->right));
     else
-        str_builder_catf(sb, "@0x%p", p->right);
+        str_builder_addf(sb, "@0x%p", p->right);
     
     return str_builder_charptr(sb);
 }

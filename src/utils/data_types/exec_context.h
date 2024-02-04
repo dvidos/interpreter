@@ -7,16 +7,6 @@
 #include "stack_frame.h"
 
 
-struct exec_context {
-    bool verbose;
-    dict *global_symbols;
-    stack *stack_frames;
-    // stdin, stdout
-    // logger
-    // metrics?
-    // debugger? (breakpoints, etc)
-};
-
 typedef struct exec_context exec_context;
 
 exec_context *new_exec_context(bool verbose);

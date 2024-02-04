@@ -150,48 +150,48 @@ const char *statement_to_string(statement *s) {
 
     switch (s->type) {
         case ST_EXPRESSION:
-            str_builder_cat(sb, "expr(");
-            str_builder_cat(sb, expression_to_string(s->per_type.expr.expr));
-            str_builder_cat(sb, ")");
+            str_builder_add(sb, "expr(");
+            str_builder_add(sb, expression_to_string(s->per_type.expr.expr));
+            str_builder_add(sb, ")");
             break;
         case ST_IF:
-            str_builder_catf(sb, "if (%s) {\n    ", expression_to_string(s->per_type.if_.condition));
-            str_builder_cat(sb, list_to_string(s->per_type.if_.body_statements, "\n    "));
+            str_builder_addf(sb, "if (%s) {\n    ", expression_to_string(s->per_type.if_.condition));
+            str_builder_add(sb, list_to_string(s->per_type.if_.body_statements, "\n    "));
             if (s->per_type.if_.has_else) {
-                str_builder_cat(sb, "\n} else {\n    ");
-                str_builder_cat(sb, list_to_string(s->per_type.if_.else_body_statements, "\n    "));
+                str_builder_add(sb, "\n} else {\n    ");
+                str_builder_add(sb, list_to_string(s->per_type.if_.else_body_statements, "\n    "));
             }
-            str_builder_cat(sb, "\n}");
+            str_builder_add(sb, "\n}");
             break;
         case ST_WHILE:
-            str_builder_catf(sb, "while (%s) {\n    ", expression_to_string(s->per_type.while_.condition));
-            str_builder_cat(sb, list_to_string(s->per_type.while_.body_statements, "\n    "));
-            str_builder_cat(sb, "\n}");
+            str_builder_addf(sb, "while (%s) {\n    ", expression_to_string(s->per_type.while_.condition));
+            str_builder_add(sb, list_to_string(s->per_type.while_.body_statements, "\n    "));
+            str_builder_add(sb, "\n}");
             break;
         case ST_FOR_LOOP:
-            str_builder_catf(sb, "for (%s; %s; %s) {\n    ",
+            str_builder_addf(sb, "for (%s; %s; %s) {\n    ",
                 expression_to_string(s->per_type.for_.init),
                 expression_to_string(s->per_type.for_.condition),
                 expression_to_string(s->per_type.for_.next));
-            str_builder_cat(sb, list_to_string(s->per_type.for_.body_statements, "\n    "));
-            str_builder_cat(sb, "\n}");
+            str_builder_add(sb, list_to_string(s->per_type.for_.body_statements, "\n    "));
+            str_builder_add(sb, "\n}");
             break;
         case ST_CONTINUE:
-            str_builder_cat(sb, "continue;");
+            str_builder_add(sb, "continue;");
             break;
         case ST_BREAK:
-            str_builder_cat(sb, "break;");
+            str_builder_add(sb, "break;");
             break;
         case ST_RETURN:
-            str_builder_catf(sb, "return (%s);", expression_to_string(s->per_type.return_.value));
+            str_builder_addf(sb, "return (%s);", expression_to_string(s->per_type.return_.value));
             break;
         case ST_FUNCTION:
-            str_builder_catf(sb, "function %s(%s) {\n    ", 
+            str_builder_addf(sb, "function %s(%s) {\n    ", 
                 s->per_type.function.name == NULL ? "(anonymous)": s->per_type.function.name,
                 list_to_string(s->per_type.function.arg_names, ", ")
             );
-            str_builder_cat(sb, list_to_string(s->per_type.function.statements, "\n    "));
-            str_builder_cat(sb, "\n}");
+            str_builder_add(sb, list_to_string(s->per_type.function.statements, "\n    "));
+            str_builder_add(sb, "\n}");
             break;
     }
 

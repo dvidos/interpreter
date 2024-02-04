@@ -187,35 +187,35 @@ const char *expression_to_string(expression *e) {
     str_builder *sb = new_str_builder();
     
     if (e->type == ET_IDENTIFIER) {
-        str_builder_catf(sb, "SYM(\"%s\")", e->per_type.terminal_data);
+        str_builder_addf(sb, "SYM(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_NUMERIC_LITERAL) {
-        str_builder_catf(sb, "NUM(\"%s\")", e->per_type.terminal_data);
+        str_builder_addf(sb, "NUM(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_STRING_LITERAL) {
-        str_builder_catf(sb, "STR(\"%s\")", e->per_type.terminal_data);
+        str_builder_addf(sb, "STR(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_BOOLEAN_LITERAL) {
-        str_builder_catf(sb, "BOOL(%s)", e->per_type.terminal_data);
+        str_builder_addf(sb, "BOOL(%s)", e->per_type.terminal_data);
     } else if (e->type == ET_UNARY_OP) {
-        str_builder_catf(sb, "%s(", operator_type_to_string(e->op));
-        str_builder_cat(sb, expression_to_string(e->per_type.operation.operand1));
-        str_builder_catc(sb, ')');
+        str_builder_addf(sb, "%s(", operator_type_to_string(e->op));
+        str_builder_add(sb, expression_to_string(e->per_type.operation.operand1));
+        str_builder_addc(sb, ')');
     } else if (e->type == ET_BINARY_OP) {
-        str_builder_catf(sb, "%s(", operator_type_to_string(e->op));
-        str_builder_cat(sb, expression_to_string(e->per_type.operation.operand1));
-        str_builder_cat(sb, ", ");
-        str_builder_cat(sb, expression_to_string(e->per_type.operation.operand2));
-        str_builder_catc(sb, ')');
+        str_builder_addf(sb, "%s(", operator_type_to_string(e->op));
+        str_builder_add(sb, expression_to_string(e->per_type.operation.operand1));
+        str_builder_add(sb, ", ");
+        str_builder_add(sb, expression_to_string(e->per_type.operation.operand2));
+        str_builder_addc(sb, ')');
     } else if (e->type == ET_LIST_DATA) {
-        str_builder_cat(sb, "LIST(");
-        str_builder_cat(sb, list_to_string(e->per_type.list_, ", "));
-        str_builder_catc(sb, ')');
+        str_builder_add(sb, "LIST(");
+        str_builder_add(sb, list_to_string(e->per_type.list_, ", "));
+        str_builder_addc(sb, ')');
     } else if (e->type == ET_DICT_DATA) {
-        str_builder_cat(sb, "DICT(");
-        str_builder_cat(sb, dict_to_string(e->per_type.dict_, ": ", ", "));
-        str_builder_cat(sb, ")");
+        str_builder_add(sb, "DICT(");
+        str_builder_add(sb, dict_to_string(e->per_type.dict_, ": ", ", "));
+        str_builder_add(sb, ")");
     } else if (e->type == ET_FUNC_DECL) {
-        str_builder_cat(sb, "FUNC(");
-        str_builder_cat(sb, list_to_string(e->per_type.func.arg_names, ", "));
-        str_builder_catf(sb, "){ (%d statements) }", list_length(e->per_type.func.statements));
+        str_builder_add(sb, "FUNC(");
+        str_builder_add(sb, list_to_string(e->per_type.func.arg_names, ", "));
+        str_builder_addf(sb, "){ (%d statements) }", list_length(e->per_type.func.statements));
     }
 
     return str_builder_charptr(sb);

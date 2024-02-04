@@ -163,12 +163,12 @@ const char *list_to_string(list *l, const char *separator) {
     list_entry *e = l->head;
     while (e != NULL) {
         if (e != l->head)
-            str_builder_cat(sb, separator);
+            str_builder_add(sb, separator);
         
         if (l->contained_item != NULL && l->contained_item->to_string != NULL)
-            str_builder_cat(sb, l->contained_item->to_string(e->item));
+            str_builder_add(sb, l->contained_item->to_string(e->item));
         else
-            str_builder_catf(sb, "@0x%p", e->item);
+            str_builder_addf(sb, "@0x%p", e->item);
         
         e = e->next;
     }

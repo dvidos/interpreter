@@ -234,15 +234,15 @@ const char *dict_to_string(dict *d, const char *key_value_separator, const char 
     iterator *it = dict_keys_iterator(d);
     bool first = true;
     for_iterator(it, const_char, key) {
-        str_builder_cat(sb, first ? "" : entries_separator);
+        str_builder_add(sb, first ? "" : entries_separator);
         first = false;
 
-        str_builder_catf(sb, "%s%s", key, key_value_separator);
+        str_builder_addf(sb, "%s%s", key, key_value_separator);
         void *value = dict_get(d, key);
         if (d->contained_item != NULL && d->contained_item->to_string != NULL)
-            str_builder_cat(sb, d->contained_item->to_string(value));
+            str_builder_add(sb, d->contained_item->to_string(value));
         else
-            str_builder_catf(sb, "@0x%p", value);
+            str_builder_addf(sb, "@0x%p", value);
     }
 
     return str_builder_charptr(sb);

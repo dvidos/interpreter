@@ -106,12 +106,12 @@ const char *stack_to_string(stack *s, const char *separator) {
     stack_entry *e = s->head;
     while (e != NULL) {
         if (e != s->head)
-            str_builder_cat(sb, separator);
+            str_builder_add(sb, separator);
         
         if (s->contained_item != NULL && s->contained_item->to_string != NULL)
-            str_builder_cat(sb, s->contained_item->to_string(e->item));
+            str_builder_add(sb, s->contained_item->to_string(e->item));
         else
-            str_builder_catf(sb, "@0x%p", e->item);
+            str_builder_addf(sb, "@0x%p", e->item);
         
         e = e->next;
     }

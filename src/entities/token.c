@@ -82,9 +82,9 @@ const char *token_to_string(token *t) {
     const char *data = token_get_data(t);
     bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
     
-    str_builder_cat(sb, token_type_str(tt));
+    str_builder_add(sb, token_type_str(tt));
     if (has_data)
-        str_builder_catf(sb, "(\"%s\")", t->data);
+        str_builder_addf(sb, "(\"%s\")", t->data);
     
     return str_builder_charptr(sb);
 }

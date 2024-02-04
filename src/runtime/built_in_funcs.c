@@ -92,9 +92,9 @@ BUILT_IN_CALLABLE(log) {
 
     str_builder_clear(log_line_builder);
     for (int i = 0; i < args_count; i++) {
-        str_builder_cat(log_line_builder, variant_to_string(list_get(positional_args, i)));
+        str_builder_add(log_line_builder, variant_to_string(list_get(positional_args, i)));
         if (i < args_count - 1)
-            str_builder_catc(log_line_builder, ' ');
+            str_builder_addc(log_line_builder, ' ');
     }
 
     exec_context_log_line(str_builder_charptr(log_line_builder));
@@ -121,11 +121,11 @@ BUILT_IN_CALLABLE(output) {
     int args_count = list_length(positional_args);
     str_builder *sb = new_str_builder();
     for (int i = 0; i < args_count; i++) {
-        str_builder_cat(sb, variant_to_string(list_get(positional_args, i)));
+        str_builder_add(sb, variant_to_string(list_get(positional_args, i)));
         if (i < args_count - 1)
-            str_builder_catc(sb, ' ');
+            str_builder_addc(sb, ' ');
     }
-    str_builder_catc(sb, '\n');
+    str_builder_addc(sb, '\n');
     fputs(str_builder_charptr(sb), stdout);
     return RET_VOID();
 }
