@@ -110,7 +110,7 @@ The following built in functions are supported per type:
   * [n] -- retrieves the item
   * filter(func) -- takes a `func(item, index, list)` callable and returns the filtered items
   * map(func) -- takes a `func(item, index, list)` callable and returns the mapped items
-  * reduce(func, accum) -- takes a `func(accum, item, index, list)` callable and returns the reduced value
+  * reduce(accum, func) -- takes a `func(accum, item, index, list)` callable and returns the reduced value
 * dicts
   * empty()
   * length()

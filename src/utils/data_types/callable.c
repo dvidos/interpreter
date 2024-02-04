@@ -49,16 +49,9 @@ const char *callable_to_string(callable *c) {
     return p;
 }
 
-failable_variant callable_call(
-        callable *c, 
-        list *positional_args, 
-        dict *named_args, 
-        variant *this_obj, 
-        exec_context *ctx) {
-    return c->handler(
-        positional_args, 
-        named_args, 
-        c->callable_data, 
-        this_obj,
-        ctx);
+failable_variant callable_call(callable *c, list *positional_args, dict *named_args, variant *this_obj, exec_context *ctx) {
+    if (ctx == NULL)
+        return failed_variant(NULL, "Execution context was not passed in");
+    
+    return c->handler(positional_args, named_args, c->callable_data, this_obj, ctx);
 }
