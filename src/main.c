@@ -71,6 +71,7 @@ struct options {
     bool suppress_log_echo;
     bool log_to_file;
     char *log_filename;
+    bool start_with_debugger;
 } options;
 
 void parse_options(int argc, char *argv[]) {
@@ -96,6 +97,7 @@ void parse_options(int argc, char *argv[]) {
                 case 'b': options.show_built_in_functions = true; break;
                 case 'u': options.run_unit_tests = true; break;
                 case 'q': options.suppress_log_echo = true; break;
+                case 'd': options.start_with_debugger = true; break;
             }
         }
     }
@@ -107,6 +109,7 @@ void show_help() {
     printf("Options:\n");
     printf("  -f <script-file>    Load and interpret a script file\n");
     printf("  -e <expression>     Interpret and execute the expression\n");
+    printf("  -d                  Start with debugger\n");
     printf("  -b                  Show built in functions\n");
     printf("  -v                  Be verbose\n");
     printf("  -u                  Run self diagnostics (unit tests)\n");
@@ -118,7 +121,7 @@ void show_help() {
 void execute_code(const char *code, const char *filename) {
     printf("Executing %s...\n", filename);
     dict *values = new_dict(containing_variants, 20);
-    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose);
+    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.start_with_debugger);
     if (execution.failed)
         failable_print(&execution);
     else
@@ -145,10 +148,6 @@ void setup() {
         exec_context_set_log_echo(stderr, NULL);
 }
 
-void tear_down() {
-
-}
-
 int main(int argc, char *argv[]) {
     
     parse_options(argc, argv);
@@ -170,6 +169,5 @@ int main(int argc, char *argv[]) {
         show_help();
     }
 
-    tear_down();
     return 0;
 }

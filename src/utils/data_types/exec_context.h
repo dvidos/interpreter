@@ -9,7 +9,7 @@
 
 typedef struct exec_context exec_context;
 
-exec_context *new_exec_context(bool verbose);
+exec_context *new_exec_context(bool verbose, bool debugger);
 
 stack_frame *exec_context_get_curr_stack_frame(exec_context *c);
 failable exec_context_push_stack_frame(exec_context *c, stack_frame *f);

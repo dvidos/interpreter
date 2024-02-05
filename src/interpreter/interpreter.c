@@ -27,7 +27,7 @@ void initialize_interpreter() {
 }
 
 
-failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose) {
+failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose, bool debugger) {
 
     failable_list tokenization = parse_code_into_tokens(code, filename);
     if (tokenization.failed)
@@ -43,7 +43,7 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
     if (verbose)
         printf("------------- parsed statements -------------\n%s\n", list_to_string(parsing.result, "\n"));
 
-    exec_context *ctx = new_exec_context(verbose);
+    exec_context *ctx = new_exec_context(verbose, debugger);
     dict *built_ins = get_built_in_funcs_table();
     for_dict(external_values, ev_it, str, var_name)
         exec_context_register_symbol(ctx, var_name, dict_get(external_values, var_name));

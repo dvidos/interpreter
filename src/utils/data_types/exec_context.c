@@ -7,6 +7,7 @@
 
 struct exec_context {
     bool verbose;
+    bool debugger;
     dict *global_symbols;
     stack *stack_frames;
     // stdin, stdout
@@ -16,9 +17,16 @@ struct exec_context {
 };
 
 
-exec_context *new_exec_context(bool verbose) {
+// apparently we need more than one flag for debugging,
+// we need: execute single, execute whole line, execute whole function etc.
+// also we need a list of breakpoints (file+line)
+
+
+
+exec_context *new_exec_context(bool verbose, bool debugger) {
     exec_context *c = malloc(sizeof(exec_context));
     c->verbose = verbose;
+    c->debugger = debugger;
     c->global_symbols = new_dict(containing_variants, 32);
     c->stack_frames = new_stack(containing_stack_frames);
     return c;

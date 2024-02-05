@@ -1,5 +1,7 @@
 # todo
 
+* make testing uniform. fix the "testing" package to serve.
+
 * separate the built in functions into separate files, based on the object they attach to.
 * write tests to prove scope visibility and symbol resolution.
 

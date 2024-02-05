@@ -80,6 +80,7 @@ typedef const char const_char;
 STRONGLY_TYPED_FAILABLE_VAL_DECLARATION(bool);
 STRONGLY_TYPED_FAILABLE_VAL_DECLARATION(int);
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(const_char);
+STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(void);
 
 #define failed_bool(inner, fmt, ...)        __failed_bool(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 #define failed_int(inner, fmt, ...)         __failed_int(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)

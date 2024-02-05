@@ -10,7 +10,7 @@
 
 static bool validate_use_case(const char *code, variant *expected, bool verbose) {
     dict *values = new_dict(containing_variants, 10);
-    failable_variant execution = interpret_and_execute(code, "test", values, verbose);
+    failable_variant execution = interpret_and_execute(code, "test", values, verbose, false);
     if (execution.failed) { failable_print(&execution); return false; }
     bool are_equal = variants_are_equal(execution.result, expected);
     if (!are_equal) {

@@ -43,6 +43,7 @@ failable __failed(void *inner, const char *func, const char *file, int line, con
 STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(bool);
 STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(int);
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(const_char);
+STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(void);
 
 
 static void failable_print_reverse(void *some_failable) {
