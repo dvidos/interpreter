@@ -262,15 +262,15 @@ dict *variant_as_dict(variant *v) {
         case VT_NULL:
             return NULL;
         case VT_BOOL:
-            return new_dict(containing_variants, 10);
+            return new_dict(containing_variants);
         case VT_INT:
-            return new_dict(containing_variants, 10);
+            return new_dict(containing_variants);
         case VT_FLOAT:
-            return new_dict(containing_variants, 10);
+            return new_dict(containing_variants);
         case VT_STR:
-            return new_dict(containing_variants, 10);
+            return new_dict(containing_variants);
         case VT_LIST:
-            return new_dict(containing_variants, 10);
+            return new_dict(containing_variants);
         case VT_DICT:
             return v->per_type.dict_;
         case VT_CALLABLE:

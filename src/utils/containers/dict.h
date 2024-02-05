@@ -9,7 +9,7 @@
 
 typedef struct dict dict;
 
-dict *new_dict(contained_item *contained_item, int capacity);
+dict *new_dict(contained_item *contained_item);
 dict *dict_of(contained_item *contained_item, int pairs_count, ...);
 
 void  dict_set(dict *d, const char *key, void *item);

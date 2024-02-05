@@ -226,7 +226,7 @@ static failable_expression parse_list_initializer(bool verbose, token *initial_t
 }
 
 static failable_expression parse_dict_initializer(bool verbose, token *initial_token) {
-    dict *d = new_dict(containing_expressions, 64);
+    dict *d = new_dict(containing_expressions);
 
     // {} = empty dict
     if (accept(T_RBRACKET))

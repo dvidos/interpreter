@@ -27,7 +27,7 @@ exec_context *new_exec_context(bool verbose, bool debugger) {
     exec_context *c = malloc(sizeof(exec_context));
     c->verbose = verbose;
     c->debugger = debugger;
-    c->global_symbols = new_dict(containing_variants, 32);
+    c->global_symbols = new_dict(containing_variants);
     c->stack_frames = new_stack(containing_stack_frames);
     return c;
 }

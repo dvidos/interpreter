@@ -12,7 +12,7 @@ struct stack_frame {
 stack_frame *new_stack_frame(const char *func_name) {
     stack_frame *f = malloc(sizeof(stack_frame));
     f->func_name = func_name;
-    f->symbols = new_dict(containing_variants, 10);
+    f->symbols = new_dict(containing_variants);
     return f;
 }
 

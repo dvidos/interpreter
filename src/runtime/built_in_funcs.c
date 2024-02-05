@@ -250,7 +250,7 @@ static inline void add_callable(callable *c) {
 
 void initialize_built_in_funcs_table() {
     built_in_funcs_list = new_list(containing_callables);
-    built_in_funcs_dict = new_dict(containing_callables, 16);
+    built_in_funcs_dict = new_dict(containing_callables);
 
     add_callable(built_in_substr_callable());
     add_callable(built_in_strpos_callable());
@@ -264,9 +264,9 @@ void initialize_built_in_funcs_table() {
     add_callable(built_in_str_callable());
     add_callable(built_in_int_callable());
 
-    built_in_str_methods = new_dict(containing_callables, 16);
-    built_in_list_methods = new_dict(containing_callables, 16);
-    built_in_dict_methods = new_dict(containing_callables, 16);
+    built_in_str_methods = new_dict(containing_callables);
+    built_in_list_methods = new_dict(containing_callables);
+    built_in_dict_methods = new_dict(containing_callables);
 
     BUILT_IN_METHOD(list, add, built_in_list_add);
     BUILT_IN_METHOD(list, empty, built_in_list_empty);

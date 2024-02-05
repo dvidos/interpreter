@@ -20,18 +20,18 @@ typedef struct dict {
     contained_item *contained_item;
 } dict;
 
-dict *new_dict(contained_item *contained_item, int capacity) {
+dict *new_dict(contained_item *contained_item) {
     dict *d = malloc(sizeof(dict));
-    d->capacity = capacity;
+    d->capacity = 32;
     d->count = 0;
-    d->entries_array = malloc(sizeof(dict_entry *) * capacity);
+    d->entries_array = malloc(sizeof(dict_entry *) * d->capacity);
     memset(d->entries_array, 0, d->capacity * sizeof(dict_entry *));
     d->contained_item = contained_item;
     return d;
 }
 
 dict *dict_of(contained_item *contained_item, int pairs_count, ...) {
-    dict *d = new_dict(contained_item, pairs_count);
+    dict *d = new_dict(contained_item);
     va_list args;
     va_start(args, pairs_count);
     while (pairs_count-- > 0) {

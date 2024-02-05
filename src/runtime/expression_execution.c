@@ -111,7 +111,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             return ok_variant(new_list_variant(values_list));
         case ET_DICT_DATA:
             dict *expressions_dict = expression_get_dict_data(e);
-            dict *values_dict = new_dict(containing_variants, dict_count(expressions_dict));
+            dict *values_dict = new_dict(containing_variants);
             iterator *keys_it = dict_keys_iterator(expressions_dict);
             for_iterator(keys_it, str, key) {
                 execution = execute_expression(dict_get(expressions_dict, key), ctx);
