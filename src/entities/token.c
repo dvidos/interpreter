@@ -8,7 +8,7 @@
 contained_item *containing_tokens = &(contained_item){
     .type_name = "token",
     .are_equal = (are_equal_func)tokens_are_equal,
-    .to_string = (to_string_func)token_to_string,
+    .to_string = (describe_func)token_describe,
     .hash = NULL
 };
 
@@ -75,9 +75,7 @@ void token_print(token *t, FILE *stream, char *prefix) {
     );
 }
 
-const char *token_to_string(token *t) {
-    str_builder *sb = new_str_builder();
-
+const void token_describe(token *t, str_builder *sb) {
     token_type tt = token_get_type(t);
     const char *data = token_get_data(t);
     bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
@@ -85,8 +83,6 @@ const char *token_to_string(token *t) {
     str_builder_add(sb, token_type_str(tt));
     if (has_data)
         str_builder_addf(sb, "(\"%s\")", t->data);
-    
-    return str_builder_charptr(sb);
 }
 
 void token_print_list(list *tokens, FILE *stream, char *prefix, char *separator) {

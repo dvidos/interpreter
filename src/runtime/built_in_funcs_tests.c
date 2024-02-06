@@ -14,9 +14,15 @@ static bool validate_use_case(const char *code, variant *expected, bool verbose)
     if (execution.failed) { failable_print(&execution); return false; }
     bool are_equal = variants_are_equal(execution.result, expected);
     if (!are_equal) {
+        str_builder *expected_sb = new_str_builder();
+        str_builder *exec_sb = new_str_builder();
+        variant_describe(expected, expected_sb);
+        variant_describe(execution.result, exec_sb);
         printf("Built in test case failed: \"%s\"\n", code);
-        printf("  Expected: %s\n", variant_to_string(expected));
-        printf("  Resulted: %s\n", variant_to_string(execution.result));
+        printf("  Expected: %s\n", str_builder_charptr(expected_sb));
+        printf("  Resulted: %s\n", str_builder_charptr(exec_sb));
+        str_builder_free(expected_sb);
+        str_builder_free(exec_sb);
     }
     assert_msg(are_equal, code);
     return are_equal;

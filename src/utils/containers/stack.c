@@ -101,19 +101,17 @@ iterator *stack_iterator(stack *s) {
 
 
 
-const char *stack_to_string(stack *s, const char *separator) {
-    str_builder *sb = new_str_builder();
+const void stack_describe(stack *s, const char *separator, str_builder *sb) {
     stack_entry *e = s->head;
     while (e != NULL) {
         if (e != s->head)
             str_builder_add(sb, separator);
         
         if (s->contained_item != NULL && s->contained_item->to_string != NULL)
-            str_builder_add(sb, s->contained_item->to_string(e->item));
+            s->contained_item->to_string(e->item, sb);
         else
             str_builder_addf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
-    return str_builder_charptr(sb);
 }

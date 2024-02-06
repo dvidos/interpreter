@@ -19,7 +19,7 @@ void  list_set(list *l, int index, void *item);
 iterator *list_iterator(list *l);
 
 bool lists_are_equal(list *a, list *b);
-const char *list_to_string(list *l, const char *separator);
+const void list_describe(list *l, const char *separator, str_builder *sb);
 
 
 #define for_list(list_var, iter_var, item_type, item_var)  \

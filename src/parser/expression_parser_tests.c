@@ -43,10 +43,18 @@ static bool use_case_passes(const char *code, bool expect_failure, expression *e
     // compare each expression
     expression *parsed = parsing.result;
     if (!expressions_are_equal(parsed, expected_expression)) {
+        str_builder *expected_sb = new_str_builder();
+        str_builder *parsed_sb = new_str_builder();
+        expression_describe(expected_expression, expected_sb);
+        expression_describe(parsed, parsed_sb);
         fprintf(stderr, "Expression not as expected \"%s\", \n" \
                         "    expected: %s\n" \
                         "    parsed  : %s\n",
-                        code, expression_to_string(expected_expression), expression_to_string(parsed));
+                        code, 
+                        str_builder_charptr(expected_sb), 
+                        str_builder_charptr(parsed_sb));
+        str_builder_free(expected_sb);
+        str_builder_free(parsed_sb);
         return false;
     }
 

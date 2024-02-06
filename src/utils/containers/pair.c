@@ -62,13 +62,11 @@ bool pairs_are_equal(pair *a, pair *b) {
     return true;
 }
 
-const char *pair_to_string(pair *p, const char *separator) {
-    str_builder *sb = new_str_builder();
-
+const void pair_describe(pair *p, const char *separator, str_builder *sb) {
     if (p->left == NULL)
         str_builder_add(sb, "(null)");
     else if (p->left_item != NULL && p->left_item->to_string != NULL)
-        str_builder_add(sb, p->left_item->to_string(p->left));
+        p->left_item->to_string(p->left, sb);
     else
         str_builder_addf(sb, "@0x%p", p->left);
 
@@ -77,16 +75,14 @@ const char *pair_to_string(pair *p, const char *separator) {
     if (p->right == NULL)
         str_builder_add(sb, "(null)");
     else if (p->right_item != NULL && p->right_item->to_string != NULL)
-        str_builder_add(sb, p->right_item->to_string(p->right));
+        p->right_item->to_string(p->right, sb);
     else
         str_builder_addf(sb, "@0x%p", p->right);
-    
-    return str_builder_charptr(sb);
 }
 
 
-const char *default_pair_to_string(pair *p) {
-    return pair_to_string(p, "-");
+const void default_pair_describe(pair *p, str_builder *sb) {
+    pair_describe(p, "-", sb);
 }
 
 
@@ -95,6 +91,6 @@ STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(pair);
 contained_item *containing_pairs = &(contained_item){
     .type_name = "pair",
     .are_equal = (are_equal_func)pairs_are_equal,
-    .to_string = (to_string_func)default_pair_to_string,
+    .to_string = (describe_func)default_pair_describe,
     .hash      = NULL
 };

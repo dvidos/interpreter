@@ -145,35 +145,40 @@ list *statement_get_function_arg_names(statement *s) {
     return s->type == ST_FUNCTION ? s->per_type.function.arg_names : NULL;
 }
 
-const char *statement_to_string(statement *s) {
-    str_builder *sb = new_str_builder();
-
+const void statement_describe(statement *s, str_builder *sb) {
     switch (s->type) {
         case ST_EXPRESSION:
             str_builder_add(sb, "expr(");
-            str_builder_add(sb, expression_to_string(s->per_type.expr.expr));
+            expression_describe(s->per_type.expr.expr, sb);
             str_builder_add(sb, ")");
             break;
         case ST_IF:
-            str_builder_addf(sb, "if (%s) {\n    ", expression_to_string(s->per_type.if_.condition));
-            str_builder_add(sb, list_to_string(s->per_type.if_.body_statements, "\n    "));
+            str_builder_add(sb, "if (");
+            expression_describe(s->per_type.if_.condition, sb);
+            str_builder_add(sb, ") {\n    ");
+            list_describe(s->per_type.if_.body_statements, "\n    ", sb);
             if (s->per_type.if_.has_else) {
                 str_builder_add(sb, "\n} else {\n    ");
-                str_builder_add(sb, list_to_string(s->per_type.if_.else_body_statements, "\n    "));
+                list_describe(s->per_type.if_.else_body_statements, "\n    ", sb);
             }
             str_builder_add(sb, "\n}");
             break;
         case ST_WHILE:
-            str_builder_addf(sb, "while (%s) {\n    ", expression_to_string(s->per_type.while_.condition));
-            str_builder_add(sb, list_to_string(s->per_type.while_.body_statements, "\n    "));
+            str_builder_add(sb, "while (");
+            expression_describe(s->per_type.while_.condition, sb);
+            str_builder_add(sb, ") {\n    ");
+            list_describe(s->per_type.while_.body_statements, "\n    ", sb);
             str_builder_add(sb, "\n}");
             break;
         case ST_FOR_LOOP:
-            str_builder_addf(sb, "for (%s; %s; %s) {\n    ",
-                expression_to_string(s->per_type.for_.init),
-                expression_to_string(s->per_type.for_.condition),
-                expression_to_string(s->per_type.for_.next));
-            str_builder_add(sb, list_to_string(s->per_type.for_.body_statements, "\n    "));
+            str_builder_add(sb, "for (");
+            expression_describe(s->per_type.for_.init, sb);
+            str_builder_add(sb, "; ");
+            expression_describe(s->per_type.for_.condition, sb);
+            str_builder_add(sb, "; ");
+            expression_describe(s->per_type.for_.next, sb);
+            str_builder_add(sb, ") {\n    ");
+            list_describe(s->per_type.for_.body_statements, "\n    ", sb);
             str_builder_add(sb, "\n}");
             break;
         case ST_CONTINUE:
@@ -183,19 +188,21 @@ const char *statement_to_string(statement *s) {
             str_builder_add(sb, "break;");
             break;
         case ST_RETURN:
-            str_builder_addf(sb, "return (%s);", expression_to_string(s->per_type.return_.value));
+            str_builder_add(sb, "return (");
+            expression_describe(s->per_type.return_.value, sb);
+            str_builder_add(sb, ");");
             break;
         case ST_FUNCTION:
-            str_builder_addf(sb, "function %s(%s) {\n    ", 
-                s->per_type.function.name == NULL ? "(anonymous)": s->per_type.function.name,
-                list_to_string(s->per_type.function.arg_names, ", ")
-            );
-            str_builder_add(sb, list_to_string(s->per_type.function.statements, "\n    "));
+            str_builder_add(sb, "function ");
+            str_builder_add(sb, s->per_type.function.name == NULL ?
+                    "(anonymous)": s->per_type.function.name);
+            str_builder_add(sb, "(");
+            list_describe(s->per_type.function.arg_names, ", ", sb);
+            str_builder_add(sb, ") {\n    ");
+            list_describe(s->per_type.function.statements, "\n    ", sb);
             str_builder_add(sb, "\n}");
             break;
     }
-
-    return str_builder_charptr(sb);
 }
 
 bool statements_are_equal(statement *a, statement *b) {
@@ -244,7 +251,7 @@ bool statements_are_equal(statement *a, statement *b) {
 
 contained_item *containing_statements = &(contained_item){
     .type_name = "statement",
-    .to_string = (to_string_func)statement_to_string,
+    .to_string = (describe_func)statement_describe,
     .are_equal = (are_equal_func)statements_are_equal
 };
 

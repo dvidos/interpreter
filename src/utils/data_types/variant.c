@@ -27,7 +27,7 @@ struct variant {
 contained_item *containing_variants = &(contained_item){
     .type_name = "variant",
     .are_equal = (are_equal_func)variants_are_equal,
-    .to_string = (to_string_func)variant_to_string
+    .to_string = (describe_func)variant_describe
 };
 
 
@@ -217,14 +217,22 @@ const char *variant_as_str(variant *v) {
             return v->per_type.s.ptr;
         case VT_LIST:
             if (v->str_repr == NULL) {
-                if (v->per_type.list_ != NULL)
-                    v->str_repr = list_to_string(v->per_type.list_, ", ");
+                if (v->per_type.list_ != NULL) {
+                    str_builder *sb = new_str_builder();
+                    list_describe(v->per_type.list_, ", ", sb);
+                    v->str_repr = strdup(str_builder_charptr(sb));
+                    str_builder_free(sb);
+                }
             }
             return v->str_repr;
         case VT_DICT:
             if (v->str_repr == NULL) {
-                if (v->per_type.dict_ != NULL)
-                    v->str_repr = dict_to_string(v->per_type.dict_, ": ", ", ");
+                if (v->per_type.dict_ != NULL) {
+                    str_builder *sb = new_str_builder();
+                    dict_describe(v->per_type.dict_, ": ", ", ", sb);
+                    v->str_repr = strdup(str_builder_charptr(sb));
+                    str_builder_free(sb);
+                }
             }
             return v->str_repr;
         case VT_CALLABLE:
@@ -338,8 +346,8 @@ bool variants_are_equal(variant *a, variant *b) {
     return false;
 }
 
-const char *variant_to_string(variant *v) {
-    return variant_as_str(v);
+const void variant_describe(variant *v, str_builder *sb) {
+    str_builder_add(sb, variant_as_str(v));
 }
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(variant);

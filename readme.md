@@ -194,7 +194,7 @@ And then the extra functionality:
 
 ```c
 bool lists_are_equal(list *a, list *b);
-const char *list_to_string(list *l);
+const char *list_describe(list *l);
 iterator *list_iterator(list *l);
 ```
 
@@ -215,7 +215,7 @@ And then the extra functionality:
 
 ```c
 bool dicts_are_equal(dict *a, dict *b);
-const char *dict_to_string(dict *l, const char *key_value_separator, const char *entries_separator);
+const char *dict_describe(dict *l, const char *key_value_separator, const char *entries_separator);
 iterator *dict_iterator(dict *d);
 ```
 
@@ -235,7 +235,7 @@ Extra functionality here as well:
 
 ```c
 iterator *stack_iterator(stack *s);
-const char *stack_to_string(stack *s, const char *separator);
+const char *stack_describe(stack *s, const char *separator);
 // stacks_are_equal() not implemented yet
 ```
 

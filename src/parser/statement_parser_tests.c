@@ -20,7 +20,7 @@ static bool use_case_passes(const char *code, bool expect_failure, statement *ex
         fprintf(stderr, "Parsing tokenization failed unexpectedly: %s\n\t(code=\"%s\")", tokenization.err_msg, code);
         return false;
     }
-    // printf("%s\n", list_to_string(tokenization.result, ", "));
+    // printf("%s\n", list_describe(tokenization.result, ", "));
 
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
@@ -45,10 +45,18 @@ static bool use_case_passes(const char *code, bool expect_failure, statement *ex
     // compare each expression
     statement *parsed = parsing.result;
     if (!statements_are_equal(parsed, expected_statement)) {
+        str_builder *expected_sb = new_str_builder();
+        str_builder *parsed_sb = new_str_builder();
+        statement_describe(expected_statement, expected_sb);
+        statement_describe(parsed, parsed_sb);
         fprintf(stderr, "Statement differs, (code=\"%s\"), \n" \
                         "  expected: %s\n" \
                         "  parsed:   %s\n",
-                        code, statement_to_string(expected_statement), statement_to_string(parsed));
+                        code, 
+                        str_builder_charptr(expected_sb), 
+                        str_builder_charptr(parsed_sb));
+        str_builder_free(expected_sb);
+        str_builder_free(parsed_sb);
         return false;
     }
 

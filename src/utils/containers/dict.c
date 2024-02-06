@@ -228,9 +228,7 @@ bool dicts_are_equal(dict *a, dict *b) {
     return true;
 }
 
-const char *dict_to_string(dict *d, const char *key_value_separator, const char *entries_separator) {
-    str_builder *sb = new_str_builder();
-
+const void dict_describe(dict *d, const char *key_value_separator, const char *entries_separator, str_builder *sb) {
     iterator *it = dict_keys_iterator(d);
     bool first = true;
     for_iterator(it, const_char, key) {
@@ -240,12 +238,10 @@ const char *dict_to_string(dict *d, const char *key_value_separator, const char 
         str_builder_addf(sb, "%s%s", key, key_value_separator);
         void *value = dict_get(d, key);
         if (d->contained_item != NULL && d->contained_item->to_string != NULL)
-            str_builder_add(sb, d->contained_item->to_string(value));
+            d->contained_item->to_string(value, sb);
         else
             str_builder_addf(sb, "@0x%p", value);
     }
-
-    return str_builder_charptr(sb);
 }
 
 

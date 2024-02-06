@@ -104,9 +104,11 @@ static inline pair *pop_top_operator_pair() {
 }
 
 static void print_operators_stack(FILE *stream, char *prefix) {
-    const char *s = stack_to_string(operators_stack, ", ");
+    str_builder *sb = new_str_builder();
+    stack_describe(operators_stack, ", ", sb);
     fprintf(stream, "%sOperators   stack, %d items, top -> %s <- bottom\n", 
-        prefix, stack_length(operators_stack), s);
+        prefix, stack_length(operators_stack), str_builder_charptr(sb));
+    str_builder_free(sb);
 }
 
 static inline void push_expression(expression *e) {
@@ -122,9 +124,11 @@ static inline expression *peek_top_expression() {
 }
 
 static void print_expressions_stack(FILE *stream, char *prefix) {
-    const char *s = stack_to_string(expressions_stack, ", ");
+    str_builder *sb = new_str_builder();
+    stack_describe(expressions_stack, ", ", sb);
     fprintf(stream, "%sExpressions stack, %d items, top -> %s <- bottom\n", 
-        prefix, stack_length(expressions_stack), s);
+        prefix, stack_length(expressions_stack), str_builder_charptr(sb));
+    str_builder_free(sb);
 }
 
 // --------------------------------------------

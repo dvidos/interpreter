@@ -12,5 +12,6 @@ void str_builder_addc(str_builder *sb, char chr);
 void str_builder_addf(str_builder *sb, char *fmt, ...);
 
 const char *str_builder_charptr(str_builder *sb);
+void str_builder_free(str_builder *sb);
 
 #endif

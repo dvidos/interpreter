@@ -60,3 +60,11 @@ const char *str_builder_charptr(str_builder *sb) {
     return sb->buffer;
 }
 
+void str_builder_free(str_builder *sb) {
+    if (sb != NULL) {
+        if (sb->buffer != NULL)
+            free(sb->buffer);
+        sb->buffer = NULL;
+        free(sb);
+    }
+}

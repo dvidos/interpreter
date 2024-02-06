@@ -110,7 +110,9 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
             stmt
         )));
     } else {
-        return failed_variant(NULL, "was expecting if, while, for, expression, return, but got %s", statement_to_string(stmt));
+        str_builder *sb = new_str_builder();
+        statement_describe(stmt, sb);
+        return failed_variant(NULL, "was expecting if, while, for, expression, return, but got %s", str_builder_charptr(sb));
     }
 
     return ok_variant(return_value);

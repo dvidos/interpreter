@@ -113,19 +113,17 @@ iterator *queue_iterator(queue *q) {
 
 
 
-const char *queue_to_string(queue *q, const char *separator) {
-    str_builder *sb = new_str_builder();
+const void queue_describe(queue *q, const char *separator, str_builder *sb) {
     queue_entry *e = q->exit;
     while (e != NULL) {
         if (e != q->exit)
             str_builder_add(sb, separator);
         
         if (q->contained_item != NULL && q->contained_item->to_string != NULL)
-            str_builder_add(sb, q->contained_item->to_string(e->item));
+            q->contained_item->to_string(e->item, sb);
         else
             str_builder_addf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
-    return str_builder_charptr(sb);
 }

@@ -92,7 +92,7 @@ BUILT_IN_CALLABLE(log) {
 
     str_builder_clear(log_line_builder);
     for (int i = 0; i < args_count; i++) {
-        str_builder_add(log_line_builder, variant_to_string(list_get(positional_args, i)));
+        variant_describe(list_get(positional_args, i), log_line_builder);
         if (i < args_count - 1)
             str_builder_addc(log_line_builder, ' ');
     }
@@ -121,12 +121,13 @@ BUILT_IN_CALLABLE(output) {
     int args_count = list_length(positional_args);
     str_builder *sb = new_str_builder();
     for (int i = 0; i < args_count; i++) {
-        str_builder_add(sb, variant_to_string(list_get(positional_args, i)));
+        variant_describe(list_get(positional_args, i), sb);
         if (i < args_count - 1)
             str_builder_addc(sb, ' ');
     }
     str_builder_addc(sb, '\n');
     fputs(str_builder_charptr(sb), stdout);
+    str_builder_free(sb);
     return RET_VOID();
 }
 
@@ -142,7 +143,7 @@ BUILT_IN_CALLABLE(rand) {
 
 BUILT_IN_CALLABLE(str) {
     variant *v = list_get(positional_args, 0);
-    str *s = variant_to_string(v);
+    str *s = variant_as_str(v);
     return RET_STR(s);
 }
 BUILT_IN_CALLABLE(int) {

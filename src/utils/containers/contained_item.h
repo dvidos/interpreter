@@ -2,16 +2,17 @@
 #define _CONTAINABLE_H
 
 #include <stdbool.h>
+#include "../str_builder.h"
 
 
 typedef bool (*are_equal_func)(void *pointer_a, void *pointer_b);
-typedef const char *(*to_string_func)(void *pointer);
+typedef void (*describe_func)(void *pointer, str_builder *sb);
 typedef unsigned long *(*hash_func)(void *pointer);
 
 typedef struct contained_item {
     const char *type_name;
     are_equal_func are_equal;
-    to_string_func to_string;
+    describe_func to_string;
     hash_func      hash;
     // also: clone, compare, serialize, unserialize, etc.
 } contained_item;

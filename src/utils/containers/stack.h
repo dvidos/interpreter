@@ -14,7 +14,7 @@ void  stack_push(stack *s, void *item);
 void *stack_peek(stack *s);
 void *stack_pop(stack *s);
 iterator *stack_iterator(stack *s);
-const char *stack_to_string(stack *s, const char *separator);
+const void stack_describe(stack *s, const char *separator, str_builder *sb);
 
 #define for_stack(list_var, iter_var, item_type, item_var)  \
     iterator *iter_var = stack_iterator(list_var); \

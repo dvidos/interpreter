@@ -28,7 +28,7 @@ struct expression {
 contained_item *containing_expressions = &(contained_item){
     .type_name = "expression",
     .are_equal = (are_equal_func)expressions_are_equal,
-    .to_string = (to_string_func)expression_to_string,
+    .to_string = (describe_func)expression_describe,
     .hash      = NULL
 };
 
@@ -183,8 +183,7 @@ bool expressions_are_equal(expression *a, expression *b) {
     return true;
 }
 
-const char *expression_to_string(expression *e) {
-    str_builder *sb = new_str_builder();
+const void expression_describe(expression *e, str_builder *sb) {
     
     if (e->type == ET_IDENTIFIER) {
         str_builder_addf(sb, "SYM(\"%s\")", e->per_type.terminal_data);
@@ -195,30 +194,30 @@ const char *expression_to_string(expression *e) {
     } else if (e->type == ET_BOOLEAN_LITERAL) {
         str_builder_addf(sb, "BOOL(%s)", e->per_type.terminal_data);
     } else if (e->type == ET_UNARY_OP) {
-        str_builder_addf(sb, "%s(", operator_type_to_string(e->op));
-        str_builder_add(sb, expression_to_string(e->per_type.operation.operand1));
+        operator_type_describe(e->op, sb);
+        str_builder_addc(sb, '(');
+        expression_describe(e->per_type.operation.operand1, sb);
         str_builder_addc(sb, ')');
     } else if (e->type == ET_BINARY_OP) {
-        str_builder_addf(sb, "%s(", operator_type_to_string(e->op));
-        str_builder_add(sb, expression_to_string(e->per_type.operation.operand1));
+        operator_type_describe(e->op, sb);
+        str_builder_addc(sb, '(');
+        expression_describe(e->per_type.operation.operand1, sb);
         str_builder_add(sb, ", ");
-        str_builder_add(sb, expression_to_string(e->per_type.operation.operand2));
+        expression_describe(e->per_type.operation.operand2, sb);
         str_builder_addc(sb, ')');
     } else if (e->type == ET_LIST_DATA) {
         str_builder_add(sb, "LIST(");
-        str_builder_add(sb, list_to_string(e->per_type.list_, ", "));
+        list_describe(e->per_type.list_, ", ", sb);
         str_builder_addc(sb, ')');
     } else if (e->type == ET_DICT_DATA) {
         str_builder_add(sb, "DICT(");
-        str_builder_add(sb, dict_to_string(e->per_type.dict_, ": ", ", "));
+        dict_describe(e->per_type.dict_, ": ", ", ", sb);
         str_builder_add(sb, ")");
     } else if (e->type == ET_FUNC_DECL) {
         str_builder_add(sb, "FUNC(");
-        str_builder_add(sb, list_to_string(e->per_type.func.arg_names, ", "));
-        str_builder_addf(sb, "){ (%d statements) }", list_length(e->per_type.func.statements));
+        list_describe(e->per_type.func.arg_names, ", ", sb);
+        str_builder_addf(sb, "){ %d statements }", list_length(e->per_type.func.statements));
     }
-
-    return str_builder_charptr(sb);
 }
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(expression);

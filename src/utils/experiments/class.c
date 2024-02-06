@@ -15,7 +15,7 @@ bool is_instance(void *instance, class *c) {
     return get_class(instance) == c;
 }
 
-const char *instance_to_string(void *instance) {
+const char *instance_describe(void *instance) {
     class *c = get_class(instance);
     if (c == NULL)
         return NULL;

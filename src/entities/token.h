@@ -21,7 +21,7 @@ int token_get_file_col_no(token *t);
 void token_print(token *t, FILE *stream, char *prefix);
 void token_print_list(list *tokens, FILE *stream, char *prefix, char *separator);
 
-const char *token_to_string(token *t);
+const void token_describe(token *t, str_builder *sb);
 bool tokens_are_equal(token *a, token *b);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(token);

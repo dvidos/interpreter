@@ -52,7 +52,7 @@ dict *variant_as_dict(variant *v);
 callable *variant_as_callable(variant *v);
 
 bool variants_are_equal(variant *a, variant *b);
-const char *variant_to_string(variant *v);
+const void variant_describe(variant *v, str_builder *sb);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(variant);
 #define failed_variant(inner, fmt, ...)  __failed_variant(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)

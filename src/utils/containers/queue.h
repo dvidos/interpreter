@@ -14,7 +14,7 @@ void  queue_put(queue *s, void *item);
 void *queue_peek(queue *s);
 void *queue_get(queue *s);
 iterator *queue_iterator(queue *s);
-const char *queue_to_string(queue *s, const char *separator);
+const void queue_describe(queue *s, const char *separator, str_builder *sb);
 
 #define for_queue(list_var, iter_var, item_type, item_var)  \
     iterator *iter_var = queue_iterator(list_var); \

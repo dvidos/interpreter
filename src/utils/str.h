@@ -9,7 +9,7 @@ typedef const char str;
 extern contained_item *containing_strs;
 
 bool strs_are_equal(str *a, str *b);
-const char *str_to_string(str *s);
+const void str_describe(str *s, str_builder *sb);
 
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(str);

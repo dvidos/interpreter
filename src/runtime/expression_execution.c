@@ -262,11 +262,15 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             return ok();
 
         } else {
-            return failed(NULL, "operator_type cannot be used as lvalue: %s", operator_type_to_string(op));
+            str_builder *sb = new_str_builder();
+            operator_type_describe(op, sb);
+            return failed(NULL, "operator_type cannot be used as lvalue: %s", str_builder_charptr(sb));
         }
         
     } else {
-        return failed(NULL, "expression cannot be used as lvalue: %s", expression_to_string(lvalue));
+        str_builder *sb = new_str_builder();
+        expression_describe(lvalue, sb);
+        return failed(NULL, "expression cannot be used as lvalue: %s", str_builder_charptr(sb));
     }
 }
 
@@ -320,7 +324,11 @@ static failable_variant calculate_comparison(enum comparison cmp, variant *v1, v
         }
     }
 
-    return failed_variant(NULL, "cannot compare with given operands (%s and %s)", variant_to_string(v1), variant_to_string(v2));
+    str_builder *sb = new_str_builder();
+    variant_describe(v1, sb);
+    str_builder_add(sb, " and ");
+    variant_describe(v2, sb);
+    return failed_variant(NULL, "cannot compare with given operands (%s)", str_builder_charptr(sb));
 }
 
 static failable_variant retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value) {
@@ -406,7 +414,10 @@ static failable_variant calculate_unary_operation(operator_type op, variant *val
                 return ok_variant(new_int_variant(~variant_as_int(value)));
             return failed_variant(NULL, "bitwise not only works for int values");
     }
-    return failed_variant(NULL, "Unknown unary operator_type %s", operator_type_to_string(op));
+
+    str_builder *sb = new_str_builder();
+    operator_type_describe(op, sb);
+    return failed_variant(NULL, "Unknown unary operator_type %s", str_builder_charptr(sb));
 }
 
 static failable_variant calculate_binary_operation(operator_type op, variant *v1, variant *v2, exec_context *ctx) {
@@ -450,7 +461,9 @@ static failable_variant calculate_binary_operation(operator_type op, variant *v1
                 str_builder *sb = new_str_builder();
                 str_builder_add(sb, variant_as_str(v1));
                 str_builder_add(sb, variant_as_str(v2));
-                return ok_variant(new_str_variant(str_builder_charptr(sb)));
+                variant *v = new_str_variant(strdup(str_builder_charptr(sb)));
+                str_builder_free(sb);
+                return ok_variant(v);
             }
             return failed_variant(NULL, "addition is only supported in int, float, string types");
 
@@ -514,7 +527,9 @@ static failable_variant calculate_binary_operation(operator_type op, variant *v1
             return ok_variant(list_get(values_pair, passed ? 0 : 1));
     }
 
-    return failed_variant(NULL, "Unknown binary operator_type %s", operator_type_to_string(op));
+    str_builder *sb = new_str_builder();
+    operator_type_describe(op, sb);
+    return failed_variant(NULL, "Unknown binary operator_type %s", str_builder_charptr(sb));
 }
 
 static failable_variant expression_function_callable_executor(

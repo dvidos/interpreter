@@ -124,8 +124,12 @@ void execute_code(const char *code, const char *filename) {
     failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.start_with_debugger);
     if (execution.failed)
         failable_print(&execution);
-    else
-        printf("Execution was successful, result is %s\n", variant_to_string(execution.result));
+    else {
+        str_builder *sb = new_str_builder();
+        variant_describe(execution.result, sb);
+        printf("Execution was successful, result is %s\n", str_builder_charptr(sb));
+        str_builder_free(sb);
+    }
 }
 
 void execute_script(const char *filename) {

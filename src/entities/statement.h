@@ -31,6 +31,6 @@ STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(statement);
 #define failed_statement(inner, fmt, ...)  __failed_statement(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 bool statements_are_equal(statement *a, statement *b);
-const char *statement_to_string(statement *s);
+void statement_describe(statement *s, str_builder *sb);
 
 #endif

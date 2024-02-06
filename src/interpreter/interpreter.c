@@ -28,20 +28,27 @@ void initialize_interpreter() {
 
 
 failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose, bool debugger) {
+    str_builder *sb = new_str_builder();
 
     failable_list tokenization = parse_code_into_tokens(code, filename);
     if (tokenization.failed)
         return failed_variant(&tokenization, "Tokenization failed");
-    if (verbose)
-        printf("------------- parsed tokens -------------\n%s\n", list_to_string(tokenization.result, ", "));
+    if (verbose) {
+        str_builder_clear(sb);
+        list_describe(tokenization.result, ", ", sb);
+        printf("------------- parsed tokens -------------\n%s\n", str_builder_charptr(sb));
+    }
 
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
     failable_list parsing = parse_statements(tokens_it, SP_SEQUENTIAL_STATEMENTS);
     if (parsing.failed)
         return failed_variant(&parsing, "Statement parsing failed");
-    if (verbose)
-        printf("------------- parsed statements -------------\n%s\n", list_to_string(parsing.result, "\n"));
+    if (verbose) {
+        str_builder_clear(sb);
+        list_describe(parsing.result, "\n", sb);
+        printf("------------- parsed statements -------------\n%s\n", str_builder_charptr(sb));
+    }
 
     exec_context *ctx = new_exec_context(verbose, debugger);
     dict *built_ins = get_built_in_funcs_table();

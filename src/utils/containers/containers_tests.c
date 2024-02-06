@@ -10,6 +10,7 @@
 #include "../data_types/variant.h"
 
 bool containers_self_diagnostics(bool verbose) {
+    str_builder *sb = new_str_builder();
 
     queue *q = new_queue(containing_variants);
     assert(queue_empty(q));
@@ -19,7 +20,11 @@ bool containers_self_diagnostics(bool verbose) {
     queue_put(q, new_str_variant("c"));
     assert(!queue_empty(q));
     assert(queue_length(q) == 3);
-    assert(strcmp(queue_to_string(q, "|"), "a|b|c") == 0);
+
+    str_builder_clear(sb);
+    queue_describe(q, "|", sb);
+    assert(strcmp(str_builder_charptr(sb), "a|b|c") == 0);
+    
     assert(strcmp(variant_as_str(queue_get(q)), "a") == 0);
     assert(strcmp(variant_as_str(queue_get(q)), "b") == 0);
     assert(strcmp(variant_as_str(queue_get(q)), "c") == 0);

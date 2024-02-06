@@ -23,7 +23,7 @@ struct class {
 
 class *get_class(void *instance);
 bool is_instance(void *instance, class *c);
-const char *instance_to_string(void *instance);
+const void instance_describe(void *instance, str_builder *sb);
 bool instances_are_equal(void *a, void *b);
 
 

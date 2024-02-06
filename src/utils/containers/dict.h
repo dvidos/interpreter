@@ -22,7 +22,7 @@ list *dict_get_keys(dict *d);
 list *dict_get_values(dict *d);
 
 bool dicts_are_equal(dict *a, dict *b);
-const char *dict_to_string(dict *l, const char *key_value_separator, const char *entries_separator);
+const void dict_describe(dict *l, const char *key_value_separator, const char *entries_separator, str_builder *sb);
 
 
 #define for_dict(dict_var, iter_var, item_type, item_var)  \

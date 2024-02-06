@@ -34,7 +34,7 @@ dict *expression_get_dict_data(expression *e);
 list *expression_get_func_statements(expression *e);
 list *expression_get_func_arg_names(expression *e);
 
-const char *expression_to_string(expression *e);
+const void expression_describe(expression *e, str_builder *sb);
 bool expressions_are_equal(expression *a, expression *b);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(expression);

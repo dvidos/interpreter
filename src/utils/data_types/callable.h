@@ -26,7 +26,7 @@ callable *new_callable(const char *name, callable_handler *func, void *callable_
 const char *callable_name(callable *c);
 failable_variant callable_call(callable *c, list *positional_args, dict *named_args, variant *this_obj, exec_context *ctx);
 bool callables_are_equal(callable *a, callable *b);
-const char *callable_to_string(callable *c);
+const void callable_describe(callable *c, str_builder *sb);
 
 extern contained_item *containing_callables;
 

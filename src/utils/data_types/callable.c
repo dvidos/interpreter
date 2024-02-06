@@ -6,7 +6,7 @@
 contained_item *containing_callables = &(contained_item){
     .type_name = "callable",
     .are_equal = (are_equal_func)callables_are_equal,
-    .to_string = (to_string_func)callable_to_string
+    .to_string = (describe_func)callable_describe
 };
 
 struct callable {
@@ -41,12 +41,8 @@ bool callables_are_equal(callable *a, callable *b) {
     return true;
 }
 
-const char *callable_to_string(callable *c) {
-    char buffer[128];
-    snprintf(buffer, sizeof(buffer), "callable(@x%p)", c->handler);
-    char *p = malloc(strlen(buffer) + 1);
-    strcpy(p, buffer);
-    return p;
+const void callable_describe(callable *c, str_builder *sb) {
+    str_builder_addf(sb, "callable(@x%p)", c->handler);
 }
 
 failable_variant callable_call(callable *c, list *positional_args, dict *named_args, variant *this_obj, exec_context *ctx) {

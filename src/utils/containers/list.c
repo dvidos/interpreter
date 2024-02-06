@@ -158,21 +158,19 @@ bool lists_are_equal(list *a, list *b) {
     return true;
 }
 
-const char *list_to_string(list *l, const char *separator) {
-    str_builder *sb = new_str_builder();
+const void list_describe(list *l, const char *separator, str_builder *sb) {
     list_entry *e = l->head;
     while (e != NULL) {
         if (e != l->head)
             str_builder_add(sb, separator);
         
         if (l->contained_item != NULL && l->contained_item->to_string != NULL)
-            str_builder_add(sb, l->contained_item->to_string(e->item));
+            l->contained_item->to_string(e->item, sb);
         else
             str_builder_addf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
-    return str_builder_charptr(sb);
 }
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(list);

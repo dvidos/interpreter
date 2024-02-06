@@ -59,8 +59,8 @@ failable stack_frame_update_symbol(stack_frame *f, const char *name, variant *v)
 
 
 
-const char *stack_frame_to_string(stack_frame *f) {
-    return "stack_frame";
+const void stack_frame_describe(stack_frame *f, str_builder *sb) {
+    str_builder_add(sb, "stack_frame");
 }
 
 bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {
@@ -77,7 +77,7 @@ bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {
 }
 
 contained_item *containing_stack_frames = &(contained_item) {
-    .to_string = (to_string_func)stack_frame_to_string,
+    .to_string = (describe_func)stack_frame_describe,
     .are_equal = (are_equal_func)stack_frames_are_equal
 };
 

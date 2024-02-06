@@ -17,12 +17,17 @@
 // assert_str_not_equals(given, expected)
 // equal_to, not_equal_to, null, not_null, larger_than, larger_equal_than, less_than, larger_equal_than
 // etc.
+#define assert_str_builder_equals(sb, str)   assert(strcmp(str_builder_charptr(sb), str) == 0)
+
+
+
 
 void __testing_assert(bool passed, const char *condition, const char *message, const char *file, int line);
 void __testing_passed(const char *file, int line);
 void __testing_failed(const char *message, const char *file, int line);
 
 bool testing_outcome(bool verbose);
+
 
 
 #endif
