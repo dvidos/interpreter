@@ -123,6 +123,7 @@ static void stack_describe_default(stack *s, const char *separator, str_builder 
 }
 
 class *stack_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "stack",
     .describe = (describe_func)stack_describe_default,
     .are_equal = NULL

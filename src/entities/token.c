@@ -6,6 +6,7 @@
 
 
 class *token_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "token",
     .are_equal = (are_equal_func)tokens_are_equal,
     .describe = (describe_func)token_describe,

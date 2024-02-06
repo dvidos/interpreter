@@ -6,6 +6,7 @@
 
 
 class *str_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "str",
     .are_equal = (are_equal_func)strs_are_equal,
     .describe = (describe_func)str_describe

@@ -252,6 +252,7 @@ static const void dict_describe_default(dict *d, str_builder *sb) {
 
 
 class *dict_class = &(class) {
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "dict",
     .are_equal = (are_equal_func)dicts_are_equal,
     .describe = (describe_func)dict_describe_default

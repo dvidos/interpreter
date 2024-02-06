@@ -91,6 +91,7 @@ const void default_pair_describe(pair *p, str_builder *sb) {
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(pair);
 
 class *pair_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "pair",
     .are_equal = (are_equal_func)pairs_are_equal,
     .describe = (describe_func)default_pair_describe,

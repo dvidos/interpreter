@@ -41,17 +41,20 @@ struct statement {
 
 // ----------------------------------
 
-statement *new_expression_statement(expression *expr) {
+static statement *new_statement(statement_type type) {
     statement *s = malloc(sizeof(statement));
     s->class = expression_class;
-    s->type = ST_EXPRESSION;
+    s->type = type;
+    return s;
+}
+
+statement *new_expression_statement(expression *expr) {
+    statement *s = new_statement(ST_EXPRESSION);
     s->per_type.expr.expr = expr;
     return s;
 }
 statement *new_if_statement(expression *condition, list *body_statements, bool has_else, list *else_body_statements) {
-    statement *s = malloc(sizeof(statement));
-    s->class = expression_class;
-    s->type = ST_IF;
+    statement *s = new_statement(ST_IF);
     s->per_type.if_.condition = condition;
     s->per_type.if_.body_statements = body_statements;
     s->per_type.if_.has_else = has_else;
@@ -59,17 +62,13 @@ statement *new_if_statement(expression *condition, list *body_statements, bool h
     return s;
 }
 statement *new_while_statement(expression *condition, list *body_statements) {
-    statement *s = malloc(sizeof(statement));
-    s->class = expression_class;
-    s->type = ST_WHILE;
+    statement *s = new_statement(ST_WHILE);
     s->per_type.while_.condition = condition;
     s->per_type.while_.body_statements = body_statements;
     return s;
 }
 statement *new_for_statement(expression *init, expression *condition, expression *next, list *body_statements) {
-    statement *s = malloc(sizeof(statement));
-    s->class = expression_class;
-    s->type = ST_FOR_LOOP;
+    statement *s = new_statement(ST_FOR_LOOP);
     s->per_type.for_.init = init;
     s->per_type.for_.condition = condition;
     s->per_type.for_.next = next;
@@ -77,28 +76,18 @@ statement *new_for_statement(expression *init, expression *condition, expression
     return s;
 }
 statement *new_break_statement() {
-    statement *s = malloc(sizeof(statement));
-    s->class = expression_class;
-    s->type = ST_BREAK;
-    return s;
+    return new_statement(ST_BREAK);
 }
 statement *new_continue_statement() {
-    statement *s = malloc(sizeof(statement));
-    s->class = expression_class;
-    s->type = ST_CONTINUE;
-    return s;
+    return new_statement(ST_CONTINUE);
 }
 statement *new_return_statement(expression *value) {
-    statement *s = malloc(sizeof(statement));
-    s->class = expression_class;
-    s->type = ST_RETURN;
+    statement *s = new_statement(ST_RETURN);
     s->per_type.return_.value = value;
     return s;
 }
 statement *new_function_statement(const char *name, list *arg_names, list *statements) {
-    statement *s = malloc(sizeof(statement));
-    s->class = expression_class;
-    s->type = ST_FUNCTION;
+    statement *s = new_statement(ST_FUNCTION);
     s->per_type.function.name = name;
     s->per_type.function.arg_names = arg_names;
     s->per_type.function.statements = statements;
@@ -259,11 +248,10 @@ bool statements_are_equal(statement *a, statement *b) {
 }
 
 class *statement_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "statement",
     .describe = (describe_func)statement_describe,
     .are_equal = (are_equal_func)statements_are_equal
 };
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(statement);
-
-

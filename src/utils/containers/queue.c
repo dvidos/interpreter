@@ -135,6 +135,7 @@ void queue_describe_default(queue *q, str_builder *sb) {
 }
 
 class *queue_class = &(class) {
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "queue",
     .describe = (describe_func)queue_describe_default,
     .are_equal = NULL,

@@ -79,6 +79,7 @@ bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {
 }
 
 class *stack_frame_class = &(class) {
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "stack_frame",
     .describe = (describe_func)stack_frame_describe,
     .are_equal = (are_equal_func)stack_frames_are_equal

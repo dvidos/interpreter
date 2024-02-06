@@ -27,6 +27,7 @@ struct expression {
 };
 
 class *expression_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "expression",
     .are_equal = (are_equal_func)expressions_are_equal,
     .describe = (describe_func)expression_describe,

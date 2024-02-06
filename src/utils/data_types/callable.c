@@ -3,12 +3,6 @@
 #include <string.h>
 #include "callable.h"
 
-class *callable_class = &(class){
-    .type_name = "callable",
-    .are_equal = (are_equal_func)callables_are_equal,
-    .describe = (describe_func)callable_describe
-};
-
 struct callable {
     class *class;
     const char *name;
@@ -53,3 +47,11 @@ failable_variant callable_call(callable *c, list *positional_args, dict *named_a
     
     return c->handler(positional_args, named_args, c->callable_data, this_obj, ctx);
 }
+
+class *callable_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
+    .type_name = "callable",
+    .are_equal = (are_equal_func)callables_are_equal,
+    .describe = (describe_func)callable_describe
+};
+

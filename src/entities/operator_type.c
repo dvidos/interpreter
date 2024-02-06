@@ -127,6 +127,7 @@ bool operator_types_are_equal(operator_type a, operator_type b) {
 }
 
 class *operator_type_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "operator_type",
     .are_equal = (are_equal_func)operator_types_are_equal,
     .describe = (describe_func)operator_type_describe

@@ -179,6 +179,7 @@ static void list_describe_default(list *l, str_builder *sb) {
 
 
 class *list_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "list",
     .are_equal = (are_equal_func)lists_are_equal,
     .describe = (describe_func)list_describe_default,

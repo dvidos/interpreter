@@ -26,6 +26,7 @@ struct variant {
 };
 
 class *variant_class = &(class){
+    .classdef_magic = CLASSDEF_MAGIC,
     .type_name = "variant",
     .are_equal = (are_equal_func)variants_are_equal,
     .describe = (describe_func)variant_describe
