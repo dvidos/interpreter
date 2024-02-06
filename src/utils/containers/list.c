@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "contained_item.h"
+#include "../class.h"
 #include "../str_builder.h"
 #include "list.h"
 
@@ -14,21 +14,21 @@ typedef struct list {
     int length;
     list_entry *head;
     list_entry *tail;
-    contained_item *contained_item;
+    class *item_class;
 } list;
 
 
-list *new_list(contained_item *contained_item) {
+list *new_list(class *item_class) {
     list *l = malloc(sizeof(list));
     l->length = 0;
     l->head = NULL;
     l->tail = NULL;
-    l->contained_item = contained_item;
+    l->item_class = item_class;
     return l;
 }
 
-list *list_of(contained_item *contained_item, int items_count, ...) {
-    list *l = new_list(contained_item);
+list *list_of(class *item_class, int items_count, ...) {
+    list *l = new_list(item_class);
     va_list args;
     va_start(args, items_count);
     while (items_count-- > 0)
@@ -37,8 +37,8 @@ list *list_of(contained_item *contained_item, int items_count, ...) {
     return l;
 }
 
-contained_item *list_contained_item(list *l) {
-    return l->contained_item;
+class *list_contained_item(list *l) {
+    return l->item_class;
 }
 
 int list_length(list *l) {
@@ -134,7 +134,7 @@ bool lists_are_equal(list *a, list *b) {
     if (a == b)
         return true;
     
-    if (!contained_item_info_are_equal(a->contained_item, b->contained_item))
+    if (!classes_are_equal(a->item_class, b->item_class))
         return false;
     if (a->length != b->length)
         return false;
@@ -144,8 +144,8 @@ bool lists_are_equal(list *a, list *b) {
     struct list_entry *entry_b = b->head;
     while (entry_a != NULL && entry_b != NULL) {
         bool equal;
-        if (a->contained_item != NULL && a->contained_item->are_equal != NULL)
-            equal = a->contained_item->are_equal(entry_a->item, entry_b->item);
+        if (a->item_class != NULL && a->item_class->are_equal != NULL)
+            equal = a->item_class->are_equal(entry_a->item, entry_b->item);
         else
             equal = entry_a->item == entry_b->item;
         
@@ -158,19 +158,30 @@ bool lists_are_equal(list *a, list *b) {
     return true;
 }
 
-const void list_describe(list *l, const char *separator, str_builder *sb) {
+void list_describe(list *l, const char *separator, str_builder *sb) {
     list_entry *e = l->head;
     while (e != NULL) {
         if (e != l->head)
             str_builder_add(sb, separator);
         
-        if (l->contained_item != NULL && l->contained_item->to_string != NULL)
-            l->contained_item->to_string(e->item, sb);
+        if (l->item_class != NULL && l->item_class->describe != NULL)
+            l->item_class->describe(e->item, sb);
         else
             str_builder_addf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
 }
+
+static void list_describe_default(list *l, str_builder *sb) {
+    list_describe(l, ", ", sb);
+}
+
+
+class *list_class = &(class){
+    .type_name = "list",
+    .are_equal = (are_equal_func)lists_are_equal,
+    .describe = (describe_func)list_describe_default,
+};
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(list);

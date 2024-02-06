@@ -1,4 +1,4 @@
-#include "class.h"
+#include "../class.h"
 
 
 class *get_class(void *instance) {
@@ -19,7 +19,7 @@ const char *instance_describe(void *instance) {
     class *c = get_class(instance);
     if (c == NULL)
         return NULL;
-    return c->to_string(instance);
+    return c->describe(instance);
 }
 
 bool instances_are_equal(void *a, void *b) {

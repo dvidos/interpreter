@@ -5,14 +5,15 @@
 #include "../utils/str_builder.h"
 
 
-contained_item *containing_tokens = &(contained_item){
+class *token_class = &(class){
     .type_name = "token",
     .are_equal = (are_equal_func)tokens_are_equal,
-    .to_string = (describe_func)token_describe,
+    .describe = (describe_func)token_describe,
     .hash = NULL
 };
 
 struct token {
+    class *class;
     token_type type;
     const char *data; // e.g. identifier or number
     const char *filename;
@@ -22,6 +23,7 @@ struct token {
 
 token *new_token(token_type type, const char *filename, int line_no, int column_no) {
     token *t = malloc(sizeof(token));
+    t->class = token_class;
     t->type = type;
     t->data = NULL;
     t->filename = filename;
@@ -32,6 +34,7 @@ token *new_token(token_type type, const char *filename, int line_no, int column_
 
 token *new_data_token(token_type type, const char *data, const char *filename, int line_no, int column_no) {
     token *t = malloc(sizeof(token));
+    t->class = token_class;
     t->type = type;
     t->data = data;
     t->filename = filename;

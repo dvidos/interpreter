@@ -8,6 +8,7 @@
 
 
 struct variant {
+    class *class;
     variant_type type;
     union {
         bool bool_;
@@ -24,16 +25,17 @@ struct variant {
     const char *str_repr;
 };
 
-contained_item *containing_variants = &(contained_item){
+class *variant_class = &(class){
     .type_name = "variant",
     .are_equal = (are_equal_func)variants_are_equal,
-    .to_string = (describe_func)variant_describe
+    .describe = (describe_func)variant_describe
 };
 
 
 variant *new_null_variant() {
     variant *v = malloc(sizeof(variant));
     memset(v, 0, sizeof(variant));
+    v->class = variant_class;
     v->type = VT_NULL;
     return v;
 }
@@ -247,13 +249,13 @@ list *variant_as_list(variant *v) {
         case VT_NULL:
             return NULL;
         case VT_BOOL:
-            return list_of(containing_variants, 1, v);
+            return list_of(variant_class, 1, v);
         case VT_INT:
-            return list_of(containing_variants, 1, v);
+            return list_of(variant_class, 1, v);
         case VT_FLOAT:
-            return list_of(containing_variants, 1, v);
+            return list_of(variant_class, 1, v);
         case VT_STR:
-            return list_of(containing_variants, 1, v);
+            return list_of(variant_class, 1, v);
         case VT_LIST:
             return v->per_type.list_;
         case VT_DICT:
@@ -270,15 +272,15 @@ dict *variant_as_dict(variant *v) {
         case VT_NULL:
             return NULL;
         case VT_BOOL:
-            return new_dict(containing_variants);
+            return new_dict(variant_class);
         case VT_INT:
-            return new_dict(containing_variants);
+            return new_dict(variant_class);
         case VT_FLOAT:
-            return new_dict(containing_variants);
+            return new_dict(variant_class);
         case VT_STR:
-            return new_dict(containing_variants);
+            return new_dict(variant_class);
         case VT_LIST:
-            return new_dict(containing_variants);
+            return new_dict(variant_class);
         case VT_DICT:
             return v->per_type.dict_;
         case VT_CALLABLE:

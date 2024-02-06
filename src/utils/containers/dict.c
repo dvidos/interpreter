@@ -14,24 +14,26 @@ typedef struct dict_entry {
 } dict_entry;
 
 typedef struct dict {
+    class *class;
     dict_entry **entries_array;
     int capacity;
     int count;
-    contained_item *contained_item;
+    class *item_class;
 } dict;
 
-dict *new_dict(contained_item *contained_item) {
+dict *new_dict(class *item_class) {
     dict *d = malloc(sizeof(dict));
+    d->class = dict_class;
     d->capacity = 32;
     d->count = 0;
     d->entries_array = malloc(sizeof(dict_entry *) * d->capacity);
     memset(d->entries_array, 0, d->capacity * sizeof(dict_entry *));
-    d->contained_item = contained_item;
+    d->item_class = item_class;
     return d;
 }
 
-dict *dict_of(contained_item *contained_item, int pairs_count, ...) {
-    dict *d = new_dict(contained_item);
+dict *dict_of(class *item_class, int pairs_count, ...) {
+    dict *d = new_dict(item_class);
     va_list args;
     va_start(args, pairs_count);
     while (pairs_count-- > 0) {
@@ -175,7 +177,7 @@ iterator *dict_keys_iterator(dict *d) {
 }
 
 list *dict_get_keys(dict *d) {
-    list *keys = new_list(containing_strs);
+    list *keys = new_list(str_class);
     iterator *it = dict_keys_iterator(d);
     for_iterator(it, str, key)
         list_add(keys, (void *)key); // we lose 'const' here
@@ -183,7 +185,7 @@ list *dict_get_keys(dict *d) {
 }
 
 list *dict_get_values(dict *d) {
-    list *values = new_list(d->contained_item);
+    list *values = new_list(d->item_class);
     iterator *it = dict_keys_iterator(d);
     for_iterator(it, str, key)
         list_add(values, dict_get(d, key));
@@ -198,7 +200,7 @@ bool dicts_are_equal(dict *a, dict *b) {
     if (a == b)
         return true;
     
-    if (!contained_item_info_are_equal(a->contained_item, b->contained_item))
+    if (!classes_are_equal(a->item_class, b->item_class))
         return false;
     if (a->count != b->count)
         return false;
@@ -214,8 +216,8 @@ bool dicts_are_equal(dict *a, dict *b) {
         void *value_a = dict_get(a, key_a);
         void *value_b = dict_get(b, key_b);
         bool values_equal;
-        if (a->contained_item != NULL && a->contained_item->are_equal != NULL)
-            values_equal = a->contained_item->are_equal(value_a, value_b);
+        if (a->item_class != NULL && a->item_class->are_equal != NULL)
+            values_equal = a->item_class->are_equal(value_a, value_b);
         else
             values_equal = value_a == value_b;
         if (!values_equal)
@@ -237,12 +239,22 @@ const void dict_describe(dict *d, const char *key_value_separator, const char *e
 
         str_builder_addf(sb, "%s%s", key, key_value_separator);
         void *value = dict_get(d, key);
-        if (d->contained_item != NULL && d->contained_item->to_string != NULL)
-            d->contained_item->to_string(value, sb);
+        if (d->item_class != NULL && d->item_class->describe != NULL)
+            d->item_class->describe(value, sb);
         else
             str_builder_addf(sb, "@0x%p", value);
     }
 }
 
+static const void dict_describe_default(dict *d, str_builder *sb) {
+    dict_describe(d, ": ", ", ", sb);
+}
+
+
+class *dict_class = &(class) {
+    .type_name = "dict",
+    .are_equal = (are_equal_func)dicts_are_equal,
+    .describe = (describe_func)dict_describe_default
+};
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(dict);

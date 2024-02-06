@@ -12,7 +12,7 @@
 bool containers_self_diagnostics(bool verbose) {
     str_builder *sb = new_str_builder();
 
-    queue *q = new_queue(containing_variants);
+    queue *q = new_queue(variant_class);
     assert(queue_empty(q));
     assert(queue_length(q) == 0);
     queue_put(q, new_str_variant("a"));

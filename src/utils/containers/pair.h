@@ -3,12 +3,12 @@
 
 #include "../failable.h"
 #include "../iterator.h"
-#include "contained_item.h"
+#include "../class.h"
 
 
 typedef struct pair pair;
 
-pair *new_pair(contained_item *left_item, void *left, contained_item *right_item, void *right);
+pair *new_pair(class *left_item_class, void *left, class *right_item_class, void *right);
 
 void *pair_get_left(pair *p);
 void *pair_get_right(pair *p);
@@ -19,6 +19,6 @@ const void pair_describe(pair *p, const char *separator, str_builder *sb);
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(pair);
 #define failed_pair(inner, fmt, ...)  __failed_pair(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
-extern contained_item *containing_pairs;
+extern class *pair_class;
 
 #endif

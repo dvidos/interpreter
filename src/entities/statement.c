@@ -6,6 +6,7 @@
 
 
 struct statement {
+    class *class;
     statement_type type;
     union {
         struct expr {
@@ -42,12 +43,14 @@ struct statement {
 
 statement *new_expression_statement(expression *expr) {
     statement *s = malloc(sizeof(statement));
+    s->class = expression_class;
     s->type = ST_EXPRESSION;
     s->per_type.expr.expr = expr;
     return s;
 }
 statement *new_if_statement(expression *condition, list *body_statements, bool has_else, list *else_body_statements) {
     statement *s = malloc(sizeof(statement));
+    s->class = expression_class;
     s->type = ST_IF;
     s->per_type.if_.condition = condition;
     s->per_type.if_.body_statements = body_statements;
@@ -57,6 +60,7 @@ statement *new_if_statement(expression *condition, list *body_statements, bool h
 }
 statement *new_while_statement(expression *condition, list *body_statements) {
     statement *s = malloc(sizeof(statement));
+    s->class = expression_class;
     s->type = ST_WHILE;
     s->per_type.while_.condition = condition;
     s->per_type.while_.body_statements = body_statements;
@@ -64,6 +68,7 @@ statement *new_while_statement(expression *condition, list *body_statements) {
 }
 statement *new_for_statement(expression *init, expression *condition, expression *next, list *body_statements) {
     statement *s = malloc(sizeof(statement));
+    s->class = expression_class;
     s->type = ST_FOR_LOOP;
     s->per_type.for_.init = init;
     s->per_type.for_.condition = condition;
@@ -73,22 +78,26 @@ statement *new_for_statement(expression *init, expression *condition, expression
 }
 statement *new_break_statement() {
     statement *s = malloc(sizeof(statement));
+    s->class = expression_class;
     s->type = ST_BREAK;
     return s;
 }
 statement *new_continue_statement() {
     statement *s = malloc(sizeof(statement));
+    s->class = expression_class;
     s->type = ST_CONTINUE;
     return s;
 }
 statement *new_return_statement(expression *value) {
     statement *s = malloc(sizeof(statement));
+    s->class = expression_class;
     s->type = ST_RETURN;
     s->per_type.return_.value = value;
     return s;
 }
 statement *new_function_statement(const char *name, list *arg_names, list *statements) {
     statement *s = malloc(sizeof(statement));
+    s->class = expression_class;
     s->type = ST_FUNCTION;
     s->per_type.function.name = name;
     s->per_type.function.arg_names = arg_names;
@@ -249,9 +258,9 @@ bool statements_are_equal(statement *a, statement *b) {
     return true;
 }
 
-contained_item *containing_statements = &(contained_item){
+class *statement_class = &(class){
     .type_name = "statement",
-    .to_string = (describe_func)statement_describe,
+    .describe = (describe_func)statement_describe,
     .are_equal = (are_equal_func)statements_are_equal
 };
 

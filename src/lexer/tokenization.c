@@ -219,7 +219,7 @@ static failable_token get_token_at_code_position() {
 }
 
 failable_list parse_code_into_tokens(const char *code, const char *filename) {
-    list *tokens = new_list(containing_tokens);
+    list *tokens = new_list(token_class);
 
     if (code == NULL || strlen(code) == 0) {
         list_add(tokens, new_token(T_END, code_filename, code_line_no, code_column_no));

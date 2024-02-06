@@ -120,7 +120,7 @@ void show_help() {
 
 void execute_code(const char *code, const char *filename) {
     printf("Executing %s...\n", filename);
-    dict *values = new_dict(containing_variants);
+    dict *values = new_dict(variant_class);
     failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.start_with_debugger);
     if (execution.failed)
         failable_print(&execution);

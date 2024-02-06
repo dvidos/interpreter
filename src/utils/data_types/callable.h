@@ -28,6 +28,6 @@ failable_variant callable_call(callable *c, list *positional_args, dict *named_a
 bool callables_are_equal(callable *a, callable *b);
 const void callable_describe(callable *c, str_builder *sb);
 
-extern contained_item *containing_callables;
+extern class *callable_class;
 
 #endif

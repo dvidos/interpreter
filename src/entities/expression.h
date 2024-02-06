@@ -10,7 +10,7 @@
 
 typedef struct expression expression;
 
-extern contained_item *containing_expressions;
+extern class *expression_class;
 
 
 expression *new_identifier_expression(const char *data, token *token);

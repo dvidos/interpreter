@@ -80,6 +80,6 @@ op_type_associativity operator_type_associativity(operator_type op);
 bool operator_type_is_unary(operator_type op);
 const void operator_type_describe(operator_type op, str_builder *sb);
 
-extern contained_item *containing_operator_types;
+extern class *operator_type_class;
 
 #endif

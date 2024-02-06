@@ -34,8 +34,8 @@ static iterator *tokens_iterator;
 static token *last_accepted_token = NULL;
 
 void initialize_expression_parser() {
-    operators_stack = new_stack(containing_pairs);
-    expressions_stack = new_stack(containing_expressions);
+    operators_stack = new_stack(pair_class);
+    expressions_stack = new_stack(expression_class);
     last_accepted_token = NULL;
 }
 
@@ -90,8 +90,8 @@ static inline expression *make_operand_expression(token *token) {
 
 static inline void push_operator_pair(operator_type op, token *token) {
     stack_push(operators_stack, new_pair(
-        containing_operator_types, (void *)op, 
-        containing_tokens, token
+        operator_type_class, (void *)op, 
+        token_class, token
     ));
 }
 
@@ -211,7 +211,7 @@ static failable_bool detect_completion(completion_mode mode) {
 }
 
 static failable_expression parse_list_initializer(bool verbose, token *initial_token) {
-    list *l = new_list(containing_expressions);
+    list *l = new_list(expression_class);
 
     // [] = empty list
     if (accept(T_RSQBRACKET))
@@ -230,7 +230,7 @@ static failable_expression parse_list_initializer(bool verbose, token *initial_t
 }
 
 static failable_expression parse_dict_initializer(bool verbose, token *initial_token) {
-    dict *d = new_dict(containing_expressions);
+    dict *d = new_dict(expression_class);
 
     // {} = empty dict
     if (accept(T_RBRACKET))
@@ -259,7 +259,7 @@ static failable_expression parse_func_declaration_expression(bool verbose, token
     if (!accept(T_LPAREN))
         return failed_expression(NULL, "Expected '(' after function");
     
-    list *arg_names = new_list(containing_strs);
+    list *arg_names = new_list(str_class);
     while (!accept(T_RPAREN)) {
         if (!accept(T_IDENTIFIER))
             return failed_expression(NULL, "Expected identifier in function arg names");
@@ -333,7 +333,7 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 }
 
 static failable_list parse_function_call_arguments_expressions(bool verbose) {
-    list *args = new_list(containing_expressions);
+    list *args = new_list(expression_class);
 
     // if empty args, there will be nothing to parse
     if (accept(T_RPAREN))
@@ -359,7 +359,7 @@ static failable_expression parse_shorthand_if_pair(bool verbose) {
     if (parsing.failed) return failed_expression(&parsing, NULL);
     expression *e2 = parsing.result;
 
-    return ok_expression(new_list_data_expression(list_of(containing_expressions, 2, e1, e2), colon_token));
+    return ok_expression(new_list_data_expression(list_of(expression_class, 2, e1, e2), colon_token));
 }
 
 static failable parse_expression_on_have_operand(run_state *state, completion_mode completion, bool verbose) {

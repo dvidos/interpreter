@@ -3,13 +3,14 @@
 #include <string.h>
 #include "callable.h"
 
-contained_item *containing_callables = &(contained_item){
+class *callable_class = &(class){
     .type_name = "callable",
     .are_equal = (are_equal_func)callables_are_equal,
-    .to_string = (describe_func)callable_describe
+    .describe = (describe_func)callable_describe
 };
 
 struct callable {
+    class *class;
     const char *name;
     const char *description;
     callable_handler *handler;
@@ -18,6 +19,7 @@ struct callable {
 
 callable *new_callable(const char *name, callable_handler *handler, void *callable_data) {
     callable *c = malloc(sizeof(callable));
+    c->class = callable_class;
     c->name = name;
     c->handler = handler;
     c->callable_data = callable_data;

@@ -69,7 +69,7 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("if (a) b;", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(containing_statements, 1, 
+            list_of(statement_class, 1, 
                 new_expression_statement(new_identifier_expression("b", NULL))),
             false,
             NULL
@@ -79,7 +79,7 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("if (a) return a;", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(containing_statements, 1, 
+            list_of(statement_class, 1, 
                 new_return_statement(new_identifier_expression("a", NULL))
             ),
             false,
@@ -90,7 +90,7 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("if (a) { b; c; }", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(containing_statements, 2,
+            list_of(statement_class, 2,
                 new_expression_statement(new_identifier_expression("b", NULL)),
                 new_expression_statement(new_identifier_expression("c", NULL))),
             false,
@@ -101,20 +101,20 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("if (a) b; else c;", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(containing_statements, 1, new_expression_statement(new_identifier_expression("b", NULL))),
+            list_of(statement_class, 1, new_expression_statement(new_identifier_expression("b", NULL))),
             true,
-            list_of(containing_statements, 1, new_expression_statement(new_identifier_expression("c", NULL)))
+            list_of(statement_class, 1, new_expression_statement(new_identifier_expression("c", NULL)))
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("if (a) { b; c; } else { d; e; }", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(containing_statements, 2, 
+            list_of(statement_class, 2, 
                 new_expression_statement(new_identifier_expression("b", NULL)),
                 new_expression_statement(new_identifier_expression("c", NULL))),
             true,
-            list_of(containing_statements, 2, 
+            list_of(statement_class, 2, 
                 new_expression_statement(new_identifier_expression("d", NULL)), 
                 new_expression_statement(new_identifier_expression("e", NULL)))
         ), 
@@ -123,14 +123,14 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("while (a) b;", false, 
         new_while_statement(
             new_identifier_expression("a", NULL),
-            list_of(containing_statements, 1, new_expression_statement(new_identifier_expression("b", NULL)))
+            list_of(statement_class, 1, new_expression_statement(new_identifier_expression("b", NULL)))
         ), 
     verbose)) all_passed = false;
 
     if (!use_case_passes("while (a) { b; c; }", false, 
         new_while_statement(
             new_identifier_expression("a", NULL),
-            list_of(containing_statements, 2, 
+            list_of(statement_class, 2, 
                 new_expression_statement(new_identifier_expression("b", NULL)), 
                 new_expression_statement(new_identifier_expression("c", NULL)))
         ), 
@@ -139,7 +139,7 @@ bool statement_parser_self_diagnostics(bool verbose) {
     if (!use_case_passes("while (a) { break; continue; }", false, 
         new_while_statement(
             new_identifier_expression("a", NULL),
-            list_of(containing_statements, 2, 
+            list_of(statement_class, 2, 
                 new_break_statement(), 
                 new_continue_statement())
         ), 
@@ -150,7 +150,7 @@ bool statement_parser_self_diagnostics(bool verbose) {
             new_identifier_expression("a", NULL),
             new_identifier_expression("b", NULL),
             new_identifier_expression("c", NULL),
-            list_of(containing_statements, 1, new_expression_statement(new_identifier_expression("d", NULL)))
+            list_of(statement_class, 1, new_expression_statement(new_identifier_expression("d", NULL)))
         ), 
     verbose)) all_passed = false;
 
@@ -159,7 +159,7 @@ bool statement_parser_self_diagnostics(bool verbose) {
             new_identifier_expression("a", NULL),
             new_identifier_expression("b", NULL),
             new_identifier_expression("c", NULL),
-            list_of(containing_statements, 2, 
+            list_of(statement_class, 2, 
                 new_expression_statement(new_identifier_expression("d", NULL)),
                 new_expression_statement(new_identifier_expression("e", NULL)))
         ), 

@@ -14,9 +14,9 @@ FILES = \
 	src/utils/containers/stack.c \
 	src/utils/containers/queue.c \
 	src/utils/containers/pair.c \
-	src/utils/containers/contained_item.c \
 	src/utils/containers/containers_tests.c \
 	\
+	src/utils/class.c \
 	src/utils/str.c \
 	src/utils/str_builder.c \
 	src/utils/failable.c \

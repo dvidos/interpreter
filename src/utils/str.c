@@ -5,13 +5,13 @@
 
 
 
-contained_item *containing_strs = &(contained_item){
+class *str_class = &(class){
     .type_name = "str",
     .are_equal = (are_equal_func)strs_are_equal,
-    .to_string = (describe_func)str_describe
+    .describe = (describe_func)str_describe
 };
 
-extern contained_item *containing_strs;
+extern class *str_class;
 
 bool strs_are_equal(str *a, str *b) {
     return strcmp(a, b) == 0;

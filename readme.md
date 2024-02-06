@@ -50,7 +50,7 @@ General support objects
 * `dict` - a hash map of items, accessed by name
 * `stack` - a stack of items, with push, peek & pop operations
 * `queue` - a queue of items, with put, peek & get operations
-* `contained_item` - item information for containers. Facilitates comparison and debugging
+* `item_class` - item information for containers. Facilitates comparison and debugging
 * `str_builder` - an expandable zero-terminated string buffer
 
 ## memory 
@@ -89,9 +89,7 @@ pointers to functions, who take the object as the first argument. e.g.
 
 ### contained items info
 
-In order to contain the items in the various containers, the convention is that
-the `contained_item` struct is exposed in a public variable with the name `containing_[plural]`. For example `containing_tokens`. This creates the syntactic sugar:
-`list *l = new_list(containing_tokens);`.
+In order to contain the items in the various containers, the convention is that the `class` struct is exposed in a public variable with the name `[type]_class`. For example `token_class`. This creates the syntactic sugar: `list *l = new_list(token_class);`.
 
 Unit tests rely heavily on comparing a computed data structure against an expected
 data structure. Also, for debugging, it is very helpful to be able to print 
@@ -275,7 +273,7 @@ iterator *stack_iterator(stack *s);
 ### Contained item
 
 Contained_item is a way to unlock polymorphic behavior for contained items, without the 
-containers knowing what they are containing. This allows having `are_equal` and `to_string` 
+containers knowing what they are containing. This allows having `are_equal` and `describe` 
 functionality, without knowing the item contents.
 
 Each entity (e.g. token, expression etc) are declaring a global pointer to such a struct,

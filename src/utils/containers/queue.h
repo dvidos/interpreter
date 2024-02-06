@@ -5,8 +5,9 @@
 #include "../iterator.h"
 
 typedef struct queue queue;
+extern class *queue_class;
 
-queue *new_queue(contained_item *contained_item);
+queue *new_queue(class *item_class);
 
 int   queue_length(queue *s);
 bool  queue_empty(queue *s);

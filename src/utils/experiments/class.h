@@ -8,7 +8,7 @@ typedef struct class class;
 struct class {
     const char *name;
     
-    const char *(*to_string)(void *instance);
+    const char *(*describe)(void *instance);
     bool (*are_equal)(void *a, void *b);
     // int (*hash)(void *instance);
     // void *(*clone)(void *instance);

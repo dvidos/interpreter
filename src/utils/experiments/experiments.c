@@ -22,7 +22,7 @@ class logger = &(class) {
     .name = "logger",
     .classdef_magic = CLASSDEF_MAGIC,
     .are_equal = NULL,
-    .to_string = logger_describe
+    .describe = logger_describe
 };
 
 typedef struct logger logger;

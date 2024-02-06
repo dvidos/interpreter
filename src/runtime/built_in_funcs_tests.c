@@ -9,7 +9,7 @@
 
 
 static bool validate_use_case(const char *code, variant *expected, bool verbose) {
-    dict *values = new_dict(containing_variants);
+    dict *values = new_dict(variant_class);
     failable_variant execution = interpret_and_execute(code, "test", values, verbose, false);
     if (execution.failed) { failable_print(&execution); return false; }
     bool are_equal = variants_are_equal(execution.result, expected);
@@ -33,7 +33,7 @@ bool built_in_self_diagnostics(bool verbose) {
 
     if (!validate_use_case(
         "[1,2,3,4].filter(function(item, idx, arr){return item % 2 == 0;})", 
-        new_list_variant(list_of(containing_variants, 2,
+        new_list_variant(list_of(variant_class, 2,
             new_int_variant(2),
             new_int_variant(4)
         )),
@@ -42,7 +42,7 @@ bool built_in_self_diagnostics(bool verbose) {
 
     if (!validate_use_case(
         "[1,2,3].map(function(item, idx, arr){return item * 2;})", 
-        new_list_variant(list_of(containing_variants, 3,
+        new_list_variant(list_of(variant_class, 3,
             new_int_variant(2),
             new_int_variant(4),
             new_int_variant(6)

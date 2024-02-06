@@ -173,7 +173,7 @@ static failable_variant built_in_list_filter(list *positional_args, dict *named_
     callable *func = CALL_ARG(0);
     int index = 0;
     for_list(l, it, variant, item) {
-        list *func_args = list_of(containing_variants, 3,
+        list *func_args = list_of(variant_class, 3,
             item, new_int_variant(index), this_obj);
         failable_variant call = callable_call(func, func_args, NULL, NULL, ctx);
         if (call.failed) return failed_variant(&call, NULL);
@@ -192,7 +192,7 @@ static failable_variant built_in_list_map(list *positional_args, dict *named_arg
     callable *func = CALL_ARG(0);
     int index = 0;
     for_list(l, it, variant, item) {
-        list *func_args = list_of(containing_variants, 3,
+        list *func_args = list_of(variant_class, 3,
             item, new_int_variant(index), this_obj);
         failable_variant call = callable_call(func, func_args, NULL, NULL, ctx);
         if (call.failed) return failed_variant(&call, NULL);
@@ -209,7 +209,7 @@ static failable_variant built_in_list_reduce(list *positional_args, dict *named_
         accumulator = new_null_variant();
     int index = 0;
     for_list(l, it, variant, item) {
-        list *func_args = list_of(containing_variants, 4,
+        list *func_args = list_of(variant_class, 4,
             accumulator, item, new_int_variant(index), this_obj);
         failable_variant new_accum = callable_call(func, func_args, NULL, NULL, ctx);
         if (new_accum.failed) return failed_variant(&new_accum, NULL);
@@ -229,14 +229,14 @@ static failable_variant built_in_dict_length(list *positional_args, dict *named_
 }
 static failable_variant built_in_dict_keys(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = variant_as_dict(this_obj);
-    list *result = new_list(containing_strs);
+    list *result = new_list(str_class);
     for_dict(d, it, str, key)
         list_add(result, (void *)key); // we lose const here
     return ok_variant(new_list_variant(result));
 }
 static failable_variant built_in_dict_values(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = variant_as_dict(this_obj);
-    list *result = new_list(containing_strs);
+    list *result = new_list(str_class);
     for_dict(d, it, str, key)
         list_add(result, dict_get(d, key));
     return ok_variant(new_list_variant(result));
@@ -250,8 +250,8 @@ static inline void add_callable(callable *c) {
 }
 
 void initialize_built_in_funcs_table() {
-    built_in_funcs_list = new_list(containing_callables);
-    built_in_funcs_dict = new_dict(containing_callables);
+    built_in_funcs_list = new_list(callable_class);
+    built_in_funcs_dict = new_dict(callable_class);
 
     add_callable(built_in_substr_callable());
     add_callable(built_in_strpos_callable());
@@ -265,9 +265,9 @@ void initialize_built_in_funcs_table() {
     add_callable(built_in_str_callable());
     add_callable(built_in_int_callable());
 
-    built_in_str_methods = new_dict(containing_callables);
-    built_in_list_methods = new_dict(containing_callables);
-    built_in_dict_methods = new_dict(containing_callables);
+    built_in_str_methods = new_dict(callable_class);
+    built_in_list_methods = new_dict(callable_class);
+    built_in_dict_methods = new_dict(callable_class);
 
     BUILT_IN_METHOD(list, add, built_in_list_add);
     BUILT_IN_METHOD(list, empty, built_in_list_empty);

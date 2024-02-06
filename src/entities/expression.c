@@ -7,6 +7,7 @@
 #include "expression.h"
 
 struct expression {
+    class *class;
     expression_type type;
     token *token;
     operator_type op;
@@ -25,16 +26,17 @@ struct expression {
     } per_type;
 };
 
-contained_item *containing_expressions = &(contained_item){
+class *expression_class = &(class){
     .type_name = "expression",
     .are_equal = (are_equal_func)expressions_are_equal,
-    .to_string = (describe_func)expression_describe,
+    .describe = (describe_func)expression_describe,
     .hash      = NULL
 };
 
 static expression *new_expression(expression_type type, token *token, operator_type op) {
     expression *e = malloc(sizeof(expression));
     memset(e, 0, sizeof(expression));
+    e->class = expression_class;
     e->type = type;
     e->token = token;
     e->op = op;

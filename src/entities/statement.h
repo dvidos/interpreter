@@ -17,7 +17,7 @@ statement *new_continue_statement();
 statement *new_return_statement(expression *value);
 statement *new_function_statement(const char *name, list *arg_names, list *statements);
 
-extern contained_item *containing_statements;
+extern class *statement_class;
 
 statement_type statement_get_type(statement *s);
 expression *statement_get_expression(statement *s, int mnemonic);

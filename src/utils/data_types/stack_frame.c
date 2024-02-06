@@ -5,14 +5,16 @@
 
 
 struct stack_frame {
+    class *class;
     const char *func_name;
     dict *symbols;
 };
 
 stack_frame *new_stack_frame(const char *func_name) {
     stack_frame *f = malloc(sizeof(stack_frame));
+    f->class = stack_frame_class;
     f->func_name = func_name;
-    f->symbols = new_dict(containing_variants);
+    f->symbols = new_dict(variant_class);
     return f;
 }
 
@@ -76,8 +78,9 @@ bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {
     return true;
 }
 
-contained_item *containing_stack_frames = &(contained_item) {
-    .to_string = (describe_func)stack_frame_describe,
+class *stack_frame_class = &(class) {
+    .type_name = "stack_frame",
+    .describe = (describe_func)stack_frame_describe,
     .are_equal = (are_equal_func)stack_frames_are_equal
 };
 

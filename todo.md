@@ -9,8 +9,8 @@
 to expose iterators behavior. For example to expose reset/curr/move.
 
 * create built-in methods for the built-in types. See OP_MEMBER execution.
-  * list: add, length, indexof, to_string
-  * dict: add, set, contains, indexof, to_string
+  * list: add, length, indexof, describe
+  * dict: add, set, contains, indexof, describe
   * str: length, substr, indexof, split, etc
 
 * continue with the adventure game, it unveils good improvements.

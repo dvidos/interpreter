@@ -57,7 +57,7 @@ const void variant_describe(variant *v, str_builder *sb);
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(variant);
 #define failed_variant(inner, fmt, ...)  __failed_variant(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
-extern contained_item *containing_variants;
+extern class *variant_class;
 
 
 

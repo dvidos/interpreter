@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "contained_item.h"
+#include "../class.h"
 #include "../str_builder.h"
 #include "stack.h"
 
@@ -11,17 +11,19 @@ typedef struct stack_entry {
 } stack_entry;
 
 typedef struct stack {
+    class *class;
     int length;
     stack_entry *head;
-    contained_item *contained_item;
+    class *item_class;
 } stack;
 
 
-stack *new_stack(contained_item *contained_item) {
+stack *new_stack(class *item_class) {
     stack *s = malloc(sizeof(stack));
+    s->class = stack_class;
     s->length = 0;
     s->head = NULL;
-    s->contained_item = contained_item;
+    s->item_class = item_class;
     return s;
 }
 
@@ -101,17 +103,27 @@ iterator *stack_iterator(stack *s) {
 
 
 
-const void stack_describe(stack *s, const char *separator, str_builder *sb) {
+void stack_describe(stack *s, const char *separator, str_builder *sb) {
     stack_entry *e = s->head;
     while (e != NULL) {
         if (e != s->head)
             str_builder_add(sb, separator);
         
-        if (s->contained_item != NULL && s->contained_item->to_string != NULL)
-            s->contained_item->to_string(e->item, sb);
+        if (s->item_class != NULL && s->item_class->describe != NULL)
+            s->item_class->describe(e->item, sb);
         else
             str_builder_addf(sb, "@0x%p", e->item);
         
         e = e->next;
     }
 }
+
+static void stack_describe_default(stack *s, const char *separator, str_builder *sb) {
+    stack_describe(s, ", ", sb);
+}
+
+class *stack_class = &(class){
+    .type_name = "stack",
+    .describe = (describe_func)stack_describe_default,
+    .are_equal = NULL
+};

@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
-#include "contained_item.h"
+#include "class.h"
 
 
-bool contained_item_info_are_equal(contained_item *a, contained_item *b) {
+bool classes_are_equal(class *a, class *b) {
     if (a == NULL && b == NULL) return true;
     if (a == NULL && b != NULL) return false;
     if (a != NULL && b == NULL) return false;

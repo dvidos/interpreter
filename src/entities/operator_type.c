@@ -126,8 +126,8 @@ bool operator_types_are_equal(operator_type a, operator_type b) {
     return a == b;
 }
 
-contained_item *containing_operator_types = &(contained_item){
+class *operator_type_class = &(class){
     .type_name = "operator_type",
     .are_equal = (are_equal_func)operator_types_are_equal,
-    .to_string = (describe_func)operator_type_describe
+    .describe = (describe_func)operator_type_describe
 };

@@ -6,7 +6,7 @@
 
 typedef const char str;
 
-extern contained_item *containing_strs;
+extern class *str_class;
 
 bool strs_are_equal(str *a, str *b);
 const void str_describe(str *s, str_builder *sb);
