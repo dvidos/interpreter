@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include "../debugger/debugger.h"
 #include "../utils/str.h"
 #include "../utils/str_builder.h"
 #include "expression_execution.h"
@@ -44,6 +45,11 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
     operator_type op = expression_get_operator(e);
     expression *lval_expr;
     expression *rval_expr;
+
+    if (exec_context_get_start_debugger_at_next_opportunity(ctx)) {
+        exec_context_set_start_debugger_at_next_opportunity(ctx, false);
+        run_debugger(NULL, e, ctx);
+    }
 
     if (et == ET_UNARY_OP) {
         lval_expr = expression_get_operand(e, 0);

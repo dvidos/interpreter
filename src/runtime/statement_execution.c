@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include "../debugger/debugger.h"
 #include "../utils/str_builder.h"
 #include "../utils/data_types/_module.h"
 #include "expression_execution.h"
@@ -35,6 +36,11 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
     statement_type s_type = statement_get_type(stmt);
     failable_variant execution;
     variant *return_value = new_null_variant();
+
+    if (exec_context_get_start_debugger_at_next_opportunity(ctx)) {
+        exec_context_set_start_debugger_at_next_opportunity(ctx, false);
+        run_debugger(stmt, NULL, ctx);
+    }
 
     if (s_type == ST_IF) {
         expression *condition = statement_get_expression(stmt, 0);

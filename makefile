@@ -41,6 +41,8 @@ FILES = \
 	src/runtime/expression_execution.c \
 	src/runtime/statement_execution.c \
 	\
+	src/debugger/debugger.c \
+	\
 	src/interpreter/interpreter.c \
 	src/interpreter/interpreter_tests.c
 

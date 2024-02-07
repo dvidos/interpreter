@@ -10,10 +10,11 @@ struct exec_context {
     bool debugger;
     dict *global_symbols;
     stack *stack_frames;
-    // stdin, stdout
-    // logger
-    // metrics?
-    // debugger? (breakpoints, etc)
+
+    bool start_debugger_at_next_opportunity;
+    list *ast_root_statements;
+
+    // stdin, stdout, logger
 };
 
 
@@ -23,12 +24,16 @@ struct exec_context {
 
 
 
-exec_context *new_exec_context(bool verbose, bool debugger) {
+exec_context *new_exec_context(list *ast_root_statements, bool verbose, bool debugger) {
     exec_context *c = malloc(sizeof(exec_context));
+    c->ast_root_statements = ast_root_statements;
     c->verbose = verbose;
     c->debugger = debugger;
     c->global_symbols = new_dict(variant_class);
     c->stack_frames = new_stack(stack_frame_class);
+    
+    if (debugger)
+        c->start_debugger_at_next_opportunity = true;
     return c;
 }
 
@@ -99,7 +104,13 @@ failable exec_context_update_symbol(exec_context *c, const char *name, variant *
     return ok();
 }
 
+void exec_context_set_start_debugger_at_next_opportunity(exec_context *c, bool value) {
+    c->start_debugger_at_next_opportunity = value;
+}
 
+bool exec_context_get_start_debugger_at_next_opportunity(exec_context *c) {
+    return c->start_debugger_at_next_opportunity;
+}
 
 
 

@@ -9,7 +9,7 @@
 
 typedef struct exec_context exec_context;
 
-exec_context *new_exec_context(bool verbose, bool debugger);
+exec_context *new_exec_context(list *ast_root_statments, bool verbose, bool debugger);
 
 stack_frame *exec_context_get_curr_stack_frame(exec_context *c);
 failable exec_context_push_stack_frame(exec_context *c, stack_frame *f);
@@ -20,6 +20,8 @@ bool exec_context_symbol_exists(exec_context *c, const char *name);
 failable exec_context_register_symbol(exec_context *c, const char *name, variant *v);
 failable exec_context_update_symbol(exec_context *c, const char *name, variant *v);
 
+void exec_context_set_start_debugger_at_next_opportunity(exec_context *c, bool value);
+bool exec_context_get_start_debugger_at_next_opportunity(exec_context *c);
 
 
 
