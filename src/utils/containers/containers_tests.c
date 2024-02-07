@@ -9,7 +9,7 @@
 
 #include "../data_types/variant.h"
 
-bool containers_self_diagnostics(bool verbose) {
+void containers_self_diagnostics(bool verbose) {
     str_builder *sb = new_str_builder();
 
     queue *q = new_queue(variant_class);
@@ -31,5 +31,24 @@ bool containers_self_diagnostics(bool verbose) {
     assert(queue_empty(q));
     assert(queue_length(q) == 0);
 
-    return testing_outcome(false);
+
+    stack *s = new_stack(variant_class);
+    assert(stack_empty(s));
+    assert(stack_length(s) == 0);
+    stack_push(s, new_str_variant("a"));
+    stack_push(s, new_str_variant("b"));
+    stack_push(s, new_str_variant("c"));
+    assert(!stack_empty(s));
+    assert(stack_length(s) == 3);
+    assert(strcmp(variant_as_str(stack_peek(s)), "c") == 0);
+
+    str_builder_clear(sb);
+    stack_describe(s, "|", sb);
+    assert(strcmp(str_builder_charptr(sb), "c|b|a") == 0);
+    
+    assert(strcmp(variant_as_str(stack_pop(s)), "c") == 0);
+    assert(strcmp(variant_as_str(stack_pop(s)), "b") == 0);
+    assert(strcmp(variant_as_str(stack_pop(s)), "a") == 0);
+    assert(stack_empty(s));
+    assert(stack_length(s) == 0);
 }

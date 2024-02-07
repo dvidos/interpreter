@@ -7,7 +7,7 @@
 #include "../testing.h"
 
 
-bool variant_self_diagnostics(bool verbose) {
+void variant_self_diagnostics(bool verbose) {
 
     variant *v = new_str_variant("15");
     assert(variant_is_str(v));
@@ -30,6 +30,4 @@ bool variant_self_diagnostics(bool verbose) {
     assert(variant_as_bool(new_str_variant("false")) == false);
     assert(variant_as_bool(new_int_variant(0)) == false);
     assert(variant_as_bool(new_int_variant(1)) == true);
-
-    return testing_outcome(verbose);
 }

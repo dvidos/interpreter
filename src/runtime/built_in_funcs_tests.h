@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 
-bool built_in_self_diagnostics(bool verbose);
+void built_in_self_diagnostics(bool verbose);
 
 
 

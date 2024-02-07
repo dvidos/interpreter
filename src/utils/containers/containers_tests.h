@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 
-bool containers_self_diagnostics(bool verbose);
+void containers_self_diagnostics(bool verbose);
 
 
 

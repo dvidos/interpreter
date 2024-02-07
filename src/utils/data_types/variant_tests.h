@@ -6,7 +6,7 @@
 #include "containers/list.h"
 #include "containers/dict.h"
 
-bool variant_self_diagnostics();
+void variant_self_diagnostics();
 
 
 #endif

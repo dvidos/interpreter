@@ -30,33 +30,17 @@
 */
 
 bool run_self_diagnostics(bool verbose) {
-    bool all_passed = true;
+    testing_initialize();
 
-    printf("Running diagnostics (unit tests)... ");
-
-    if (!variant_self_diagnostics(verbose))
-        all_passed = false;
+    variant_self_diagnostics(verbose);
+    containers_self_diagnostics(verbose);
+    lexer_self_diagnostics(verbose);
+    expression_parser_self_diagnostics(verbose);
+    statement_parser_self_diagnostics(verbose);
+    interpreter_self_diagnostics(verbose);
+    built_in_self_diagnostics(verbose);
     
-    if (!containers_self_diagnostics(verbose))
-        all_passed = false;
-    
-    if (!lexer_self_diagnostics(verbose))
-        all_passed = false;
-    
-    if (!expression_parser_self_diagnostics(verbose))
-        all_passed = false;
-    
-    if (!statement_parser_self_diagnostics(verbose))
-        all_passed = false;
-
-    if (!interpreter_self_diagnostics(verbose))
-        all_passed = false;
-
-    if (!built_in_self_diagnostics(verbose))
-        all_passed = false;
-    
-    printf("...diagnostics %s\n", all_passed ? "PASSED" : "FAILED");
-    return all_passed;
+    return testing_outcome();
 }
 
 struct options {

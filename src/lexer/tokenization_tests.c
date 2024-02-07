@@ -9,7 +9,7 @@
 
 
 // for each token, pass in expected type. for identifiers and literals, pass in data.
-static bool use_case_passes(const char *code, bool expect_failure, int expected_tokens, ...) {
+static bool run_use_case(const char *code, bool expect_failure, int expected_tokens, ...) {
     failable_list tokenization = parse_code_into_tokens(code, "test");
 
     // test failure
@@ -70,31 +70,31 @@ bool lexer_self_diagnostics() {
     bool all_passed = true;
     
     // for each token, pass in expected type. for identifiers and literals, pass in data.
-    if (!use_case_passes("#", true, 0))
+    if (!run_use_case("#", true, 0))
         all_passed = false;
-    if (!use_case_passes(NULL, false, 1, T_END)) 
+    if (!run_use_case(NULL, false, 1, T_END)) 
         all_passed = false;
-    if (!use_case_passes("", false, 1, T_END))
+    if (!run_use_case("", false, 1, T_END))
         all_passed = false;
-    if (!use_case_passes("index", false, 2, T_IDENTIFIER, "index", T_END))
+    if (!run_use_case("index", false, 2, T_IDENTIFIER, "index", T_END))
         all_passed = false;
-    if (!use_case_passes("123", false, 2, T_NUMBER_LITERAL, "123", T_END))
+    if (!run_use_case("123", false, 2, T_NUMBER_LITERAL, "123", T_END))
         all_passed = false;
-    if (!use_case_passes("'hello'", false, 2, T_STRING_LITERAL, "hello", T_END))
+    if (!run_use_case("'hello'", false, 2, T_STRING_LITERAL, "hello", T_END))
         all_passed = false;
-    if (!use_case_passes("\" abc \"", false, 2, T_STRING_LITERAL, " abc ", T_END))
+    if (!run_use_case("\" abc \"", false, 2, T_STRING_LITERAL, " abc ", T_END))
         all_passed = false;
-    if (!use_case_passes("true", false, 2, T_BOOLEAN_LITERAL, "true", T_END))
+    if (!run_use_case("true", false, 2, T_BOOLEAN_LITERAL, "true", T_END))
         all_passed = false;
-    if (!use_case_passes("false", false, 2, T_BOOLEAN_LITERAL, "false", T_END))
+    if (!run_use_case("false", false, 2, T_BOOLEAN_LITERAL, "false", T_END))
         all_passed = false;
-    if (!use_case_passes(">", false, 2, T_LARGER, T_END))
+    if (!run_use_case(">", false, 2, T_LARGER, T_END))
         all_passed = false;
-    if (!use_case_passes(">=", false, 2, T_LARGER_EQUAL, T_END))
+    if (!run_use_case(">=", false, 2, T_LARGER_EQUAL, T_END))
         all_passed = false;
-    if (!use_case_passes(">>", false, 2, T_DOUBLE_LARGER, T_END))
+    if (!run_use_case(">>", false, 2, T_DOUBLE_LARGER, T_END))
         all_passed = false;
-    if (!use_case_passes("iif(a >= 10, b, c)", false, 11, 
+    if (!run_use_case("iif(a >= 10, b, c)", false, 11, 
         T_IDENTIFIER, "iif",
         T_LPAREN,
         T_IDENTIFIER, "a",

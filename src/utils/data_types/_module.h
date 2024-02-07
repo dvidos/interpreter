@@ -7,7 +7,7 @@
 #include "exec_context.h"
 #include "stack_frame.h"
 
-bool variant_self_diagnostics();
+void variant_self_diagnostics(bool verbose);
 
 
 #endif
