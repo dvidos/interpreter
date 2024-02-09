@@ -21,6 +21,7 @@ FILES = \
 	src/utils/str_builder.c \
 	src/utils/failable.c \
 	src/utils/file.c \
+	src/utils/listing.c \
 	\
 	src/entities/operator_type.c \
 	src/entities/expression.c \
