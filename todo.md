@@ -1,6 +1,11 @@
 # todo
 
-* make testing uniform. fix the "testing" package to serve.
+* see that maybe the class_info can give us a dictionary
+of primitive actions, e.g. "factorial" for the integer variants.
+In that sense we could write: `5.power(2);` or `4.fact();`,
+same as we'd do `[4,1,3,2].sort();`, or `'hello'.print();`.
+
+
 
 * separate the built in functions into separate files, based on the object they attach to.
 * write tests to prove scope visibility and symbol resolution.
@@ -50,6 +55,7 @@ keeping track of variables and memory, ala Rust.
 
 # done!
 
+* make testing uniform. fix the "testing" package to serve.
 * create tests to prove the built in functions
 * fix the context of a function call, we need the current and the global 
 symbol table, not all the functions in between. We may also need the module table. Fix an object for the context (e.g. stack_frame) and stop using the 
