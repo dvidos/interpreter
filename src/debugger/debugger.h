@@ -25,7 +25,7 @@ enum debugger_exit_mode {
 };
 
 bool should_start_debugger(statement *curr_stmt, expression *curr_expr, exec_context *ctx);
-void run_debugger(statement *curr_stmt, expression *curr_expr, exec_context *ctx);
+failable run_debugger(statement *curr_stmt, expression *curr_expr, exec_context *ctx);
 
 
 #endif

@@ -46,8 +46,10 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
     expression *lval_expr;
     expression *rval_expr;
 
-    if (should_start_debugger(NULL, e, ctx))
-        run_debugger(NULL, e, ctx);
+    if (should_start_debugger(NULL, e, ctx)) {
+        failable session = run_debugger(NULL, e, ctx);
+        if (session.failed) return failed_variant(&session, NULL);
+    }
 
     if (et == ET_UNARY_OP) {
         lval_expr = e->per_type.operation.operand1;

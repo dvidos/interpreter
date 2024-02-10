@@ -37,8 +37,10 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
     failable_variant execution;
     variant *return_value = new_null_variant();
 
-    if (should_start_debugger(stmt, NULL, ctx))
-        run_debugger(stmt, NULL, ctx);
+    if (should_start_debugger(stmt, NULL, ctx)) {
+        failable session = run_debugger(stmt, NULL, ctx);
+        if (session.failed) return failed_variant(&session, NULL);
+    }
 
     if (s_type == ST_IF) {
         failable_bool pass_check = check_condition(stmt->per_type.if_.condition, ctx);

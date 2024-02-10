@@ -12,9 +12,10 @@ for (i = 0; i < 30; i++) {
 
 function fibonacci(i) {
     if (i <= 2) return i;
-    breakpoint;
     return (fibonacci(i - 1) + fibonacci(i - 2));
 }
+
+breakpoint;
 
 for (i = 0; i < 11; i++) {
     output("Fibonacci of", i, "is", fibonacci(i));
