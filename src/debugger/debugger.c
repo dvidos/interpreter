@@ -46,7 +46,7 @@ static void list_code(statement *curr_stmt, expression *curr_expr, exec_context 
     int line_no = get_curr_line_no(curr_stmt, curr_expr);
     int lines_count = listing_lines_count(ctx->code_listing);
     
-    int context_lines = 5;
+    int context_lines = 8;
     int line_to_show = (strlen(cmd_arg) > 0) ? atoi(cmd_arg) : line_no;
     line_to_show = between(line_to_show, 1, lines_count);
     int min_line_to_show = between(line_to_show - context_lines, 1, lines_count);
@@ -169,6 +169,7 @@ static bool get_command(char *buffer, int buffer_size) {
 
     if (buffer[strlen(buffer) - 1] == '\n')
         buffer[strlen(buffer) - 1] = 0;        
+    
     return true;
 }
 

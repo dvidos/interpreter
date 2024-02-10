@@ -37,9 +37,12 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
     failable_variant execution;
     variant *return_value = new_null_variant();
 
-    if (should_start_debugger(stmt, NULL, ctx)) {
-        failable session = run_debugger(stmt, NULL, ctx);
-        if (session.failed) return failed_variant(&session, NULL);
+    // not all statement types should be checked for debugger
+    if (s_type != ST_EXPRESSION && s_type != ST_FUNCTION) {
+        if (should_start_debugger(stmt, NULL, ctx)) {
+            failable session = run_debugger(stmt, NULL, ctx);
+            if (session.failed) return failed_variant(&session, NULL);
+        }
     }
 
     if (s_type == ST_IF) {
