@@ -10,6 +10,7 @@
 #include "../utils/str_builder.h"
 
 bool debugger_session_done;
+#define between(num, min, max)  ((num)<(min)?(min):((num)>(max)?(max):(num)))
 
 
 static void show_help() {
@@ -19,7 +20,7 @@ static void show_help() {
     printf("  c -- continue execution\n");
     printf("  q -- quit execution\n");
     printf("\n");
-    printf("  l -- list code\n");
+    printf("  l -- list code, l <line_no> [, <lines_to_show> ]\n");
     printf("  a -- print function args and current values\n");
     printf("  w -- where (print stack trace)\n");
     printf("\n");
@@ -37,22 +38,22 @@ static void show_curr_code_line(statement *curr_stmt, expression *curr_expr, exe
     );
 }
 
-static void list_code(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
-    int context_lines = 5;
+static void list_code(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *line_no_arg) {
     int curr_line_no = (curr_stmt != NULL ? curr_stmt->token->line_no : (curr_expr != NULL ? curr_expr->token->line_no : 0));
-    int min_line_no = curr_line_no - context_lines;
-    int max_line_no = curr_line_no + context_lines;
-    int total_lines = listing_lines_count(ctx->code_listing);
-    if (min_line_no > total_lines) min_line_no = total_lines - context_lines;
-    if (min_line_no < 1) min_line_no = 1;
-    if (max_line_no >= total_lines) max_line_no = total_lines - 1;
+    int lines_count = listing_lines_count(ctx->code_listing);
+    
+    int context_lines = 5;
+    int line_to_show = (strlen(line_no_arg) > 0) ? atoi(line_no_arg) : curr_line_no;
+    line_to_show = between(line_to_show, 1, lines_count);
+    int min_line_to_show = between(line_to_show - context_lines, 1, lines_count);
+    int max_line_to_show = between(line_to_show + context_lines, 1, lines_count);
 
-    for (int line_no = min_line_no; line_no <= max_line_no; line_no++) {
+    for (int n = min_line_to_show; n <= max_line_to_show; n++) {
         fprintf(stdout, "%3d %c  %s   %s\n",
-            line_no, 
+            n, 
             ' ', // 'B' for break point
-            line_no == curr_line_no ? "-->" : "   ",
-            listing_get_line(ctx->code_listing, line_no)
+            n == curr_line_no ? "-->" : "   ",
+            listing_get_line(ctx->code_listing, n)
         );
     }
 }
@@ -102,7 +103,7 @@ static void show_args_and_values(statement *curr_stmt, expression *curr_expr, ex
 
 static failable handle_command(char *cmd, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
     if      (strncmp(cmd, "h", 1) == 0) show_help();
-    else if (strncmp(cmd, "l", 1) == 0) list_code(curr_stmt, curr_expr, ctx);
+    else if (strncmp(cmd, "l", 1) == 0) list_code(curr_stmt, curr_expr, ctx, cmd + 1);
     else if (strncmp(cmd, "c", 1) == 0) debugger_session_done = true;
     else if (strncmp(cmd, "q", 1) == 0) return failed(NULL, "Execution aborted!");
     else if (strncmp(cmd, "w", 1) == 0) show_stack_trace(curr_stmt, curr_expr, ctx);
@@ -139,13 +140,12 @@ bool should_start_debugger(statement *curr_stmt, expression *curr_expr, exec_con
 failable run_debugger(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
     char buffer[128];
 
-    printf("Inline debugger. h for help.\n");
+    printf("Inline debugger. Enter 'h' for help.\n");
     show_curr_code_line(curr_stmt, curr_expr, ctx);
     debugger_session_done = false;
 
     while (!debugger_session_done) {
-        // should print current line.
-        fputs("dbg: ", stdout);
+        fputs("debug: ", stdout);
         if (!get_command(buffer, sizeof(buffer)))
             break;
         
