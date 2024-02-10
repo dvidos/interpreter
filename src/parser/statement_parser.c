@@ -166,6 +166,12 @@ static failable_statement parse_function_statement() {
     return ok_statement(new_function_statement(name, arg_names, stmts.result));
 }
 
+static failable_statement parse_breakpoint_statement() {
+    if (!accept(T_BREAKPOINT)) return failed_statement(NULL, "was expecting 'breakpoint'");
+    if (!accept(T_SEMICOLON)) return failed_statement(NULL, "was expecting ';'");
+    return ok_statement(new_breakpoint_statement());
+}
+
 failable_statement parse_statement(iterator *tokens) {
     tokens_it = tokens;
 
@@ -178,6 +184,7 @@ failable_statement parse_statement(iterator *tokens) {
         case T_CONTINUE:         return parse_continue_statement();
         case T_RETURN:           return parse_return_statement();
         case T_FUNCTION_KEYWORD: return parse_function_statement();
+        case T_BREAKPOINT:       return parse_breakpoint_statement();
         default:                 return parse_expression_statement();
     }
 }

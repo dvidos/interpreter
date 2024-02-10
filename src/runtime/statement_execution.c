@@ -37,10 +37,8 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
     failable_variant execution;
     variant *return_value = new_null_variant();
 
-    if (exec_context_get_start_debugger_at_next_opportunity(ctx)) {
-        exec_context_set_start_debugger_at_next_opportunity(ctx, false);
+    if (should_start_debugger(stmt, NULL, ctx))
         run_debugger(stmt, NULL, ctx);
-    }
 
     if (s_type == ST_IF) {
         expression *condition = statement_get_expression(stmt, 0);
@@ -115,6 +113,8 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
             statement_function_callable_executor,
             stmt
         )));
+    } else if (s_type == ST_BREAKPOINT) {
+        // ignored in execution
     } else {
         str_builder *sb = new_str_builder();
         statement_describe(stmt, sb);

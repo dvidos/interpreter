@@ -16,6 +16,7 @@ statement *new_break_statement();
 statement *new_continue_statement();
 statement *new_return_statement(expression *value);
 statement *new_function_statement(const char *name, list *arg_names, list *statements);
+statement *new_breakpoint_statement();
 
 extern class *statement_class;
 

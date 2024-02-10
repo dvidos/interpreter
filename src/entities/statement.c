@@ -93,6 +93,9 @@ statement *new_function_statement(const char *name, list *arg_names, list *state
     s->per_type.function.statements = statements;
     return s;
 }
+statement *new_breakpoint_statement() {
+    return new_statement(ST_BREAKPOINT);
+}
 
 
 statement_type statement_get_type(statement *s) {

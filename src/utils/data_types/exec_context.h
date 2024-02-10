@@ -20,9 +20,6 @@ bool exec_context_symbol_exists(exec_context *c, const char *name);
 failable exec_context_register_symbol(exec_context *c, const char *name, variant *v);
 failable exec_context_update_symbol(exec_context *c, const char *name, variant *v);
 
-void exec_context_set_start_debugger_at_next_opportunity(exec_context *c, bool value);
-bool exec_context_get_start_debugger_at_next_opportunity(exec_context *c);
-
 
 
 // simple things for now.

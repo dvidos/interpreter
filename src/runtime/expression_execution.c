@@ -46,10 +46,8 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
     expression *lval_expr;
     expression *rval_expr;
 
-    if (exec_context_get_start_debugger_at_next_opportunity(ctx)) {
-        exec_context_set_start_debugger_at_next_opportunity(ctx, false);
+    if (should_start_debugger(NULL, e, ctx))
         run_debugger(NULL, e, ctx);
-    }
 
     if (et == ET_UNARY_OP) {
         lval_expr = expression_get_operand(e, 0);

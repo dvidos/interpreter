@@ -1,18 +1,32 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "../str_builder.h"
+#include "../listing.h"
 #include "exec_context.h"
 #include "stack_frame.h"
 
 
 struct exec_context {
     bool verbose;
-    bool debugger;
+    bool debugger_enabled;
+
     dict *global_symbols;
     stack *stack_frames;
 
-    bool start_debugger_at_next_opportunity;
+    listing *code_listing;
     list *ast_root_statements;
+
+    struct debugger_flags {
+        enum debugger_break_mode {
+            DBM_DONT_BREAK,
+            DBM_NEXT_INSTRUCTION,
+            DBM_NEXT_LINE,
+            DBM_NEXT_RETURN_STATEMENT,
+            DBM_ABORT_EXECUTION,
+
+        } break_mode;
+        int last_line_no;
+    } debugger_flags;
 
     // stdin, stdout, logger
 };
@@ -28,12 +42,9 @@ exec_context *new_exec_context(list *ast_root_statements, bool verbose, bool deb
     exec_context *c = malloc(sizeof(exec_context));
     c->ast_root_statements = ast_root_statements;
     c->verbose = verbose;
-    c->debugger = debugger;
+    c->debugger_enabled = debugger;
     c->global_symbols = new_dict(variant_class);
     c->stack_frames = new_stack(stack_frame_class);
-    
-    if (debugger)
-        c->start_debugger_at_next_opportunity = true;
     return c;
 }
 
@@ -102,14 +113,6 @@ failable exec_context_update_symbol(exec_context *c, const char *name, variant *
         return failed("Symbol %s does not exist", name);
     dict_set(c->global_symbols, name, v);
     return ok();
-}
-
-void exec_context_set_start_debugger_at_next_opportunity(exec_context *c, bool value) {
-    c->start_debugger_at_next_opportunity = value;
-}
-
-bool exec_context_get_start_debugger_at_next_opportunity(exec_context *c) {
-    return c->start_debugger_at_next_opportunity;
 }
 
 
