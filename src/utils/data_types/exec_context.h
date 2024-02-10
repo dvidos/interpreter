@@ -23,6 +23,8 @@ struct exec_context {
         bool enter_when_at_different_line;
         const char *original_filename;
         int original_line_no;
+        bool enter_at_next_return;
+        int return_stack_size;
         list *breakpoints;
     } debugger;
 

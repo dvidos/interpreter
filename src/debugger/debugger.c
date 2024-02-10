@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "debugger.h"
+#include "../interpreter/interpreter.h"
 #include "../entities/statement.h"
 #include "../entities/expression.h"
 #include "../utils/data_types/exec_context.h"
@@ -78,7 +79,23 @@ static void manipulate_breakpoint(statement *curr_stmt, expression *curr_expr, e
 }
 
 static void print_expression(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *cmd_arg) {
+    // launch and evaluate an expression within the same local/global context...
+    // i think we did not make our code re-entrant, so this may fail...
 
+    dict *vars = (stack_empty(ctx->stack_frames) ? ctx->global_symbols : 
+        ((stack_frame *)stack_peek(ctx->stack_frames))->symbols);
+    
+    failable_variant execution = interpret_and_execute(cmd_arg, "(debugger)", 
+        vars, false, false);
+    
+    if (execution.failed) {
+        printf("Evaluation failed: %s\n", execution.err_msg);
+    } else {
+        str_builder *sb = new_str_builder();
+        variant_describe(execution.result, sb);
+        printf("%s\n", str_builder_charptr(sb));
+        str_builder_free(sb);
+    }
 }
 
 static void show_stack_trace(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
@@ -126,22 +143,26 @@ static void show_args_and_values(statement *curr_stmt, expression *curr_expr, ex
     }
 }
 
-static void setup_stepping(bool single, bool next, bool cont, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+static void setup_stepping(bool single, bool next, bool ret_, bool cont, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+    // clear all flags first
+    ctx->debugger.enter_at_next_instruction = false;
+    ctx->debugger.enter_when_at_different_line = false;
+    ctx->debugger.original_filename = NULL;
+    ctx->debugger.original_line_no = 0;
+    ctx->debugger.enter_at_next_return = false;
+    ctx->debugger.return_stack_size = 0;
+
     if (single) {
         ctx->debugger.enter_at_next_instruction = true;
-        ctx->debugger.enter_when_at_different_line = true;
-        ctx->debugger.original_filename = NULL;
-        ctx->debugger.original_line_no = 0;
     } else if (next) {
-        ctx->debugger.enter_at_next_instruction = false;
         ctx->debugger.enter_when_at_different_line = true;
         ctx->debugger.original_filename = get_curr_filename(curr_stmt, curr_expr);
         ctx->debugger.original_line_no = get_curr_line_no(curr_stmt, curr_expr);
+    } else if (ret_) {
+        ctx->debugger.enter_at_next_return = true;
+        ctx->debugger.return_stack_size = stack_length(ctx->stack_frames);
     } else if (cont) {
-        ctx->debugger.enter_at_next_instruction = false;
-        ctx->debugger.enter_when_at_different_line = false;
-        ctx->debugger.original_filename = NULL;
-        ctx->debugger.original_line_no = 0;
+        // nothing to change.
     }
 }
 
@@ -150,9 +171,10 @@ static failable_bool handle_command(char *cmd, statement *curr_stmt, expression 
     switch (cmd[0]) {
         case 'h': show_help(); break;
         case 'l': list_code(curr_stmt, curr_expr, ctx, cmd + 1); break;
-        case 's': setup_stepping(true, false, false, curr_stmt, curr_expr, ctx); done = true; break;
-        case 'n': setup_stepping(false, true, false, curr_stmt, curr_expr, ctx); done = true; break;
-        case 'c': setup_stepping(false, false, true, curr_stmt, curr_expr, ctx); done = true; break;
+        case 's': setup_stepping(true, false, false, false, curr_stmt, curr_expr, ctx); done = true; break;
+        case 'n': setup_stepping(false, true, false, false, curr_stmt, curr_expr, ctx); done = true; break;
+        case 'r': setup_stepping(false, false, true, false, curr_stmt, curr_expr, ctx); done = true; break;
+        case 'c': setup_stepping(false, false, false, true, curr_stmt, curr_expr, ctx); done = true; break;
         case 'q': return failed_bool(NULL, "Execution aborted!"); break;
         case 'w': show_stack_trace(curr_stmt, curr_expr, ctx); break;
         case 'a': show_args_and_values(curr_stmt, curr_expr, ctx); break;
@@ -187,6 +209,12 @@ bool should_start_debugger(statement *curr_stmt, expression *curr_expr, exec_con
         int curr_line_no = get_curr_line_no(curr_stmt, curr_expr);
         return (curr_line_no != ctx->debugger.original_line_no);
     }
+
+    // maybe we should also support implicit returns, i.e. after the last statement of a function.
+    if (ctx->debugger.enter_at_next_return 
+        && curr_stmt != NULL && curr_stmt->type == ST_RETURN
+        && stack_length(ctx->stack_frames) <= ctx->debugger.return_stack_size)
+        return true;
 
     if (curr_stmt != NULL && curr_stmt->type == ST_BREAKPOINT)
         return true;
