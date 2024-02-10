@@ -38,6 +38,7 @@ static bool tokens_finished() {
 
 static failable_statement parse_if_statement() {
     if (!accept(T_IF)) return failed_statement(NULL, "was expecting 'if'");
+    token *token = accepted();
     if (!accept(T_LPAREN))  return failed_statement(NULL, "was expecting '('");
     
     // expression parsing consumes RPAREN as well.
@@ -59,11 +60,12 @@ static failable_statement parse_if_statement() {
         else_statements = else_parsing.result;
     }
 
-    return ok_statement(new_if_statement(condition, body_statements, has_else, else_statements));
+    return ok_statement(new_if_statement(condition, body_statements, has_else, else_statements, token));
 }
 
 static failable_statement parse_while_statement() {
     if (!accept(T_WHILE)) return failed_statement(NULL, "was expecting 'while'");
+    token *token = accepted();
     if (!accept(T_LPAREN))     return failed_statement(NULL, "was expecting '('");
     
     // expression parsing consumes RPAREN as well.
@@ -75,11 +77,12 @@ static failable_statement parse_while_statement() {
     if (body_parsing.failed) return failed_statement(&body_parsing, NULL);
     list *body_statements = body_parsing.result;
 
-    return ok_statement(new_while_statement(condition, body_statements));
+    return ok_statement(new_while_statement(condition, body_statements, token));
 }
 
 static failable_statement parse_for_statement() {
     if (!accept(T_FOR)) return failed_statement(NULL, "was expecting 'for'");
+    token *token = accepted();
     if (!accept(T_LPAREN))   return failed_statement(NULL, "was expecting '('");
     
     failable_expression expr_parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
@@ -99,19 +102,21 @@ static failable_statement parse_for_statement() {
     if (body_parsing.failed) return failed_statement(&body_parsing, NULL);
     list *body_statements = body_parsing.result;
 
-    return ok_statement(new_for_statement(init, cond, next, body_statements));
+    return ok_statement(new_for_statement(init, cond, next, body_statements, token));
 }
 
 static failable_statement parse_break_statement() {
     if (!accept(T_BREAK)) return failed_statement(NULL, "was expecting 'break'");
+    token *token = accepted();
     if (!accept(T_SEMICOLON)) return failed_statement(NULL, "was expecting ';'");
-    return ok_statement(new_break_statement());
+    return ok_statement(new_break_statement(token));
 }
 
 static failable_statement parse_continue_statement() {
     if (!accept(T_CONTINUE)) return failed_statement(NULL, "was expecting 'continue'");
+    token *token = accepted();
     if (!accept(T_SEMICOLON)) return failed_statement(NULL, "was expecting ';'");
-    return ok_statement(new_continue_statement());
+    return ok_statement(new_continue_statement(token));
 }
 
 static failable_statement parse_expression_statement() {
@@ -122,6 +127,7 @@ static failable_statement parse_expression_statement() {
 
 static failable_statement parse_return_statement() {
     if (!accept(T_RETURN)) return failed_statement(NULL, "was expecting 'return'");
+    token *token = accepted();
 
     failable_expression parsing;
     expression *return_value_expression;
@@ -139,11 +145,12 @@ static failable_statement parse_return_statement() {
         return_value_expression = parsing.result;
     }
 
-    return ok_statement(new_return_statement(return_value_expression));
+    return ok_statement(new_return_statement(return_value_expression, token));
 }
 
 static failable_statement parse_function_statement() {
     if (!accept(T_FUNCTION_KEYWORD)) return failed_statement(NULL, "was expecting 'function'");
+    token *token = accepted();
 
     // function name is optional
     const char *name = NULL;
@@ -163,13 +170,14 @@ static failable_statement parse_function_statement() {
     failable_list stmts = parse_statements(tokens_it, SP_BLOCK_MANDATORY);
     if (stmts.failed) return failed_statement(&stmts, "Parsing function body");
 
-    return ok_statement(new_function_statement(name, arg_names, stmts.result));
+    return ok_statement(new_function_statement(name, arg_names, stmts.result, token));
 }
 
 static failable_statement parse_breakpoint_statement() {
     if (!accept(T_BREAKPOINT)) return failed_statement(NULL, "was expecting 'breakpoint'");
+    token *token = accepted();
     if (!accept(T_SEMICOLON)) return failed_statement(NULL, "was expecting ';'");
-    return ok_statement(new_breakpoint_statement());
+    return ok_statement(new_breakpoint_statement(token));
 }
 
 failable_statement parse_statement(iterator *tokens) {

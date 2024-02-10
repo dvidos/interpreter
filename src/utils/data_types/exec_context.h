@@ -26,7 +26,6 @@ struct exec_context {
             DBM_NEXT_LINE,
             DBM_NEXT_RETURN_STATEMENT,
             DBM_ABORT_EXECUTION,
-
         } break_mode;
         int last_line_no;
     } debugger_flags;
@@ -34,7 +33,7 @@ struct exec_context {
     // stdin, stdout, logger
 };
 
-exec_context *new_exec_context(list *ast_root_statments, bool verbose, bool debugger);
+exec_context *new_exec_context(listing *code_listing, list *ast_root_statments, bool verbose, bool debugger);
 
 stack_frame *exec_context_get_curr_stack_frame(exec_context *c);
 failable exec_context_push_stack_frame(exec_context *c, stack_frame *f);

@@ -14,8 +14,9 @@
 
 
 
-exec_context *new_exec_context(list *ast_root_statements, bool verbose, bool debugger) {
+exec_context *new_exec_context(listing *code_listing, list *ast_root_statements, bool verbose, bool debugger) {
     exec_context *c = malloc(sizeof(exec_context));
+    c->code_listing = code_listing;
     c->ast_root_statements = ast_root_statements;
     c->verbose = verbose;
     c->debugger_enabled = debugger;

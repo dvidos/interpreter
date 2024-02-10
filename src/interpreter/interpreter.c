@@ -30,6 +30,8 @@ void initialize_interpreter() {
 failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose, bool debugger) {
     str_builder *sb = new_str_builder();
 
+    listing *code_listing = new_listing(code);
+
     failable_list tokenization = parse_code_into_tokens(code, filename);
     if (tokenization.failed)
         return failed_variant(&tokenization, "Tokenization failed");
@@ -50,7 +52,7 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
         printf("------------- parsed statements -------------\n%s\n", str_builder_charptr(sb));
     }
 
-    exec_context *ctx = new_exec_context(parsing.result, verbose, debugger);
+    exec_context *ctx = new_exec_context(code_listing, parsing.result, verbose, debugger);
     dict *built_ins = get_built_in_funcs_table();
     for_dict(external_values, ev_it, str, var_name)
         exec_context_register_symbol(ctx, var_name, dict_get(external_values, var_name));

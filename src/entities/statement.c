@@ -5,60 +5,61 @@
 #include "statement.h"
 
 
-static statement *new_statement(statement_type type) {
+static statement *new_statement(statement_type type, token *token) {
     statement *s = malloc(sizeof(statement));
     s->class = expression_class;
     s->type = type;
+    s->token = token;
     return s;
 }
 
 statement *new_expression_statement(expression *expr) {
-    statement *s = new_statement(ST_EXPRESSION);
+    statement *s = new_statement(ST_EXPRESSION, expr->token);
     s->per_type.expr.expr = expr;
     return s;
 }
-statement *new_if_statement(expression *condition, list *body_statements, bool has_else, list *else_body_statements) {
-    statement *s = new_statement(ST_IF);
+statement *new_if_statement(expression *condition, list *body_statements, bool has_else, list *else_body_statements, token *token) {
+    statement *s = new_statement(ST_IF, token);
     s->per_type.if_.condition = condition;
     s->per_type.if_.body_statements = body_statements;
     s->per_type.if_.has_else = has_else;
     s->per_type.if_.else_body_statements = else_body_statements;
     return s;
 }
-statement *new_while_statement(expression *condition, list *body_statements) {
-    statement *s = new_statement(ST_WHILE);
+statement *new_while_statement(expression *condition, list *body_statements, token *token) {
+    statement *s = new_statement(ST_WHILE, token);
     s->per_type.while_.condition = condition;
     s->per_type.while_.body_statements = body_statements;
     return s;
 }
-statement *new_for_statement(expression *init, expression *condition, expression *next, list *body_statements) {
-    statement *s = new_statement(ST_FOR_LOOP);
+statement *new_for_statement(expression *init, expression *condition, expression *next, list *body_statements, token *token) {
+    statement *s = new_statement(ST_FOR_LOOP, token);
     s->per_type.for_.init = init;
     s->per_type.for_.condition = condition;
     s->per_type.for_.next = next;
     s->per_type.for_.body_statements = body_statements;
     return s;
 }
-statement *new_break_statement() {
-    return new_statement(ST_BREAK);
+statement *new_break_statement(token *token) {
+    return new_statement(ST_BREAK, token);
 }
-statement *new_continue_statement() {
-    return new_statement(ST_CONTINUE);
+statement *new_continue_statement(token *token) {
+    return new_statement(ST_CONTINUE, token);
 }
-statement *new_return_statement(expression *value) {
-    statement *s = new_statement(ST_RETURN);
+statement *new_return_statement(expression *value, token *token) {
+    statement *s = new_statement(ST_RETURN, token);
     s->per_type.return_.value = value;
     return s;
 }
-statement *new_function_statement(const char *name, list *arg_names, list *statements) {
-    statement *s = new_statement(ST_FUNCTION);
+statement *new_function_statement(const char *name, list *arg_names, list *statements, token *token) {
+    statement *s = new_statement(ST_FUNCTION, token);
     s->per_type.function.name = name;
     s->per_type.function.arg_names = arg_names;
     s->per_type.function.statements = statements;
     return s;
 }
-statement *new_breakpoint_statement() {
-    return new_statement(ST_BREAKPOINT);
+statement *new_breakpoint_statement(token *token) {
+    return new_statement(ST_BREAKPOINT, token);
 }
 
 
