@@ -235,7 +235,7 @@ failable_list parse_code_into_tokens(const char *code, const char *filename) {
         if (t.result == NULL)
             break;
         
-        token_type tt = token_get_type(t.result);
+        token_type tt = t.result->type;
         if (tt == T_DOUBLE_SLASH || tt == T_SLASH_STAR) {
             skip_comment(tt == T_SLASH_STAR);
             continue;

@@ -13,15 +13,6 @@ class *token_class = &(class){
     .hash = NULL
 };
 
-struct token {
-    class *class;
-    token_type type;
-    const char *data; // e.g. identifier or number
-    const char *filename;
-    int line_no;
-    int column_no;
-};
-
 token *new_token(token_type type, const char *filename, int line_no, int column_no) {
     token *t = malloc(sizeof(token));
     t->class = token_class;
@@ -44,30 +35,9 @@ token *new_data_token(token_type type, const char *data, const char *filename, i
     return t;
 }
 
-token_type inline token_get_type(token *t) {
-    return t->type;
-}
-
-inline const char *token_get_data(token *t) {
-    return t->data;
-}
-
-const char *token_get_file_name(token *t) {
-    return t->filename;
-}
-
-int token_get_file_line_no(token *t) {
-    return t->line_no;
-}
-
-int token_get_file_col_no(token *t) {
-    return t->column_no;
-}
-
-
 void token_print(token *t, FILE *stream, char *prefix) {
-    token_type tt = token_get_type(t);
-    const char *data = token_get_data(t);
+    token_type tt = t->type;
+    const char *data = t->data;
     bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
 
     fprintf(stream, "%s%s%s%s%s", 
@@ -80,8 +50,8 @@ void token_print(token *t, FILE *stream, char *prefix) {
 }
 
 const void token_describe(token *t, str_builder *sb) {
-    token_type tt = token_get_type(t);
-    const char *data = token_get_data(t);
+    token_type tt = t->type;
+    const char *data = t->data;
     bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
     
     str_builder_add(sb, token_type_str(tt));

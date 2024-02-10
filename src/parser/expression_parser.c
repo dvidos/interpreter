@@ -41,10 +41,10 @@ void initialize_expression_parser() {
 
 static bool accept(token_type tt) {
     token *t = tokens_iterator->curr(tokens_iterator);
-    if (token_get_type(t) != tt)
+    if (t->type != tt)
         return false;
     last_accepted_token = t;
-    if (token_get_type(t) != T_END)
+    if (t->type != T_END)
         tokens_iterator->next(tokens_iterator);
     return true;
 }
@@ -58,7 +58,7 @@ static token* peek() {
 }
 
 static inline operator_type make_positioned_operator(token *t, op_type_position position) {
-    return operator_type_by_token_and_position(token_get_type(t), position);
+    return operator_type_by_token_and_position(t->type, position);
 }
 
 static inline bool accept_positioned_operator(op_type_position position) {
@@ -67,7 +67,7 @@ static inline bool accept_positioned_operator(op_type_position position) {
     if (possible == T_UNKNOWN)
         return false; // not an operator_type at this position
     
-    return accept(token_get_type(t));
+    return accept(t->type);
 }
 
 static inline bool accept_operand() {
@@ -78,8 +78,8 @@ static inline bool accept_operand() {
 }
 
 static inline expression *make_operand_expression(token *token) {
-    const char *data = token_get_data(token);
-    switch (token_get_type(token)) {
+    const char *data = token->data;
+    switch (token->type) {
         case T_IDENTIFIER: return new_identifier_expression(data, token);
         case T_NUMBER_LITERAL: return new_numeric_literal_expression(data, token);
         case T_STRING_LITERAL: return new_string_literal_expression(data, token);
@@ -218,7 +218,7 @@ static failable_expression parse_list_initializer(bool verbose, token *initial_t
         return ok_expression(new_list_data_expression(l, initial_token));
 
     // else parse expressions until we reach end square bracket.
-    while (token_get_type(accepted()) != T_RSQBRACKET) {
+    while (accepted()->type != T_RSQBRACKET) {
         failable_expression expr = parse_expression(tokens_iterator, CM_COMMA_OR_RSQBRACKET, verbose);
         if (expr.failed) return failed_expression(&expr, NULL);
         list_add(l, expr.result);
@@ -237,12 +237,12 @@ static failable_expression parse_dict_initializer(bool verbose, token *initial_t
         return ok_expression(new_dict_data_expression(d, initial_token));
 
     // else parse "key":expression until we reach end square bracket.
-    while (token_get_type(accepted()) != T_RBRACKET) {
+    while (accepted()->type != T_RBRACKET) {
         failable_expression key_expr = parse_expression(tokens_iterator, CM_COLON, verbose);
         if (key_expr.failed) return failed_expression(&key_expr, NULL);
-        if (expression_get_type(key_expr.result) != ET_IDENTIFIER)
-            return failed_expression(NULL, "Dict keys should be identifiers, got %d", expression_get_type(key_expr.result));
-        const char *key = expression_get_terminal_data(key_expr.result);
+        if (key_expr.result->type != ET_IDENTIFIER)
+            return failed_expression(NULL, "Dict keys should be identifiers, got %d", key_expr.result->type);
+        const char *key = key_expr.result->per_type.terminal_data;
 
         failable_expression val_expr = parse_expression(tokens_iterator, CM_COMMA_OR_RBRACKET, verbose);
         if (val_expr.failed) return failed_expression(&val_expr, NULL);
@@ -263,7 +263,7 @@ static failable_expression parse_func_declaration_expression(bool verbose, token
     while (!accept(T_RPAREN)) {
         if (!accept(T_IDENTIFIER))
             return failed_expression(NULL, "Expected identifier in function arg names");
-        list_add(arg_names, (void *)token_get_data(accepted())); // we lose const here
+        list_add(arg_names, (void *)accepted()->data); // we lose const here
         accept(T_COMMA);
     }
 
@@ -325,10 +325,10 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
 
     // nothing else should be expected here
     return failed(NULL, "Unexpected token type %s at %s:%d:%d, was expecting operand or similar value construct", 
-        token_type_str(token_get_type(peek())),
-        token_get_file_name(peek()),
-        token_get_file_line_no(peek()),
-        token_get_file_col_no(peek())
+        token_type_str(peek()->type),
+        peek()->filename,
+        peek()->line_no,
+        peek()->column_no
     );
 }
 
@@ -339,7 +339,7 @@ static failable_list parse_function_call_arguments_expressions(bool verbose) {
     if (accept(T_RPAREN))
         return ok_list(args);
 
-    while (token_get_type(accepted()) != T_RPAREN) {
+    while (accepted()->type != T_RPAREN) {
         failable_expression parse_arg = parse_expression(tokens_iterator, CM_COMMA_OR_RPAREN, verbose);
         if (parse_arg.failed)
             return failed_list(&parse_arg, NULL);
@@ -428,10 +428,10 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     
     // nothing else should be expected here
     return failed(NULL, "Unexpected token type %s at %s:%d:%d, was expecting operator_type or end", 
-        token_type_str(token_get_type(peek())),
-        token_get_file_name(peek()),
-        token_get_file_line_no(peek()),
-        token_get_file_col_no(peek())
+        token_type_str(peek()->type),
+        peek()->filename,
+        peek()->line_no,
+        peek()->column_no
     );
 }
 
@@ -447,8 +447,8 @@ static void print_debug_information(char *title, run_state state) {
         }
         fprintf(stderr, "    state=%s, accepted=%s, peek=%s\n",
             state_name,
-            accepted() == NULL ? "NULL" : token_type_str(token_get_type(accepted())),
-            token_type_str(token_get_type(peek()))
+            accepted() == NULL ? "NULL" : token_type_str(accepted()->type),
+            token_type_str(peek()->type)
         );
 
         print_expressions_stack(stderr, "    ");

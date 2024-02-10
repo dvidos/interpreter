@@ -7,6 +7,41 @@
 
 
 typedef struct statement statement;
+extern class *statement_class;
+struct statement {
+    class *class;
+    statement_type type;
+    union {
+        struct expr {
+            expression *expr;
+        } expr;
+        struct if_ {
+            expression *condition;
+            list *body_statements;
+            bool has_else;
+            list *else_body_statements;
+        } if_;
+        struct while_ {
+            expression *condition;
+            list *body_statements;
+        } while_;
+        struct for_ {
+            expression *init;
+            expression *condition;
+            expression *next;
+            list *body_statements;
+        } for_;
+        struct return_ {
+            expression *value;
+        } return_;
+        struct function {
+            const char *name;
+            list *arg_names;
+            list *statements;
+        } function;
+    } per_type;
+};
+
 
 statement *new_expression_statement(expression *expr);
 statement *new_if_statement(expression *condition, list *body_statements, bool has_else, list *else_body_statements);
@@ -17,15 +52,6 @@ statement *new_continue_statement();
 statement *new_return_statement(expression *value);
 statement *new_function_statement(const char *name, list *arg_names, list *statements);
 statement *new_breakpoint_statement();
-
-extern class *statement_class;
-
-statement_type statement_get_type(statement *s);
-expression *statement_get_expression(statement *s, int mnemonic);
-bool statement_has_alternate_body(statement *s);
-list *statement_get_statements_body(statement *s, bool alternative);
-const char *statement_get_function_name(statement *s);
-list *statement_get_function_arg_names(statement *s);
 
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(statement);

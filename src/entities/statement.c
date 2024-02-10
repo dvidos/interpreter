@@ -5,42 +5,6 @@
 #include "statement.h"
 
 
-struct statement {
-    class *class;
-    statement_type type;
-    union {
-        struct expr {
-            expression *expr;
-        } expr;
-        struct if_ {
-            expression *condition;
-            list *body_statements;
-            bool has_else;
-            list *else_body_statements;
-        } if_;
-        struct while_ {
-            expression *condition;
-            list *body_statements;
-        } while_;
-        struct for_ {
-            expression *init;
-            expression *condition;
-            expression *next;
-            list *body_statements;
-        } for_;
-        struct return_ {
-            expression *value;
-        } return_;
-        struct function {
-            const char *name;
-            list *arg_names;
-            list *statements;
-        } function;
-    } per_type;
-};
-
-// ----------------------------------
-
 static statement *new_statement(statement_type type) {
     statement *s = malloc(sizeof(statement));
     s->class = expression_class;
@@ -98,53 +62,6 @@ statement *new_breakpoint_statement() {
 }
 
 
-statement_type statement_get_type(statement *s) {
-    return s->type;
-}
-
-expression *statement_get_expression(statement *s, int mnemonic) {
-    switch (s->type) {
-        case ST_IF:
-            return s->per_type.if_.condition;
-        case ST_WHILE:
-            return s->per_type.while_.condition;
-        case ST_FOR_LOOP:
-            if      (mnemonic == 0) return s->per_type.for_.init;
-            else if (mnemonic == 1) return s->per_type.for_.condition;
-            else if (mnemonic == 2) return s->per_type.for_.next;
-        case ST_RETURN:
-            return s->per_type.return_.value;
-        case ST_EXPRESSION:
-            return s->per_type.expr.expr;
-    }
-    return NULL;
-}
-
-bool statement_has_alternate_body(statement *s) {
-    return s->type == ST_IF && s->per_type.if_.has_else;
-}
-
-list *statement_get_statements_body(statement *s, bool alternative) {
-    switch (s->type) {
-        case ST_IF:
-            return alternative ? s->per_type.if_.else_body_statements : s->per_type.if_.body_statements;
-        case ST_WHILE:
-            return s->per_type.while_.body_statements;
-        case ST_FOR_LOOP:
-            return s->per_type.for_.body_statements;
-        case ST_FUNCTION:
-            return s->per_type.function.statements;
-    }
-    return NULL;
-}
-
-const char *statement_get_function_name(statement *s) {
-    return s->type == ST_FUNCTION ? s->per_type.function.name : NULL;
-}
-
-list *statement_get_function_arg_names(statement *s) {
-    return s->type == ST_FUNCTION ? s->per_type.function.arg_names : NULL;
-}
 
 const void statement_describe(statement *s, str_builder *sb) {
     switch (s->type) {

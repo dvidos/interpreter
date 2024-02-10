@@ -9,8 +9,28 @@
 #include "expression_type.h"
 
 typedef struct expression expression;
-
 extern class *expression_class;
+
+struct expression {
+    class *class;
+    expression_type type;
+    token *token;
+    operator_type op;
+    union {
+        const char *terminal_data;
+        list *list_;
+        dict *dict_;
+        struct operation {
+            struct expression *operand1;
+            struct expression *operand2;
+        } operation;
+        struct func {
+            list *arg_names;
+            list *statements;
+        } func;
+    } per_type;
+};
+
 
 
 expression *new_identifier_expression(const char *data, token *token);
@@ -22,17 +42,6 @@ expression *new_binary_expression(operator_type op, token *token, expression *le
 expression *new_list_data_expression(list *data, token *token);
 expression *new_dict_data_expression(dict *data, token *token);
 expression *new_func_decl_expression(list *arg_names, list *statements, token *token);
-
-expression_type expression_get_type(expression *e);
-token *expression_get_token(expression *e);
-operator_type expression_get_operator(expression *e);
-int expression_get_operands_count(expression *e);
-const char *expression_get_terminal_data(expression *e);
-expression *expression_get_operand(expression *e, int index);
-list *expression_get_list_data(expression *e);
-dict *expression_get_dict_data(expression *e);
-list *expression_get_func_statements(expression *e);
-list *expression_get_func_arg_names(expression *e);
 
 const void expression_describe(expression *e, str_builder *sb);
 bool expressions_are_equal(expression *a, expression *b);

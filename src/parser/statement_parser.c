@@ -15,7 +15,7 @@ void initialize_statement_parser() {
 
 static bool accept(token_type tt) {
     token *t = tokens_it->curr(tokens_it);
-    if (token_get_type(t) != tt)
+    if (t->type != tt)
         return false;
     last_accepted_token = t;
     tokens_it->next(tokens_it);
@@ -33,7 +33,7 @@ static inline token *accepted() {
 static bool tokens_finished() {
     return 
         (tokens_it->valid(tokens_it) == false) ||
-        (token_get_type(tokens_it->curr(tokens_it)) == T_END);
+        (((token *)(tokens_it->curr(tokens_it)))->type == T_END);
 }
 
 static failable_statement parse_if_statement() {
@@ -148,7 +148,7 @@ static failable_statement parse_function_statement() {
     // function name is optional
     const char *name = NULL;
     if (accept(T_IDENTIFIER))
-        name = token_get_data(accepted());
+        name = accepted()->data;
     
     list *arg_names = new_list(str_class);
     if (!accept(T_LPAREN))
@@ -156,7 +156,7 @@ static failable_statement parse_function_statement() {
     while (!accept(T_RPAREN)) {
         if (!accept(T_IDENTIFIER))
             return failed_statement(NULL, "Was expecting identifier in function arg names");
-        list_add(arg_names, (void *)token_get_data(accepted())); // we lose const here
+        list_add(arg_names, (void *)accepted()->data); // we lose const here
         accept(T_COMMA);
     }
 
@@ -175,7 +175,7 @@ static failable_statement parse_breakpoint_statement() {
 failable_statement parse_statement(iterator *tokens) {
     tokens_it = tokens;
 
-    token_type tt = token_get_type(peek());
+    token_type tt = peek()->type;
     switch (tt) {
         case T_IF:               return parse_if_statement();
         case T_WHILE:            return parse_while_statement();

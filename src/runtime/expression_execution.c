@@ -41,8 +41,8 @@ void initialize_expression_execution() {
 
 failable_variant execute_expression(expression *e, exec_context *ctx) {
     // first concern is whether the expression stores data, or is read only
-    expression_type et = expression_get_type(e);
-    operator_type op = expression_get_operator(e);
+    expression_type et = e->type;
+    operator_type op = e->op;
     expression *lval_expr;
     expression *rval_expr;
 
@@ -50,7 +50,7 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
         run_debugger(NULL, e, ctx);
 
     if (et == ET_UNARY_OP) {
-        lval_expr = expression_get_operand(e, 0);
+        lval_expr = e->per_type.operation.operand1;
         switch (op) {
             case OP_PRE_INC:  return modify_and_store(lval_expr, MAS_ADD, one, false, ctx);
             case OP_PRE_DEC:  return modify_and_store(lval_expr, MAS_SUB, one, false, ctx);
@@ -59,8 +59,8 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
         }
 
     } else if (et == ET_BINARY_OP) {
-        lval_expr = expression_get_operand(e, 0);
-        rval_expr = expression_get_operand(e, 1);
+        lval_expr = e->per_type.operation.operand1;
+        rval_expr = e->per_type.operation.operand2;
         switch (op) {
             case OP_ASSIGNMENT:
                 failable_variant retrieval = retrieve_value(rval_expr, ctx, NULL);
@@ -88,11 +88,11 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
 
 static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **this_value) {
     failable_variant execution, variant1, variant2;
-    operator_type op = expression_get_operator(e);
-    const char *data = expression_get_terminal_data(e);
+    operator_type op = e->op;
+    const char *data = e->per_type.terminal_data;
     expression *operand1, *operand2;
 
-    switch (expression_get_type(e)) {
+    switch (e->type) {
         case ET_IDENTIFIER:
             variant *v = exec_context_resolve_symbol(ctx, data);
             if (v == NULL || variant_is_null(v))
@@ -105,7 +105,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
         case ET_BOOLEAN_LITERAL:
             return ok_variant(new_bool_variant(strcmp(data, "true") == 0));
         case ET_LIST_DATA:
-            list *expressions_list = expression_get_list_data(e);
+            list *expressions_list = e->per_type.list_;
             list *values_list = new_list(variant_class);
             for_list(expressions_list, list_iter, expression, list_exp) {
                 execution = execute_expression(list_exp, ctx);
@@ -114,7 +114,7 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             }
             return ok_variant(new_list_variant(values_list));
         case ET_DICT_DATA:
-            dict *expressions_dict = expression_get_dict_data(e);
+            dict *expressions_dict = e->per_type.dict_;
             dict *values_dict = new_dict(variant_class);
             iterator *keys_it = dict_keys_iterator(expressions_dict);
             for_iterator(keys_it, str, key) {
@@ -125,15 +125,15 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             return ok_variant(new_dict_variant(values_dict));
 
         case ET_UNARY_OP:
-            operand1 = expression_get_operand(e, 0);
+            operand1 = e->per_type.operation.operand1;
             variant1 = execute_expression(operand1, ctx);
             if (variant1.failed) return failed_variant(&variant1, "Single operand execution failed");
             return calculate_unary_operation(op, variant1.result, ctx);
 
         case ET_BINARY_OP:
-            op = expression_get_operator(e);
-            operand1 = expression_get_operand(e, 0);
-            operand2 = expression_get_operand(e, 1);
+            op = e->op;
+            operand1 = e->per_type.operation.operand1;
+            operand2 = e->per_type.operation.operand2;
 
             if (op == OP_ARRAY_SUBSCRIPT) {
                 variant1 = execute_expression(operand1, ctx);
@@ -222,9 +222,9 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
 
 static failable store_value(expression *lvalue, exec_context *ctx, variant *rvalue) {
 
-    expression_type et = expression_get_type(lvalue);
+    expression_type et = lvalue->type;
     if (et == ET_IDENTIFIER) {
-        const char *name = expression_get_terminal_data(lvalue);
+        const char *name = lvalue->per_type.terminal_data;
         if (exec_context_symbol_exists(ctx, name))
             exec_context_update_symbol(ctx, name, rvalue);
         else
@@ -232,15 +232,15 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
         return ok();
 
     } else if (et == ET_BINARY_OP) {
-        operator_type op = expression_get_operator(lvalue);
+        operator_type op = lvalue->op;
         if (op == OP_ARRAY_SUBSCRIPT) {
             // e.g. "ARRAY_SUBSCRIPT(<list_like_executionable>, <int_like_executionable>)"
-            expression *op1 = expression_get_operand(lvalue, 0);
+            expression *op1 = lvalue->per_type.operation.operand1;
             failable_variant op1_exec = execute_expression(op1, ctx);
             if (op1_exec.failed) return failed(&op1_exec, NULL);
             if (!variant_is_list(op1_exec.result)) return failed(NULL, "Array subscripts apply only to arrays");
 
-            expression *op2 = expression_get_operand(lvalue, 1);
+            expression *op2 = lvalue->per_type.operation.operand2;
             failable_variant op2_exec = execute_expression(op2, ctx);
             if (op2_exec.failed) return failed(&op2_exec, NULL);
             if (!variant_is_int(op2_exec.result)) return failed(NULL, "only integer results can be used as array indices");
@@ -251,17 +251,17 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             return ok();
 
         } else if (op == OP_MEMBER) {
-            expression *op1 = expression_get_operand(lvalue, 0);
+            expression *op1 = lvalue->per_type.operation.operand1;
             failable_variant op1_exec = execute_expression(op1, ctx);
             if (op1_exec.failed) return failed(&op1_exec, NULL);
             if (!variant_is_dict(op1_exec.result)) return failed(NULL, "Struct members work only with identifiers");
 
-            expression *op2 = expression_get_operand(lvalue, 1);
-            if (expression_get_type(op2) != ET_IDENTIFIER)
+            expression *op2 = lvalue->per_type.operation.operand2;
+            if (op2->type != ET_IDENTIFIER)
                 return failed(NULL, "only identifiers can be used as structure members");
 
             dict *d = variant_as_dict(op1_exec.result);
-            const char *key = expression_get_terminal_data(op2);
+            const char *key = op2->per_type.terminal_data;
             dict_set(d, key, rvalue);
             return ok();
 
@@ -345,9 +345,9 @@ static failable_variant retrieve_member(expression *object, expression *member, 
     if (this_value != NULL)
         *this_value = obj;
     
-    if (expression_get_type(member) != ET_IDENTIFIER)
+    if (member->type != ET_IDENTIFIER)
         return failed_variant(NULL, "MEMBER_OF requires identifier as right operand");
-    const char *member_name = expression_get_terminal_data(member);
+    const char *member_name = member->per_type.terminal_data;
     
     dict *d = NULL;
     if (variant_is_dict(obj)) {
@@ -545,7 +545,7 @@ static failable_variant expression_function_callable_executor(
 ) {
     expression *expr = (expression *)callable_data;
 
-    list *arg_names = expression_get_func_arg_names(expr);
+    list *arg_names = expr->per_type.func.arg_names;
     if (list_length(positional_args) < list_length(arg_names))
         return failed_variant(NULL, "expected %d arguments, got only %d", list_length(arg_names), list_length(positional_args));
 
@@ -553,7 +553,7 @@ static failable_variant expression_function_callable_executor(
     stack_frame_initialization(f, arg_names, positional_args, named_args, this_obj);
     exec_context_push_stack_frame(ctx, f);
 
-    failable_variant result = execute_statements(expression_get_func_statements(expr), ctx);
+    failable_variant result = execute_statements(expr->per_type.func.statements, ctx);
     
     exec_context_pop_stack_frame(ctx);
 

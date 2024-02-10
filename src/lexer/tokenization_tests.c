@@ -45,7 +45,7 @@ static bool run_use_case(const char *code, bool expect_failure, int expected_tok
         token *t = list_get(tokens, i);
 
         token_type expected_type = va_arg(args, token_type);
-        token_type actual_type = token_get_type(t);
+        token_type actual_type = t->type;
         if (actual_type != expected_type) {
             fprintf(stderr, "Tokenization token #%d expected type %s, gotten %s, code=\"%s\")\n", 
                         i, token_type_str(expected_type), token_type_str(actual_type), code);
@@ -53,7 +53,7 @@ static bool run_use_case(const char *code, bool expect_failure, int expected_tok
         }
         if (actual_type == T_IDENTIFIER || actual_type == T_NUMBER_LITERAL || actual_type == T_STRING_LITERAL || actual_type == T_BOOLEAN_LITERAL) {
             char *expected_data = va_arg(args, char *);
-            const char *actual_data = token_get_data(t);
+            const char *actual_data = t->data;
             if (strcmp(actual_data, expected_data) != 0) {
                 fprintf(stderr, "Tokenization token #%d expected data \"%s\", gotten \"%s\", code=\"%s\")\n", 
                             i, expected_data, actual_data, code);

@@ -33,7 +33,7 @@ static failable_bool check_condition(expression *condition, exec_context *ctx) {
 }
 
 static failable_variant execute_single_statement(statement *stmt, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return) {
-    statement_type s_type = statement_get_type(stmt);
+    statement_type s_type = stmt->type;
     failable_variant execution;
     variant *return_value = new_null_variant();
 
@@ -41,13 +41,12 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
         run_debugger(stmt, NULL, ctx);
 
     if (s_type == ST_IF) {
-        expression *condition = statement_get_expression(stmt, 0);
-        failable_bool pass_check = check_condition(condition, ctx);
+        failable_bool pass_check = check_condition(stmt->per_type.if_.condition, ctx);
         if (pass_check.failed) return failed_variant(&pass_check, NULL);
         if (pass_check.result) {
-            execution = execute_statements_once(statement_get_statements_body(stmt, false), ctx, should_break, should_continue, should_return);
-        } else if (statement_has_alternate_body(stmt)) { 
-            execution = execute_statements_once(statement_get_statements_body(stmt, true), ctx, should_break, should_continue, should_return);
+            execution = execute_statements_once(stmt->per_type.if_.body_statements, ctx, should_break, should_continue, should_return);
+        } else if (stmt->per_type.if_.has_else) { 
+            execution = execute_statements_once(stmt->per_type.if_.else_body_statements, ctx, should_break, should_continue, should_return);
         } else {
             execution = ok_variant(return_value); // nothing to execute.
         }
@@ -57,8 +56,8 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
         
     } else if (s_type == ST_WHILE) {
         execution = execute_statements_in_loop(
-            statement_get_expression(stmt, 0),
-            statement_get_statements_body(stmt, false),
+            stmt->per_type.while_.condition,
+            stmt->per_type.while_.body_statements,
             NULL,
             ctx,
             should_return
@@ -68,13 +67,13 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
         return_value = execution.result;
 
     } else if (s_type == ST_FOR_LOOP) {
-        execution = execute_expression(statement_get_expression(stmt, 0), ctx);
+        execution = execute_expression(stmt->per_type.for_.init, ctx);
         if (execution.failed)
             return failed_variant(&execution, NULL);
         execution = execute_statements_in_loop(
-            statement_get_expression(stmt, 1),
-            statement_get_statements_body(stmt, false),
-            statement_get_expression(stmt, 2),
+            stmt->per_type.for_.condition,
+            stmt->per_type.for_.body_statements,
+            stmt->per_type.for_.next,
             ctx,
             should_return
         );
@@ -83,7 +82,7 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
         return_value = execution.result;
 
     } else if (s_type == ST_EXPRESSION) {
-        execution = execute_expression(statement_get_expression(stmt, 0), ctx);
+        execution = execute_expression(stmt->per_type.expr.expr, ctx);
         if (execution.failed)
             return failed_variant(&execution, NULL);
         return_value = execution.result;
@@ -93,9 +92,8 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
     } else if (s_type == ST_CONTINUE) {
         *should_continue = true;
     } else if (s_type == ST_RETURN) {
-        expression *ret_val_expr = statement_get_expression(stmt, 0);
-        if (ret_val_expr != NULL) {
-            execution = execute_expression(ret_val_expr, ctx);
+        if (stmt->per_type.return_.value != NULL) {
+            execution = execute_expression(stmt->per_type.return_.value, ctx);
             if (execution.failed)
                 return failed_variant(&execution, NULL);
             return_value = execution.result;
@@ -107,7 +105,7 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
 
     } else if (s_type == ST_FUNCTION) {
         // this is a statement function, hence a named function. Register to symbols
-        const char *name = statement_get_function_name(stmt);
+        const char *name = stmt->per_type.function.name;
         exec_context_register_symbol(ctx, name, new_callable_variant(new_callable(
             name,
             statement_function_callable_executor,
@@ -178,7 +176,7 @@ static failable_variant execute_statements_in_loop(expression *pre_condition, li
 failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
 
     statement *stmt = (statement *)callable_data;
-    list *arg_names = statement_get_function_arg_names(stmt);
+    list *arg_names = stmt->per_type.function.arg_names;
     if (list_length(positional_args) < list_length(arg_names))
         return failed_variant(NULL, "expected %d arguments, got %d", list_length(arg_names), list_length(positional_args));
 
@@ -186,7 +184,7 @@ failable_variant statement_function_callable_executor(list *positional_args, dic
     stack_frame_initialization(f, arg_names, positional_args, named_args, NULL);
     exec_context_push_stack_frame(ctx, f);
     
-    failable_variant result = execute_statements(statement_get_statements_body(stmt, false), ctx);
+    failable_variant result = execute_statements(stmt->per_type.function.statements, ctx);
 
     exec_context_pop_stack_frame(ctx);
     return result;
