@@ -106,7 +106,7 @@ For example:
 
 * `failable_variant` - is the type returned by functions
 * `ok_variant(variant *v);` - for returning success with a value
-* `failed_variant(err_msg);` - for returning failure information.
+* `failed_variant(inner_failure, err_msg);` - for returning failure information.
 
 ## Error control
 

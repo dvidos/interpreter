@@ -182,7 +182,7 @@ failable_variant statement_function_callable_executor(list *positional_args, dic
     if (list_length(positional_args) < list_length(arg_names))
         return failed_variant(NULL, "expected %d arguments, got %d", list_length(arg_names), list_length(positional_args));
 
-    stack_frame *f = new_stack_frame("statement_func");
+    stack_frame *f = new_stack_frame(stmt->per_type.function.name, stmt, NULL);
     stack_frame_initialization(f, arg_names, positional_args, named_args, NULL);
     exec_context_push_stack_frame(ctx, f);
     

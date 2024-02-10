@@ -7,17 +7,16 @@
 #include "stack_frame.h"
 #include "../listing.h"
 
-
 typedef struct exec_context exec_context;
 struct exec_context {
     bool verbose;
     bool debugger_enabled;
 
-    dict *global_symbols;
-    stack *stack_frames;
-
+    const char *script_name;
     listing *code_listing;
     list *ast_root_statements;
+    dict *global_symbols;
+    stack *stack_frames;
 
     struct debugger_flags {
         enum debugger_break_mode {
@@ -33,7 +32,7 @@ struct exec_context {
     // stdin, stdout, logger
 };
 
-exec_context *new_exec_context(listing *code_listing, list *ast_root_statments, bool verbose, bool debugger);
+exec_context *new_exec_context(const char *script_name, listing *code_listing, list *ast_root_statments, bool verbose, bool debugger);
 
 stack_frame *exec_context_get_curr_stack_frame(exec_context *c);
 failable exec_context_push_stack_frame(exec_context *c, stack_frame *f);

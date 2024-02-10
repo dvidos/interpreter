@@ -14,14 +14,15 @@
 
 
 
-exec_context *new_exec_context(listing *code_listing, list *ast_root_statements, bool verbose, bool debugger) {
+exec_context *new_exec_context(const char *script_name, listing *code_listing, list *ast_root_statements, bool verbose, bool debugger) {
     exec_context *c = malloc(sizeof(exec_context));
+    c->script_name = script_name;
     c->code_listing = code_listing;
     c->ast_root_statements = ast_root_statements;
     c->verbose = verbose;
     c->debugger_enabled = debugger;
-    c->global_symbols = new_dict(variant_class);
     c->stack_frames = new_stack(stack_frame_class);
+    c->global_symbols = new_dict(variant_class);
     return c;
 }
 

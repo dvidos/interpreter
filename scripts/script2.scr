@@ -1,5 +1,11 @@
 
-for (i = 0; i < 30; i++) {
+
+function fibonacci(i) {
+    if (i <= 2) return i;
+    return (fibonacci(i - 1) + fibonacci(i - 2));
+}
+
+function fizzbuzz(i) {
     if (i % 3 == 0 && i % 5 == 0)
         output('Fizz Buzz');
     else if (i % 3 == 0)
@@ -10,15 +16,25 @@ for (i = 0; i < 30; i++) {
         output(i);
 }
 
-function fibonacci(i) {
-    if (i <= 2) return i;
-    return (fibonacci(i - 1) + fibonacci(i - 2));
+function show_fizz_buzz() {
+    breakpoint;
+    for (i = 0; i < 10; i++) {
+        fizzbuzz(i);
+    }
+}
+
+function show_fibonacci() {
+    for (i = 0; i < 11; i++) {
+        output("Fibonacci of", i, "is", fibonacci(i));
+    }
+    breakpoint;
+}
+
+function run_demos() {
+    show_fizz_buzz();
+    show_fibonacci();
 }
 
 breakpoint;
-
-for (i = 0; i < 11; i++) {
-    output("Fibonacci of", i, "is", fibonacci(i));
-}
-
+run_demos();
 return 0;

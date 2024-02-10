@@ -45,7 +45,6 @@ STRONGLY_TYPED_FAILABLE_VAL_IMPLEMENTATION(int);
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(const_char);
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(void);
 
-
 static void failable_print_reverse(void *some_failable) {
     failable *f = (failable *)some_failable;
     if (f == NULL)

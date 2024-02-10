@@ -4,16 +4,12 @@
 #include "../str.h"
 
 
-struct stack_frame {
-    class *class;
-    const char *func_name;
-    dict *symbols;
-};
-
-stack_frame *new_stack_frame(const char *func_name) {
+stack_frame *new_stack_frame(const char *func_name, statement *func_stmt, expression *func_expr) {
     stack_frame *f = malloc(sizeof(stack_frame));
     f->class = stack_frame_class;
     f->func_name = func_name;
+    f->func_stmt = func_stmt;
+    f->func_expr = func_expr;
     f->symbols = new_dict(variant_class);
     return f;
 }
@@ -30,7 +26,8 @@ void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_value
             stack_frame_register_symbol(f, key, dict_get(named_values, key));
     }
 
-    stack_frame_register_symbol(f, "this", this_obj);
+    if (this_obj != NULL)
+        stack_frame_register_symbol(f, "this", this_obj);
 }
 
 

@@ -255,7 +255,11 @@ static failable_expression parse_dict_initializer(bool verbose, token *initial_t
 }
 
 static failable_expression parse_func_declaration_expression(bool verbose, token *initial_token) {
-    // past 'function', expected: "( [args] ) { [statements] }"
+    // past 'function', expected: "[name] ( [args] ) { [statements] }"
+    const char *name = "anonymous";
+    if (accept(T_IDENTIFIER))
+        name = accepted()->data;
+
     if (!accept(T_LPAREN))
         return failed_expression(NULL, "Expected '(' after function");
     
@@ -270,7 +274,7 @@ static failable_expression parse_func_declaration_expression(bool verbose, token
     failable_list statements_parsing = parse_statements(tokens_iterator, SP_BLOCK_MANDATORY);
     if (statements_parsing.failed) return failed_expression(&statements_parsing, "Failed parsing function body");
 
-    return ok_expression(new_func_decl_expression(arg_names, statements_parsing.result, initial_token));
+    return ok_expression(new_func_decl_expression("name", arg_names, statements_parsing.result, initial_token));
 }
 
 static failable parse_expression_on_want_operand(run_state *state, bool verbose) {

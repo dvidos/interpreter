@@ -551,7 +551,7 @@ static failable_variant expression_function_callable_executor(
     if (list_length(positional_args) < list_length(arg_names))
         return failed_variant(NULL, "expected %d arguments, got only %d", list_length(arg_names), list_length(positional_args));
 
-    stack_frame *f = new_stack_frame("expr_func");
+    stack_frame *f = new_stack_frame("expr_func", NULL, expr);
     stack_frame_initialization(f, arg_names, positional_args, named_args, this_obj);
     exec_context_push_stack_frame(ctx, f);
 

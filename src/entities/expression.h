@@ -25,6 +25,7 @@ struct expression {
             struct expression *operand2;
         } operation;
         struct func {
+            const char *name;
             list *arg_names;
             list *statements;
         } func;
@@ -41,7 +42,7 @@ expression *new_unary_expression(operator_type op, token *token, expression *ope
 expression *new_binary_expression(operator_type op, token *token, expression *left, expression *right);
 expression *new_list_data_expression(list *data, token *token);
 expression *new_dict_data_expression(dict *data, token *token);
-expression *new_func_decl_expression(list *arg_names, list *statements, token *token);
+expression *new_func_decl_expression(const char *name, list *arg_names, list *statements, token *token);
 
 const void expression_describe(expression *e, str_builder *sb);
 bool expressions_are_equal(expression *a, expression *b);

@@ -73,8 +73,9 @@ expression *new_dict_data_expression(dict *d, token *token) {
     return e;
 }
 
-expression *new_func_decl_expression(list *arg_names, list *statements, token *token) {
+expression *new_func_decl_expression(const char *name, list *arg_names, list *statements, token *token) {
     expression *e = new_expression(ET_FUNC_DECL, token, OP_UNKNOWN);
+    e->per_type.func.name = name;
     e->per_type.func.arg_names = arg_names;
     e->per_type.func.statements = statements;
     return e;

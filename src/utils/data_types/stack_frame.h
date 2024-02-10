@@ -6,10 +6,21 @@
 #include "variant.h"
 #include "stack_frame.h"
 
+typedef struct statement statement;
+typedef struct expression expression;
+
 typedef struct stack_frame stack_frame;
 extern class *stack_frame_class;
 
-stack_frame *new_stack_frame(const char *func_name);
+struct stack_frame {
+    class *class;
+    const char *func_name;
+    statement *func_stmt;
+    expression *func_expr;
+    dict *symbols;
+};
+
+stack_frame *new_stack_frame(const char *func_name, statement *func_stmt, expression *func_expr);
 void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, dict *named_values, variant *this_value);
 
 variant *stack_frame_resolve_symbol(stack_frame *f, const char *name);

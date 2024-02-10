@@ -6,6 +6,8 @@
 #include "../entities/statement.h"
 #include "../entities/expression.h"
 #include "../utils/data_types/exec_context.h"
+#include "../utils/str.h"
+#include "../utils/str_builder.h"
 
 bool debugger_session_done;
 
@@ -27,13 +29,14 @@ static void show_help() {
 
 static void show_curr_code_line(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
     int curr_line_no = (curr_stmt != NULL ? curr_stmt->token->line_no : (curr_expr != NULL ? curr_expr->token->line_no : 0));
-    fprintf(stdout, "%3d %c  %c   %s\n",
+    fprintf(stdout, "%3d %c  %s   %s\n",
         curr_line_no, 
         ' ', // 'B' for break point
-        '>',
+        "-->",
         listing_get_line(ctx->code_listing, curr_line_no)
     );
 }
+
 static void list_code(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
     int context_lines = 5;
     int curr_line_no = (curr_stmt != NULL ? curr_stmt->token->line_no : (curr_expr != NULL ? curr_expr->token->line_no : 0));
@@ -45,25 +48,65 @@ static void list_code(statement *curr_stmt, expression *curr_expr, exec_context 
     if (max_line_no >= total_lines) max_line_no = total_lines - 1;
 
     for (int line_no = min_line_no; line_no <= max_line_no; line_no++) {
-        fprintf(stdout, "%3d %c  %c   %s\n",
+        fprintf(stdout, "%3d %c  %s   %s\n",
             line_no, 
             ' ', // 'B' for break point
-            line_no == curr_line_no ? '>' : ' ',
+            line_no == curr_line_no ? "-->" : "   ",
             listing_get_line(ctx->code_listing, line_no)
         );
     }
 }
 
-static failable handle_command(char *cmd, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
-    if (strncmp(cmd, "h", 1) == 0) {
-        show_help();
-    } else if (strncmp(cmd, "l", 1) == 0) {
-        list_code(curr_stmt, curr_expr, ctx);
-    } else if (strncmp(cmd, "c", 1) == 0) {
-        debugger_session_done = true;
-    } else if (strncmp(cmd, "q", 1) == 0) {
-        return failed(NULL, "Execution aborted!");
+static void show_stack_trace(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+    int level = stack_length(ctx->stack_frames);
+
+    for_stack(ctx->stack_frames, sfit, stack_frame, f) {
+        token *t = f->func_stmt == NULL ? (f->func_expr == NULL ? NULL : f->func_expr->token) : f->func_stmt->token;
+        if (f->func_stmt != NULL) t = f->func_stmt->token;
+        if (f->func_expr != NULL) t = f->func_expr->token;
+        printf("   %2d   %s(), at %s:%d:%d\n", 
+            level--,
+            f->func_name,
+            t == NULL ? "(unknown)" : t->filename,
+            t == NULL ? 0 : t->line_no,
+            t == NULL ? 0 : t->column_no
+        );
     }
+    printf("   %2d   %s\n", 0, ctx->script_name);
+}
+
+static void show_values_of_symbols_of(dict *symbols) {
+    str_builder *sb = new_str_builder();
+    for_dict(symbols, sit, str, name) {
+        str_builder_clear(sb);
+        variant *v = dict_get(symbols, name);
+        if (v == NULL)
+            str_builder_add(sb, "(null)");
+        else 
+            variant_describe(v, sb);
+        printf("   %s: %s\n", name, str_builder_charptr(sb));
+    }
+    str_builder_free(sb);
+}
+
+static void show_args_and_values(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+    stack_frame *f = stack_peek(ctx->stack_frames);
+    if (f == NULL) {
+        // show globals
+        show_values_of_symbols_of(ctx->global_symbols);
+    } else {
+        // show locals
+        show_values_of_symbols_of(f->symbols);
+    }
+}
+
+static failable handle_command(char *cmd, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+    if      (strncmp(cmd, "h", 1) == 0) show_help();
+    else if (strncmp(cmd, "l", 1) == 0) list_code(curr_stmt, curr_expr, ctx);
+    else if (strncmp(cmd, "c", 1) == 0) debugger_session_done = true;
+    else if (strncmp(cmd, "q", 1) == 0) return failed(NULL, "Execution aborted!");
+    else if (strncmp(cmd, "w", 1) == 0) show_stack_trace(curr_stmt, curr_expr, ctx);
+    else if (strncmp(cmd, "a", 1) == 0) show_args_and_values(curr_stmt, curr_expr, ctx);
 
     return ok();
 }
@@ -102,11 +145,12 @@ failable run_debugger(statement *curr_stmt, expression *curr_expr, exec_context 
 
     while (!debugger_session_done) {
         // should print current line.
-        fputs("dbg > ", stdout);
+        fputs("dbg: ", stdout);
         if (!get_command(buffer, sizeof(buffer)))
             break;
         
         failable handling = handle_command(buffer, curr_stmt, curr_expr, ctx);
         if (handling.failed) return failed(&handling, NULL);
     }
+    return ok();
 }
