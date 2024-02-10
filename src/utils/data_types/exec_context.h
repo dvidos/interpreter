@@ -5,9 +5,34 @@
 #include <stdbool.h>
 #include "../containers/_module.h"
 #include "stack_frame.h"
+#include "../listing.h"
 
 
 typedef struct exec_context exec_context;
+struct exec_context {
+    bool verbose;
+    bool debugger_enabled;
+
+    dict *global_symbols;
+    stack *stack_frames;
+
+    listing *code_listing;
+    list *ast_root_statements;
+
+    struct debugger_flags {
+        enum debugger_break_mode {
+            DBM_DONT_BREAK,
+            DBM_NEXT_INSTRUCTION,
+            DBM_NEXT_LINE,
+            DBM_NEXT_RETURN_STATEMENT,
+            DBM_ABORT_EXECUTION,
+
+        } break_mode;
+        int last_line_no;
+    } debugger_flags;
+
+    // stdin, stdout, logger
+};
 
 exec_context *new_exec_context(list *ast_root_statments, bool verbose, bool debugger);
 

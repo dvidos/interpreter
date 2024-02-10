@@ -6,30 +6,6 @@
 #include "stack_frame.h"
 
 
-struct exec_context {
-    bool verbose;
-    bool debugger_enabled;
-
-    dict *global_symbols;
-    stack *stack_frames;
-
-    listing *code_listing;
-    list *ast_root_statements;
-
-    struct debugger_flags {
-        enum debugger_break_mode {
-            DBM_DONT_BREAK,
-            DBM_NEXT_INSTRUCTION,
-            DBM_NEXT_LINE,
-            DBM_NEXT_RETURN_STATEMENT,
-            DBM_ABORT_EXECUTION,
-
-        } break_mode;
-        int last_line_no;
-    } debugger_flags;
-
-    // stdin, stdout, logger
-};
 
 
 // apparently we need more than one flag for debugging,
