@@ -41,6 +41,10 @@ class *list_contained_item(list *l) {
     return l->item_class;
 }
 
+bool list_empty(list *l) {
+    return l->length == 0;
+}
+
 int list_length(list *l) {
     return l->length;
 }
@@ -81,6 +85,46 @@ void list_set(list *l, int index, void *item) {
     if (e != NULL)
         e->item = item;
 }
+
+void list_insert(list *l, int index, void *item) {
+    list_entry *entry = malloc(sizeof(list_entry));
+    entry->item = item;
+    entry->next = NULL;
+
+    if (index == 0) {
+        entry->next = l->head;
+        l->head = entry;
+    } else {
+        list_entry *prev = l->head;
+        while (index-- > 1 && prev->next != NULL)
+            prev = prev->next;
+        entry->next = prev->next;
+        prev->next = entry;
+    }
+    l->length++;
+}
+
+void list_remove(list *l, int index) {
+    if (index == 0) {
+        if (l->head != NULL) {
+            l->head = l->head->next;
+            l->length++;
+        }
+    } else {
+        list_entry *prev = l->head;
+        while (index-- > 1 && prev->next != NULL)
+            prev = prev->next;
+        if (prev != NULL && prev->next != NULL) {
+            prev->next = prev->next->next;
+            l->length--;
+        }
+    }
+}
+
+
+
+
+
 
 typedef struct list_iterator_private_data {
     list *list;

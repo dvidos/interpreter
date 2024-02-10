@@ -13,10 +13,14 @@ list *new_list(class *item_class);
 list *list_of(class *item_class, int items, ...);
 class *list_contained_item(list *l);
 
+bool list_empty(list *l);
 int   list_length(list *l);
 void  list_add(list *l, void *item);
 void *list_get(list *l, int index);
 void  list_set(list *l, int index, void *item);
+void list_insert(list *l, int index, void *item);
+void list_remove(list *l, int index);
+
 iterator *list_iterator(list *l);
 
 bool lists_are_equal(list *a, list *b);
