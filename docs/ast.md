@@ -28,6 +28,7 @@ When a piece of code is interpreted, it ends up as a list of statements. A state
   * contains a name (since it is defined in a statement)
   * a list of argument names
   * a list of statements to execute
+* `ST_BREAKPOINT` - a breakpoint set in code, if debugging is enabled.
 
 ## expressions
 
