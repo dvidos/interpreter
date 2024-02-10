@@ -10,7 +10,6 @@
 typedef struct exec_context exec_context;
 struct exec_context {
     bool verbose;
-    bool debugger_enabled;
 
     const char *script_name;
     listing *code_listing;
@@ -18,16 +17,14 @@ struct exec_context {
     dict *global_symbols;
     stack *stack_frames;
 
-    struct debugger_flags {
-        enum debugger_break_mode {
-            DBM_DONT_BREAK,
-            DBM_NEXT_INSTRUCTION,
-            DBM_NEXT_LINE,
-            DBM_NEXT_RETURN_STATEMENT,
-            DBM_ABORT_EXECUTION,
-        } break_mode;
-        int last_line_no;
-    } debugger_flags;
+    struct debugger_info {
+        bool enabled;
+        bool enter_at_next_instruction;
+        bool enter_when_at_different_line;
+        const char *original_filename;
+        int original_line_no;
+        list *breakpoints;
+    } debugger;
 
     // stdin, stdout, logger
 };
@@ -53,6 +50,10 @@ const char *exec_context_get_log();
 
 FILE *exec_context_get_log_echo();
 void exec_context_set_log_echo(FILE *handle, char *filename);
+
+void exec_context_set_breakpoint(exec_context *c, const char *filename, int line);
+void exec_context_del_breakpoint(exec_context *c, const char *filename, int line);
+bool exec_context_has_breakpoint(exec_context *c, const char *filename, int line);
 
 
 #endif

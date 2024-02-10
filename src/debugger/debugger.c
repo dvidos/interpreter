@@ -9,8 +9,12 @@
 #include "../utils/str.h"
 #include "../utils/str_builder.h"
 
-bool debugger_session_done;
-#define between(num, min, max)  ((num)<(min)?(min):((num)>(max)?(max):(num)))
+#define between(num, min, max)        ((num)<(min)?(min):((num)>(max)?(max):(num)))
+#define get_curr_filename(stmt, expr) ((stmt) != NULL ? (stmt)->token->filename : ( \
+                                       (expr) != NULL ? (expr)->token->filename : NULL))
+#define get_curr_line_no(stmt, expr)  ((stmt) != NULL ? (stmt)->token->line_no : ( \
+                                       (expr) != NULL ? (expr)->token->line_no : 0))
+
 
 
 static void show_help() {
@@ -20,30 +24,30 @@ static void show_help() {
     printf("  c -- continue execution\n");
     printf("  q -- quit execution\n");
     printf("\n");
-    printf("  l -- list code, l <line_no> [, <lines_to_show> ]\n");
+    printf("  l -- list code, l [+-]<line_no> [, <lines_to_show> ]\n");
     printf("  a -- print function args and current values\n");
     printf("  w -- where (print stack trace)\n");
     printf("\n");
-    printf("  b func_name | [file:] line_no -- add breakpoint to function or file:line\n");
+    printf("  b [ func_name | [file:]line_no ] -- toggle breakpoint to function or file:line\n");
     printf("  p expresion -- evaluate and print expression\n");
 }
 
 static void show_curr_code_line(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
-    int curr_line_no = (curr_stmt != NULL ? curr_stmt->token->line_no : (curr_expr != NULL ? curr_expr->token->line_no : 0));
+    int line_no = get_curr_line_no(curr_stmt, curr_expr);
     fprintf(stdout, "%3d %c  %s   %s\n",
-        curr_line_no, 
+        line_no, 
         ' ', // 'B' for break point
         "-->",
-        listing_get_line(ctx->code_listing, curr_line_no)
+        listing_get_line(ctx->code_listing, line_no)
     );
 }
 
-static void list_code(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *line_no_arg) {
-    int curr_line_no = (curr_stmt != NULL ? curr_stmt->token->line_no : (curr_expr != NULL ? curr_expr->token->line_no : 0));
+static void list_code(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *cmd_arg) {
+    int line_no = get_curr_line_no(curr_stmt, curr_expr);
     int lines_count = listing_lines_count(ctx->code_listing);
     
     int context_lines = 5;
-    int line_to_show = (strlen(line_no_arg) > 0) ? atoi(line_no_arg) : curr_line_no;
+    int line_to_show = (strlen(cmd_arg) > 0) ? atoi(cmd_arg) : line_no;
     line_to_show = between(line_to_show, 1, lines_count);
     int min_line_to_show = between(line_to_show - context_lines, 1, lines_count);
     int max_line_to_show = between(line_to_show + context_lines, 1, lines_count);
@@ -52,10 +56,29 @@ static void list_code(statement *curr_stmt, expression *curr_expr, exec_context 
         fprintf(stdout, "%3d %c  %s   %s\n",
             n, 
             ' ', // 'B' for break point
-            n == curr_line_no ? "-->" : "   ",
+            n == line_no ? "-->" : "   ",
             listing_get_line(ctx->code_listing, n)
         );
     }
+}
+
+static void manipulate_breakpoint(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *cmd_arg) {
+    int line_no = get_curr_line_no(curr_stmt, curr_expr);
+    int break_line;
+    if (strlen(cmd_arg) > 0) {
+        break_line = between(atoi(cmd_arg), 1, listing_lines_count(ctx->code_listing));
+    } else {
+        break_line = line_no;
+    }
+    printf("Will toggle breakpoint at line %d\n", break_line);
+    // should insert breakpoint in AST, in the first mentioning of this line.
+    // interface:
+    // - set_breakpoint, get_breakpoint, del_breakpoint, list_breakpoints???
+    
+}
+
+static void print_expression(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *cmd_arg) {
+
 }
 
 static void show_stack_trace(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
@@ -83,7 +106,9 @@ static void show_values_of_symbols_of(dict *symbols) {
         variant *v = dict_get(symbols, name);
         if (v == NULL)
             str_builder_add(sb, "(null)");
-        else 
+        else if (variant_is_callable(v))
+            str_builder_add(sb, "(callable)");
+        else
             variant_describe(v, sb);
         printf("   %s: %s\n", name, str_builder_charptr(sb));
     }
@@ -101,15 +126,41 @@ static void show_args_and_values(statement *curr_stmt, expression *curr_expr, ex
     }
 }
 
-static failable handle_command(char *cmd, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
-    if      (strncmp(cmd, "h", 1) == 0) show_help();
-    else if (strncmp(cmd, "l", 1) == 0) list_code(curr_stmt, curr_expr, ctx, cmd + 1);
-    else if (strncmp(cmd, "c", 1) == 0) debugger_session_done = true;
-    else if (strncmp(cmd, "q", 1) == 0) return failed(NULL, "Execution aborted!");
-    else if (strncmp(cmd, "w", 1) == 0) show_stack_trace(curr_stmt, curr_expr, ctx);
-    else if (strncmp(cmd, "a", 1) == 0) show_args_and_values(curr_stmt, curr_expr, ctx);
+static void setup_stepping(bool single, bool next, bool cont, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+    if (single) {
+        ctx->debugger.enter_at_next_instruction = true;
+        ctx->debugger.enter_when_at_different_line = true;
+        ctx->debugger.original_filename = NULL;
+        ctx->debugger.original_line_no = 0;
+    } else if (next) {
+        ctx->debugger.enter_at_next_instruction = false;
+        ctx->debugger.enter_when_at_different_line = true;
+        ctx->debugger.original_filename = get_curr_filename(curr_stmt, curr_expr);
+        ctx->debugger.original_line_no = get_curr_line_no(curr_stmt, curr_expr);
+    } else if (cont) {
+        ctx->debugger.enter_at_next_instruction = false;
+        ctx->debugger.enter_when_at_different_line = false;
+        ctx->debugger.original_filename = NULL;
+        ctx->debugger.original_line_no = 0;
+    }
+}
 
-    return ok();
+static failable_bool handle_command(char *cmd, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+    bool done = false;
+    switch (cmd[0]) {
+        case 'h': show_help(); break;
+        case 'l': list_code(curr_stmt, curr_expr, ctx, cmd + 1); break;
+        case 's': setup_stepping(true, false, false, curr_stmt, curr_expr, ctx); done = true; break;
+        case 'n': setup_stepping(false, true, false, curr_stmt, curr_expr, ctx); done = true; break;
+        case 'c': setup_stepping(false, false, true, curr_stmt, curr_expr, ctx); done = true; break;
+        case 'q': return failed_bool(NULL, "Execution aborted!"); break;
+        case 'w': show_stack_trace(curr_stmt, curr_expr, ctx); break;
+        case 'a': show_args_and_values(curr_stmt, curr_expr, ctx); break;
+        case 'b': manipulate_breakpoint(curr_stmt, curr_expr, ctx, cmd + 1); break;
+        case 'p': print_expression(curr_stmt, curr_expr, ctx, cmd + 1); break;
+        default : printf("unknown command, enter 'h' for help\n"); break;
+    }
+    return ok_bool(done);
 }
 
 static bool get_command(char *buffer, int buffer_size) {
@@ -122,35 +173,41 @@ static bool get_command(char *buffer, int buffer_size) {
 }
 
 bool should_start_debugger(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
-    if (!ctx->debugger_enabled)
+    if (!ctx->debugger.enabled)
         return false;
-    if (curr_stmt != NULL) {
-        if (curr_stmt->type == ST_BREAKPOINT)
+    
+    if (ctx->debugger.enter_at_next_instruction)
+        return true;
+    
+    if (ctx->debugger.enter_when_at_different_line) {
+        const char *curr_filename = get_curr_filename(curr_stmt, curr_expr);
+        if (strcmp(curr_filename, ctx->debugger.original_filename) != 0)
             return true;
-        if (curr_stmt->type == ST_RETURN &&
-            ctx->debugger_flags.break_mode == DBM_NEXT_RETURN_STATEMENT)
-            return true;
+        int curr_line_no = get_curr_line_no(curr_stmt, curr_expr);
+        return (curr_line_no != ctx->debugger.original_line_no);
     }
-    if (curr_expr != NULL) {
-        // ???
-    }
+
+    if (curr_stmt != NULL && curr_stmt->type == ST_BREAKPOINT)
+        return true;
+    
     return false;
 }
 
 failable run_debugger(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
     char buffer[128];
+    bool done = false;
 
     printf("Inline debugger. Enter 'h' for help.\n");
     show_curr_code_line(curr_stmt, curr_expr, ctx);
-    debugger_session_done = false;
 
-    while (!debugger_session_done) {
+    while (!done) {
         fputs("debug: ", stdout);
         if (!get_command(buffer, sizeof(buffer)))
             break;
         
-        failable handling = handle_command(buffer, curr_stmt, curr_expr, ctx);
+        failable_bool handling = handle_command(buffer, curr_stmt, curr_expr, ctx);
         if (handling.failed) return failed(&handling, NULL);
+        done = handling.result;
     }
     return ok();
 }

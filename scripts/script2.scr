@@ -35,6 +35,15 @@ function run_demos() {
     show_fibonacci();
 }
 
+a = 1;
+b = 2;
+c = 'some string';
+
 breakpoint;
+
+output("step 1");
+output("step 2");
+output("step 3");
+
 run_demos();
 return 0;

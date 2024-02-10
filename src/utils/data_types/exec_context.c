@@ -20,7 +20,8 @@ exec_context *new_exec_context(const char *script_name, listing *code_listing, l
     c->code_listing = code_listing;
     c->ast_root_statements = ast_root_statements;
     c->verbose = verbose;
-    c->debugger_enabled = debugger;
+    c->debugger.enabled = debugger;
+    c->debugger.enter_at_next_instruction = debugger; // debug first line
     c->stack_frames = new_stack(stack_frame_class);
     c->global_symbols = new_dict(variant_class);
     return c;
@@ -141,3 +142,5 @@ void exec_context_set_log_echo(FILE *handle, char *filename) {
         log_echo_handle = fopen(filename, "a");
     }
 }
+
+
