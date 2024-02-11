@@ -5,12 +5,15 @@
 
 
 typedef struct breakpoint breakpoint;
+extern class *breakpoint_class;
+
 struct breakpoint {
     class *class;
     const char *filename;
-    int line;
+    int line_no;
+};
 
-    bool ephemeral;
-}
+breakpoint *new_breakpoint(const char *filename, int line_no);
+bool breakpoint_is_at(breakpoint *b, const char *filename, int line_no);
 
 #endif

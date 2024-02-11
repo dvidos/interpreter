@@ -4,7 +4,7 @@
 #include "../listing.h"
 #include "exec_context.h"
 #include "stack_frame.h"
-
+#include "../../debugger/breakpoint.h"
 
 
 
@@ -22,6 +22,7 @@ exec_context *new_exec_context(const char *script_name, listing *code_listing, l
     c->verbose = verbose;
     c->debugger.enabled = debugger;
     c->debugger.enter_at_next_instruction = debugger; // debug first line
+    c->debugger.breakpoints = new_list(breakpoint_class);
     c->stack_frames = new_stack(stack_frame_class);
     c->global_symbols = new_dict(variant_class);
     return c;

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "debugger.h"
+#include "breakpoint.h"
 #include "../interpreter/interpreter.h"
 #include "../entities/statement.h"
 #include "../entities/expression.h"
@@ -17,6 +18,106 @@
                                        (expr) != NULL ? (expr)->token->line_no : 0))
 
 
+enum ast_task { AST_ADD_BREAKPOINT, AST_DEL_BREAKPOINT };
+static bool walk_ast_statements(list *statements, enum ast_task task, const char *filename, int line_no);
+static bool walk_ast_statement(statement *statement, enum ast_task task, const char *filename, int line_no);
+
+
+static bool walk_ast_statements(list *statements, enum ast_task task, const char *filename, int line_no) {
+    if (task == AST_ADD_BREAKPOINT) {
+        int index = 0;
+        for_list(statements, it, statement, stmt) {
+            if (statement_is_at(stmt, filename, line_no)) {
+                list_insert(statements, index, new_breakpoint_statement(stmt->token));
+                return true;
+            }
+            index++;
+        }
+    } else if (task == AST_DEL_BREAKPOINT) {
+        int index = 0;
+        for_list(statements, it, statement, stmt) {
+            if (stmt->type == ST_BREAKPOINT && statement_is_at(stmt, filename, line_no)) {
+                list_remove(statements, index);
+                return true;
+            }
+        }
+        index++;
+    } else {
+        return false;
+    }
+
+    // if we got here, it means we did not find target, go deeper
+    for_list(statements, it, statement, stmt) {
+        if (walk_ast_statement(stmt, task, filename, line_no))
+            return true;
+    }
+
+    return false;
+}
+
+static bool walk_ast_statement(statement *stmt, enum ast_task task, const char *filename, int line_no) {
+    bool done;
+    if (stmt->type == ST_IF) {
+        done = walk_ast_statements(stmt->per_type.if_.body_statements, task, filename, line_no);
+        if (done) return true;
+        if (stmt->per_type.if_.has_else) {
+            done = walk_ast_statements(stmt->per_type.if_.else_body_statements, task, filename, line_no);
+            if (done) return true;
+        }
+    } else if (stmt->type == ST_WHILE) {
+        done = walk_ast_statements(stmt->per_type.while_.body_statements, task, filename, line_no);
+        if (done) return true;
+    } else if (stmt->type == ST_FOR_LOOP) {
+        done = walk_ast_statements(stmt->per_type.for_.body_statements, task, filename, line_no);
+        if (done) return true;
+    } else if (stmt->type == ST_FUNCTION) {
+        done = walk_ast_statements(stmt->per_type.function.statements, task, filename, line_no);
+        if (done) return true;
+    }
+    return false;
+}
+
+static void list_breakpoints(exec_context *ctx) {
+    if (list_empty(ctx->debugger.breakpoints)) {
+        printf("  no breakpoints\n");
+        return;
+    }
+    for_list(ctx->debugger.breakpoints, it, breakpoint, b) {
+        printf("  %s : %d\n", b->filename, b->line_no);
+    }
+}
+
+static bool is_breakpoint_at_line(const char *filename, int line_no, exec_context *ctx) {
+    for_list(ctx->debugger.breakpoints, it, breakpoint, bp) {
+        if (breakpoint_is_at(bp, filename, line_no))
+            return true;
+    }
+    return false;
+}
+
+static void insert_breakpoint_at_line(const char *filename, int line_no, exec_context *ctx) {
+    if (!walk_ast_statements(ctx->ast_root_statements, AST_ADD_BREAKPOINT, filename, line_no))
+        return;
+    list_add(ctx->debugger.breakpoints, new_breakpoint(filename, line_no));
+    printf("Added breakpoint at %s:%d\n", filename, line_no);
+}
+
+static void remove_breakpoint_at_line(const char *filename, int line_no, exec_context *ctx) {
+    int index = 0;
+    bool found = false;
+    for_list(ctx->debugger.breakpoints, it, breakpoint, bp) {
+        if (breakpoint_is_at(bp, filename, line_no)) {
+            found = true;
+            list_remove(ctx->debugger.breakpoints, index);
+        }
+        index++;
+    }
+    if (!found)
+        return;
+    
+    walk_ast_statements(ctx->ast_root_statements, AST_DEL_BREAKPOINT, filename, line_no);
+    printf("Removed breakpoint from %s:%d\n", filename, line_no);
+}
 
 static void show_help() {
     printf("  n -- next (run till next line number)\n");
@@ -34,16 +135,18 @@ static void show_help() {
 }
 
 static void show_curr_code_line(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+    const char *filename = get_curr_filename(curr_stmt, curr_expr);
     int line_no = get_curr_line_no(curr_stmt, curr_expr);
     fprintf(stdout, "%3d %c  %s   %s\n",
         line_no, 
-        ' ', // 'B' for break point
+        is_breakpoint_at_line(filename, line_no, ctx) ? 'B' : ' ',
         "-->",
         listing_get_line(ctx->code_listing, line_no)
     );
 }
 
 static void list_code(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *cmd_arg) {
+    const char *filename = get_curr_filename(curr_stmt, curr_expr);
     int line_no = get_curr_line_no(curr_stmt, curr_expr);
     int lines_count = listing_lines_count(ctx->code_listing);
     
@@ -56,7 +159,7 @@ static void list_code(statement *curr_stmt, expression *curr_expr, exec_context 
     for (int n = min_line_to_show; n <= max_line_to_show; n++) {
         fprintf(stdout, "%3d %c  %s   %s\n",
             n, 
-            ' ', // 'B' for break point
+            is_breakpoint_at_line(filename, n, ctx) ? 'B' : ' ',
             n == line_no ? "-->" : "   ",
             listing_get_line(ctx->code_listing, n)
         );
@@ -64,18 +167,18 @@ static void list_code(statement *curr_stmt, expression *curr_expr, exec_context 
 }
 
 static void manipulate_breakpoint(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *cmd_arg) {
-    int line_no = get_curr_line_no(curr_stmt, curr_expr);
-    int break_line;
-    if (strlen(cmd_arg) > 0) {
-        break_line = between(atoi(cmd_arg), 1, listing_lines_count(ctx->code_listing));
-    } else {
-        break_line = line_no;
+    if (strlen(cmd_arg) == 0) { // list all
+        list_breakpoints(ctx);
+    } else { // toggle at line
+        const char *filename = get_curr_filename(curr_stmt, curr_expr);
+        int line_no = between(atoi(cmd_arg), 1, listing_lines_count(ctx->code_listing));
+
+        if (is_breakpoint_at_line(filename, line_no, ctx)) {
+            remove_breakpoint_at_line(filename, line_no, ctx);
+        } else {
+            insert_breakpoint_at_line(filename, line_no, ctx);
+        }
     }
-    printf("Will toggle breakpoint at line %d\n", break_line);
-    // should insert breakpoint in AST, in the first mentioning of this line.
-    // interface:
-    // - set_breakpoint, get_breakpoint, del_breakpoint, list_breakpoints???
-    
 }
 
 static void print_expression(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *cmd_arg) {

@@ -43,6 +43,7 @@ FILES = \
 	src/runtime/statement_execution.c \
 	\
 	src/debugger/debugger.c \
+	src/debugger/breakpoint.c \
 	\
 	src/interpreter/interpreter.c \
 	src/interpreter/interpreter_tests.c

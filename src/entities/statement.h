@@ -54,6 +54,7 @@ statement *new_return_statement(expression *value, token *token);
 statement *new_function_statement(const char *name, list *arg_names, list *statements, token *token);
 statement *new_breakpoint_statement(token *token);
 
+bool statement_is_at(statement *s, const char *filename, int line_no);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(statement);
 #define failed_statement(inner, fmt, ...)  __failed_statement(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)

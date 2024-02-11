@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "../utils/str.h"
 #include "../utils/str_builder.h"
 #include "../utils/containers/_module.h"
@@ -62,6 +63,12 @@ statement *new_breakpoint_statement(token *token) {
     return new_statement(ST_BREAKPOINT, token);
 }
 
+
+bool statement_is_at(statement *s, const char *filename, int line_no) {
+    return s->token != NULL &&
+        s->token->line_no == line_no &&
+        strcmp(s->token->filename, filename) == 0;
+}
 
 
 const void statement_describe(statement *s, str_builder *sb) {
