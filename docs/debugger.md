@@ -7,6 +7,26 @@ a specific condition is met (e.g. a breakpoint has been reached),
 and the run the interactive debugger command loop, 
 passing in the current execution environment.
 
+```
+Inline debugger. Enter 'h' for help.
+ 38    -->   a = 1;
+debug: h
+  n -- next (run till next line number)
+  s -- step (run till next statement or expression)
+  r -- return (run till next return statement)
+  c -- continue execution
+  q -- quit execution
+
+  l -- list code, l [+-]<line_no> [, <lines_to_show> ]
+  a -- print function args and current values
+  w -- where (print stack trace)
+
+  b [ func_name | [file:]line_no ] -- toggle breakpoint to function or file:line
+  p expresion -- evaluate and print expression
+debug: 
+```
+
+
 ## stepping
 
 The stepping mechanism is implemented using checks 
@@ -52,3 +72,10 @@ debug: p a+b
 3
 debug: 
 ```
+
+## breakpoints
+
+A list of breakpoints is maintained and manipilated by toggling 
+a breakpoint at specific line numbers. In parallel to the above,
+actual ST_BREAKPOINT statements are inkected and extracted in/from the 
+Abstract Syntax Tree, so that debugger is engaged when they are encountered.
