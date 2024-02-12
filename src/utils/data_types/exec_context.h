@@ -53,9 +53,5 @@ const char *exec_context_get_log();
 FILE *exec_context_get_log_echo();
 void exec_context_set_log_echo(FILE *handle, char *filename);
 
-void exec_context_set_breakpoint(exec_context *c, const char *filename, int line);
-void exec_context_del_breakpoint(exec_context *c, const char *filename, int line);
-bool exec_context_has_breakpoint(exec_context *c, const char *filename, int line);
-
 
 #endif
