@@ -5,6 +5,11 @@ of primitive actions, e.g. "factorial" for the integer variants.
 In that sense we could write: `5.power(2);` or `4.fact();`,
 same as we'd do `[4,1,3,2].sort();`, or `'hello'.print();`.
 
+* maybe see if we can make an interactive mode (-1),
+similar to python, where the user writes expressions
+and there is a frame that holds variables and values.
+
+
 
 
 * separate the built in functions into separate files, based on the object they attach to.

@@ -12,6 +12,10 @@ void pclose(pool *p);
 
 bool pool_self_diagnostics();
 
-
+/* example:
+    p = popen();
+    do_lots_of_work(p);
+    pclose(p);
+*/
 
 #endif
