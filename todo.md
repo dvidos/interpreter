@@ -1,5 +1,10 @@
 # todo
 
+* cpython, inner code, gets the intepreter state and the current thread's state
+(that includes the current stack frame) by calling a function, which refers 
+to a static variable inside the C file. This way, call mechanism 
+does not need to contain contexts etc.
+
 * see that maybe the class_info can give us a dictionary
 of primitive actions, e.g. "factorial" for the integer variants.
 In that sense we could write: `5.power(2);` or `4.fact();`,
