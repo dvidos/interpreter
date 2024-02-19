@@ -1,7 +1,6 @@
 OUTPUT = ipret
 FILES = \
 	src/main.c \
-	src/shell.c \
 	src/utils/testing.c \
 	\
 	src/utils/data_types/variant.c \
@@ -47,7 +46,9 @@ FILES = \
 	src/debugger/breakpoint.c \
 	\
 	src/interpreter/interpreter.c \
-	src/interpreter/interpreter_tests.c
+	src/interpreter/interpreter_tests.c \
+	\
+	src/shell/shell.c
 
 
 $(OUTPUT): $(FILES)

@@ -2,10 +2,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "interpreter/interpreter.h"
-#include "utils/str_builder.h"
+#include "../interpreter/interpreter.h"
+#include "../utils/str_builder.h"
 
 static bool get_command(char *buffer, int buffer_size) {
+    // would be nice to have even a single line of history...
     if (fgets(buffer, buffer_size, stdin) == NULL)
         return false;
 

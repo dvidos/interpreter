@@ -18,7 +18,7 @@ For example, the following not only can free the memory,
 but also call any `destruct()` method to close the file.
 
 ```
-    with_destruct(f = open("data.txt)) {
+    with_cleanup(f = open("data.txt)) {
         print("{} lines", f.readlines().count())
     }
 ```
@@ -26,3 +26,5 @@ but also call any `destruct()` method to close the file.
 We could also track when a reference is being copied
 to other owners and see when it is dropped from the last 
 context that uses it, therefore, free the memory there and then.
+
+Generating basic would be fun!!!

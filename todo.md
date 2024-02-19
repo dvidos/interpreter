@@ -10,12 +10,6 @@ of primitive actions, e.g. "factorial" for the integer variants.
 In that sense we could write: `5.power(2);` or `4.fact();`,
 same as we'd do `[4,1,3,2].sort();`, or `'hello'.print();`.
 
-* maybe see if we can make an interactive mode (-1),
-similar to python, where the user writes expressions
-and there is a frame that holds variables and values.
-
-
-
 
 * separate the built in functions into separate files, based on the object they attach to.
 * write tests to prove scope visibility and symbol resolution.
@@ -65,6 +59,9 @@ keeping track of variables and memory, ala Rust.
 
 # done!
 
+* maybe see if we can make an interactive mode (-1),
+similar to python, where the user writes expressions
+and there is a frame that holds variables and values.
 * make testing uniform. fix the "testing" package to serve.
 * create tests to prove the built in functions
 * fix the context of a function call, we need the current and the global 
