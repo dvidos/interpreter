@@ -14,7 +14,8 @@ struct exec_context {
     const char *script_name;
     listing *code_listing;
     list *ast_root_statements;
-    dict *global_symbols;
+    dict *built_in_symbols;
+    dict *global_values;
     stack *stack_frames;
 
     struct debugger_info {
@@ -31,11 +32,13 @@ struct exec_context {
     // stdin, stdout, logger
 };
 
-exec_context *new_exec_context(const char *script_name, listing *code_listing, list *ast_root_statments, bool verbose, bool debugger);
+exec_context *new_exec_context(const char *script_name, listing *code_listing, list *ast_root_statments, dict *global_values, bool verbose, bool debugger, bool start_with_debugger);
 
 stack_frame *exec_context_get_curr_stack_frame(exec_context *c);
 failable exec_context_push_stack_frame(exec_context *c, stack_frame *f);
 failable exec_context_pop_stack_frame(exec_context *c);
+
+failable exec_context_register_built_in(exec_context *c, const char *name, variant *value);
 
 variant *exec_context_resolve_symbol(exec_context *c, const char *name);
 bool exec_context_symbol_exists(exec_context *c, const char *name);

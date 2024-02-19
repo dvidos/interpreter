@@ -10,7 +10,7 @@
 
 static void run_use_case(const char *code, variant *expected, bool verbose) {
     dict *values = new_dict(variant_class);
-    failable_variant execution = interpret_and_execute(code, "test", values, verbose, false);
+    failable_variant execution = interpret_and_execute(code, "test", values, verbose, false, false);
     if (execution.failed)
         assertion_failed(execution.err_msg, code);
     else

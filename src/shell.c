@@ -5,7 +5,6 @@
 #include "interpreter/interpreter.h"
 #include "utils/str_builder.h"
 
-
 static bool get_command(char *buffer, int buffer_size) {
     if (fgets(buffer, buffer_size, stdin) == NULL)
         return false;
@@ -19,7 +18,7 @@ static bool get_command(char *buffer, int buffer_size) {
 
 static void execute_command(const char *code, dict *values, bool verbose, bool enable_debugger) {
 
-    failable_variant execution = interpret_and_execute(code, "interactive", values, verbose, enable_debugger);
+    failable_variant execution = interpret_and_execute(code, "interactive", values, verbose, enable_debugger, false);
     if (execution.failed) {
         printf("Evaluation failed!\n");
         failable_print(&execution);
@@ -39,7 +38,7 @@ void interactive_shell(bool verbose, bool enable_debugger) {
 
     printf("Interactive shell. Enter 'q' to quit.\n");
     while (true) {
-        fputs("interactive: ", stdout);
+        fputs("(expression) > ", stdout);
         if (!get_command(buffer, sizeof(buffer)))
             break;
         if (strcmp(buffer, "q") == 0)

@@ -27,7 +27,7 @@ void initialize_interpreter() {
 }
 
 
-failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose, bool debugger) {
+failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose, bool enable_debugger, bool start_with_debugger) {
     str_builder *sb = new_str_builder();
 
     listing *code_listing = new_listing(code);
@@ -52,12 +52,10 @@ failable_variant interpret_and_execute(const char *code, const char *filename, d
         printf("------------- parsed statements -------------\n%s\n", str_builder_charptr(sb));
     }
 
-    exec_context *ctx = new_exec_context(filename, code_listing, parsing.result, verbose, debugger);
+    exec_context *ctx = new_exec_context(filename, code_listing, parsing.result, external_values, verbose, enable_debugger, start_with_debugger);
     dict *built_ins = get_built_in_funcs_table();
-    for_dict(external_values, ev_it, str, var_name)
-        exec_context_register_symbol(ctx, var_name, dict_get(external_values, var_name));
     for_dict(built_ins, bi_it, str, bltin_name)
-        exec_context_register_symbol(ctx, bltin_name, new_callable_variant(dict_get(built_ins, bltin_name)));
+        exec_context_register_built_in(ctx, bltin_name, new_callable_variant(dict_get(built_ins, bltin_name)));
     exec_context_log_reset();
 
 

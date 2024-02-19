@@ -14,17 +14,18 @@
 
 
 
-exec_context *new_exec_context(const char *script_name, listing *code_listing, list *ast_root_statements, bool verbose, bool debugger) {
+exec_context *new_exec_context(const char *script_name, listing *code_listing, list *ast_root_statements, dict *global_values, bool verbose, bool enable_debugger, bool start_with_debugger) {
     exec_context *c = malloc(sizeof(exec_context));
     c->script_name = script_name;
     c->code_listing = code_listing;
     c->ast_root_statements = ast_root_statements;
     c->verbose = verbose;
-    c->debugger.enabled = debugger;
-    c->debugger.enter_at_next_instruction = debugger; // debug first line
+    c->debugger.enabled = enable_debugger;
+    c->debugger.enter_at_next_instruction = start_with_debugger; // debug first line
     c->debugger.breakpoints = new_list(breakpoint_class);
     c->stack_frames = new_stack(stack_frame_class);
-    c->global_symbols = new_dict(variant_class);
+    c->built_in_symbols = new_dict(variant_class);
+    c->global_values = global_values;
     return c;
 }
 
@@ -45,6 +46,13 @@ failable exec_context_pop_stack_frame(exec_context *c) {
     return ok();
 }
 
+failable exec_context_register_built_in(exec_context *c, const char *name, variant *value) {
+    if (dict_has(c->built_in_symbols, name))
+        return failed("Symbol %s already exists", name);
+    dict_set(c->built_in_symbols, name, value);
+    return ok();
+}
+
 variant *exec_context_resolve_symbol(exec_context *c, const char *name) {
     stack_frame *f = stack_peek(c->stack_frames);
     if (f != NULL) {
@@ -53,8 +61,12 @@ variant *exec_context_resolve_symbol(exec_context *c, const char *name) {
             return v;
     }
 
-    if (dict_has(c->global_symbols, name))
-        return dict_get(c->global_symbols, name);
+    if (dict_has(c->global_values, name))
+        return dict_get(c->global_values, name);
+
+    if (dict_has(c->built_in_symbols, name))
+        return dict_get(c->built_in_symbols, name);
+    
     return NULL;
 }
 
@@ -65,7 +77,13 @@ bool exec_context_symbol_exists(exec_context *c, const char *name) {
             return true;
     }
 
-    return dict_has(c->global_symbols, name);
+    if (dict_has(c->global_values, name))
+        return true;
+    
+    if (dict_has(c->built_in_symbols, name))
+        return true;
+    
+    return false;
 }
 
 failable exec_context_register_symbol(exec_context *c, const char *name, variant *v) {
@@ -76,9 +94,9 @@ failable exec_context_register_symbol(exec_context *c, const char *name, variant
         return ok();
     }
     
-    if (dict_has(c->global_symbols, name))
-        return failed("Symbol %s already exists", name);
-    dict_set(c->global_symbols, name, v);
+    if (dict_has(c->global_values, name))
+        return failed("Value %s already exists", name);
+    dict_set(c->global_values, name, v);
     return ok();
 }
 
@@ -89,9 +107,9 @@ failable exec_context_update_symbol(exec_context *c, const char *name, variant *
             return stack_frame_update_symbol(f, name, v);
     }
     
-    if (!dict_has(c->global_symbols, name))
+    if (!dict_has(c->global_values, name))
         return failed("Symbol %s does not exist", name);
-    dict_set(c->global_symbols, name, v);
+    dict_set(c->global_values, name, v);
     return ok();
 }
 

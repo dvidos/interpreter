@@ -108,7 +108,7 @@ void show_help() {
 void execute_code(const char *code, const char *filename) {
     printf("Executing %s...\n", filename);
     dict *values = new_dict(variant_class);
-    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.enable_debugger);
+    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.enable_debugger, true);
     if (execution.failed)
         failable_print(&execution);
     else {

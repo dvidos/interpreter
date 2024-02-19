@@ -128,6 +128,7 @@ static void show_help() {
     printf("\n");
     printf("  l -- list code, l [+-]<line_no> [, <lines_to_show> ]\n");
     printf("  a -- print function args and current values\n");
+    printf("  g -- print global variables\n");
     printf("  w -- where (print stack trace)\n");
     printf("\n");
     printf("  b [ func_name | [file:]line_no ] -- toggle breakpoint to function or file:line\n");
@@ -185,11 +186,11 @@ static void print_expression(statement *curr_stmt, expression *curr_expr, exec_c
     // launch and evaluate an expression within the same local/global context...
     // i think we did not make our code re-entrant, so this may fail...
 
-    dict *vars = (stack_empty(ctx->stack_frames) ? ctx->global_symbols : 
+    dict *vars = (stack_empty(ctx->stack_frames) ? ctx->built_in_symbols : 
         ((stack_frame *)stack_peek(ctx->stack_frames))->symbols);
     
     failable_variant execution = interpret_and_execute(cmd_arg, "(debugger)", 
-        vars, false, false);
+        vars, false, false, false);
     
     if (execution.failed) {
         printf("Evaluation failed: %s\n", execution.err_msg);
@@ -238,12 +239,15 @@ static void show_values_of_symbols_of(dict *symbols) {
 static void show_args_and_values(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
     stack_frame *f = stack_peek(ctx->stack_frames);
     if (f == NULL) {
-        // show globals
-        show_values_of_symbols_of(ctx->global_symbols);
-    } else {
-        // show locals
-        show_values_of_symbols_of(f->symbols);
+        printf("Not in a function\n");
+        return;
     }
+    
+    show_values_of_symbols_of(f->symbols);
+}
+
+static void show_globals(exec_context *ctx) {
+    show_values_of_symbols_of(ctx->built_in_symbols);
 }
 
 static void setup_stepping(bool single, bool next, bool ret_, bool cont, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
@@ -283,6 +287,7 @@ static failable_bool handle_command(char *cmd, statement *curr_stmt, expression 
         case 'a': show_args_and_values(curr_stmt, curr_expr, ctx); break;
         case 'b': manipulate_breakpoint(curr_stmt, curr_expr, ctx, cmd + 1); break;
         case 'p': print_expression(curr_stmt, curr_expr, ctx, cmd + 1); break;
+        case 'g': show_globals(ctx); break;
         default : printf("unknown command, enter 'h' for help\n"); break;
     }
     return ok_bool(done);
