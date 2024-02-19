@@ -95,7 +95,7 @@ void show_help() {
     printf("Options:\n");
     printf("  -f <script-file>    Load and interpret a script file\n");
     printf("  -e <expression>     Interpret and execute the expression\n");
-    printf("  -i                  Start interactive shell");
+    printf("  -i                  Start interactive shell\n");
     printf("  -d                  Enable debugger\n");
     printf("  -b                  Show built in functions\n");
     printf("  -v                  Be verbose\n");
