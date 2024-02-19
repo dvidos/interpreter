@@ -1,6 +1,7 @@
 OUTPUT = ipret
 FILES = \
 	src/main.c \
+	src/shell.c \
 	src/utils/testing.c \
 	\
 	src/utils/data_types/variant.c \

@@ -55,7 +55,8 @@ struct options {
     bool suppress_log_echo;
     bool log_to_file;
     char *log_filename;
-    bool start_with_debugger;
+    bool enable_debugger;
+    bool start_interactive_shell;
 } options;
 
 void parse_options(int argc, char *argv[]) {
@@ -81,7 +82,8 @@ void parse_options(int argc, char *argv[]) {
                 case 'b': options.show_built_in_functions = true; break;
                 case 'u': options.run_unit_tests = true; break;
                 case 'q': options.suppress_log_echo = true; break;
-                case 'd': options.start_with_debugger = true; break;
+                case 'd': options.enable_debugger = true; break;
+                case 'i': options.start_interactive_shell = true; break;
             }
         }
     }
@@ -93,7 +95,8 @@ void show_help() {
     printf("Options:\n");
     printf("  -f <script-file>    Load and interpret a script file\n");
     printf("  -e <expression>     Interpret and execute the expression\n");
-    printf("  -d                  Start with debugger\n");
+    printf("  -i                  Start interactive shell");
+    printf("  -d                  Enable debugger\n");
     printf("  -b                  Show built in functions\n");
     printf("  -v                  Be verbose\n");
     printf("  -u                  Run self diagnostics (unit tests)\n");
@@ -105,7 +108,7 @@ void show_help() {
 void execute_code(const char *code, const char *filename) {
     printf("Executing %s...\n", filename);
     dict *values = new_dict(variant_class);
-    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.start_with_debugger);
+    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.enable_debugger);
     if (execution.failed)
         failable_print(&execution);
     else {
@@ -124,6 +127,12 @@ void execute_script(const char *filename) {
     }
     execute_code(contents.result, filename);
 }
+
+void execute_shell() {
+    void interactive_shell(bool verbose, bool enable_debugger);
+    interactive_shell(options.verbose, options.enable_debugger);
+}
+
 
 FILE *log_file = NULL;
 
@@ -153,6 +162,10 @@ int main(int argc, char *argv[]) {
         execute_code(options.expression, "inline");
     } else if (options.execute_script) {
         execute_script(options.script_filename);
+    } else if (options.show_help) {
+        execute_script(options.script_filename);
+    } else if (options.start_interactive_shell) {
+        execute_shell();
     } else {
         show_help();
     }
