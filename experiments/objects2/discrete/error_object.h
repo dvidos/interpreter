@@ -3,10 +3,10 @@
 
 #include "../framework/objects.h"
 
-extern type_object *err_type;
+extern type_object *error_object;
 
-object new_error_object_with_message(const char *msg, ...);
-const char *error_object_as_message(object *);
+object *new_error_object(const char *msg, ...);
+const char *error_object_as_charptr(object *obj);
 
 
 #endif

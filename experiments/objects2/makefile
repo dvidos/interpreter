@@ -4,7 +4,7 @@ FILES = \
 	tests/tests.c \
 	framework/mem.c \
 	framework/type_object.c \
-	framework/objects.c \
+	framework/objects.c
 
 
 $(BINARY): $(FILES)

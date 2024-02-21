@@ -3,8 +3,10 @@
 
 #include "../framework/objects.h"
 
-extern type_object *int_type;
+extern type_object *int_object;
 
-object *new_int_object_from_int(int value);
+object *new_int_object(int value);
 int int_object_as_int(object *obj);
 
+
+#endif

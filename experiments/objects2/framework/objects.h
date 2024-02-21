@@ -1,3 +1,6 @@
+#ifndef _OBJECTS_H
+#define _OBJECTS_H
+
 #include <stdlib.h> // for NULL
 #include <stddef.h> // for offsetof()
 #include <stdbool.h> // for bool
@@ -63,5 +66,4 @@ object  *object_call(object *obj, object *args, object *named_args);
 
 
 
-
-
+#endif

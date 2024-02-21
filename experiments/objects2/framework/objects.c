@@ -2,8 +2,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "mem.h"
 #include "objects.h"
+#include "../discrete/error_object.h"
+#include "../discrete/int_object.h"
+#include "../discrete/str_object.h"
 
 /*  Despite their name 'object', the structures below represent 
     the _classes_ of the instances. They allow instances to be created using 'new'
@@ -181,7 +185,8 @@ object *object_call_method(object *obj, const char *name, object *args, object *
             return NULL;
         }
     }
-    return new_error_object("method '%s' not found in type '%s'", name, type->name);
+    //return new_error_object("method '%s' not found in type '%s'", name, type->name);
+    return NULL;
 }
 
 object *object_to_string(object *obj) {
@@ -208,7 +213,7 @@ int object_compare(object *a, object *b) {
 
 unsigned object_hash(object *obj) {
     if (obj->type->hasher != NULL)
-        return obj->type->hasher;
+        return obj->type->hasher(obj);
     return (unsigned)(long)obj;
 }
 
@@ -220,7 +225,7 @@ object *object_get_iterator(object *obj) { // create & reset iterator to before 
 
 object *object_iterator_next(object *obj) { // advance and get next, or return error
     if (obj->type->iterator_next_implementation != NULL)
-        return obj->type->iterator_next_implementation;
+        return obj->type->iterator_next_implementation(obj);
     return NULL;
 }
 
