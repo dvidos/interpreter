@@ -2,6 +2,7 @@
 #include <string.h>
 #include "mem.h"
 
+
 void *mem_alloc(int size) {
     // much more capabilities here, from tracking to ref counting etc.
     size = size <= 0 ? 1 : size;

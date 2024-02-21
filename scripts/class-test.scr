@@ -1,0 +1,16 @@
+
+a = 1;
+
+// maybe we can define `class` as well.
+// but then we need to decide initialization and clean up of objects
+class something {
+    function getA() {
+        return this.a;
+    }
+}
+
+function f(x) {
+    return x + 1;
+}
+
+b = 2;

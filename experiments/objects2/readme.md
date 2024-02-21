@@ -18,11 +18,11 @@ See https://web.mit.edu/18.417/doc/pydocs/api.pdf
 The framework consists of the declaration of the following:
 
 
-| Name | Description
-|----|----
-| object | a generic structure that has a type declaration
+| Name        | Description
+|-------------|----
+| object      | a generic structure that has a type declaration
 | type_object | a struct for type declaration instances
-| type_type | an instance of the type_object, for the type of all type declaration instances
+| type_type   | an instance of the type_object, for the type of all type declaration instances
 
 Given a `object *` pointer, we can check it's class, see if it is a specific
 class, which we can cast it to (e.g. a `str_object *`).

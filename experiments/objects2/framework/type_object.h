@@ -1,11 +1,13 @@
+#ifndef _TYPE_OBJECT_H
+#define _TYPE_OBJECT_H
+
 #include <stdlib.h> // for NULL
 #include <stddef.h> // for offsetof()
 #include <stdbool.h> // for bool
 
+
 // forward declaration
 typedef struct object object;
-
-
 
 // some specific function types, used in classes and elsewhere
 typedef void visitor_func(object *obj);
@@ -53,18 +55,25 @@ typedef struct type_attrib_definition {
 } type_attrib_definition;
 
 
+// all "object" structures (including the type_object) 
+// must have these as the first items, to allow uniform treatment
+#define FIRST_OBJECT_ATTRIBUTES        \
+            struct type_object *type;  \
+            int references_count
+
+
 // each object is associated with a type_object. 
 // that type describes how instances behave, initialize, destruct, etc.
 // the type_object also is associated with a static type_object instance, the type-type!
 typedef struct type_object {
 
     // base attributes allow this to impersonate a `object` struct.
-    BASE_OBJECT_ATTRIBUTES;
+    FIRST_OBJECT_ATTRIBUTES;
 
     // name of the class, instance_size to allocate, base type
     const char *name;
     int instance_size;
-    type_object *base_type;
+    struct type_object *base_type;
 
     // class wide functions to define behavior of instances
     // e.g. to_string(), to_bool(), hash(), len(), call(), serialize(), iterator() etc
@@ -93,3 +102,6 @@ extern type_object *type_of_types;
 void objects_register_type(type_object *type);
 type_object *objects_get_named_type(const char *name);
 
+
+
+#endif

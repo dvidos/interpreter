@@ -1,17 +1,17 @@
 #include <stdbool.h>
 #include <string.h>
-#include "type_object.h"
+
+#include "objects.h"
 
 
-static type_object type_of_types_instance = {
+type_object *type_of_types = &(type_object){
     .name = "type",
 };
-type_object *type_of_types = &type_of_types_instance;
 
 // a dictionary of registered types
 static struct {
     // realloc'able arrays
-    char **names;
+    const char **names;
     type_object **types;
     int capacity;
     int length;
@@ -22,12 +22,11 @@ static struct {
     .length = 0
 };
 
-
 void objects_register_type(type_object *type) {
     if (registry.capacity == 0) {
         registry.capacity = 16;
-        registry.names = obj_alloc(sizeof(char *) * registry.capacity);
-        registry.types = obj_alloc(sizeof(type_object *) * registry.capacity);
+        registry.names = mem_alloc(sizeof(char *) * registry.capacity);
+        registry.types = mem_alloc(sizeof(type_object *) * registry.capacity);
     } else if (registry.length + 1 >= registry.capacity) {
         registry.capacity *= 2;
         registry.names = mem_realloc(registry.names, sizeof(char *) * registry.capacity);

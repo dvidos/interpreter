@@ -66,17 +66,11 @@ object *new_named_instance(const char *type_name, object *args, object *named_ar
     return new_typed_instance(type, args, named_args);
 }
 
-void object_destruct_and_free(object *obj) {
-    if (obj->type->destructor)
-        obj->type->destructor(obj);
-    mem_free(&obj);
-}
-
-void object_incr_ref_count(object *obj) {
+void object_add_ref(object *obj) {
     obj->references_count++;
 }
 
-void object_decr_ref_count(object *obj) {
+void object_drop_ref(object *obj) {
     if (obj == NULL)
         return;
     if (obj->references_count == OBJECT_STATICALLY_ALLOCATED)
@@ -87,8 +81,11 @@ void object_decr_ref_count(object *obj) {
         return;
     
     // no more references to this object
-    // we need to finalize it and free it up
-    object_destruct_and_free(obj);
+    // we can finalize and free it up.
+    if (obj->type->destructor)
+        obj->type->destructor(obj);
+    
+    mem_free((void **)&obj);
 }
 
 bool object_is(object *obj, type_object *type) {
@@ -105,10 +102,6 @@ bool object_is(object *obj, type_object *type) {
 bool object_is_exactly(object *obj, type_object *type) {
     return obj->type == type;
 }
-
-
-
-
 
 bool object_has_attr(object *obj, const char *name) {
     type_object *t = obj->type;
@@ -157,10 +150,10 @@ object *object_set_attr(object *obj, const char *name, object *value) {
             return def->setter(obj, name, value); // error checking
         } else {
             // set directly using internal logic. (e.g. integers)
-            ... how to get actual value from the objectified type?
-            see https://docs.python.org/3/c-api/long.html#c.PyLong_AsLong
-            using PyLong_AsLong() or in our case: int_object_as_int()...
-            also we have new_long_object_from_long()
+            // ... how to get actual value from the objectified type?
+            // see https://docs.python.org/3/c-api/long.html#c.PyLong_AsLong
+            // using PyLong_AsLong() or in our case: int_object_as_int()...
+            // also we have new_long_object_from_long()
         }
     }
     set_error("attribute '%s' not found in type '%s'", name, type->name);

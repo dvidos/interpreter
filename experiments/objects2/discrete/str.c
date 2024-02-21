@@ -44,3 +44,5 @@ static type_object error_type_object = {
     .stringifier = str_stringify
 };
 
+object *new_str_object_from_char_ptr(const char *ptr);
+const char *ptr str_object_as_char_ptr(object *obj);
