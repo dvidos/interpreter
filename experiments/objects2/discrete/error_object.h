@@ -1,5 +1,5 @@
-#ifndef _ERR_OBJECT_C
-#define _ERR_OBJECT_C
+#ifndef _ERROR_OBJECT_C
+#define _ERROR_OBJECT_C
 
 #include "../framework/objects.h"
 

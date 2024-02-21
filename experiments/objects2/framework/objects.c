@@ -185,6 +185,7 @@ object *object_call_method(object *obj, const char *name, object *args, object *
             return NULL;
         }
     }
+    
     //return new_error_object("method '%s' not found in type '%s'", name, type->name);
     return NULL;
 }

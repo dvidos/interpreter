@@ -5,6 +5,7 @@
 #include <stddef.h> // for offsetof()
 #include <stdbool.h> // for bool
 
+// all objects need memory, even goldfish...
 #include "mem.h"
 
 // objects depend on type, not the other way around
@@ -15,9 +16,10 @@
 // all objects can be cast to this pointer
 // essentially, they can all pretend to be this structure
 // check the "type" attribute, to find which "subclass" they are
-typedef struct object { // all objects children of this
+typedef struct object object;
+struct object { // all objects children of this
     FIRST_OBJECT_ATTRIBUTES;
-} object;
+};
 
 
 // for statically allocated objects, we don't need to count references

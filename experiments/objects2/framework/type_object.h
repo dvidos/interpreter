@@ -6,10 +6,10 @@
 #include <stdbool.h> // for bool
 
 
-// forward declaration
+// forward declarations
 typedef struct object object;
 
-// some specific function types, used in classes and elsewhere
+// some specific function types, used in types
 typedef void visitor_func(object *obj);
 typedef object *objobj_func(object *obj);
 typedef unsigned hushing_func(object *obj);
@@ -96,7 +96,6 @@ typedef struct type_object {
 
 // this is the type of a type object. an instance of type 'type'.
 extern type_object *type_of_types;
-
 
 // type manipulation functions
 void objects_register_type(type_object *type);
