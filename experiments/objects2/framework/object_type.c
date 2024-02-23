@@ -28,12 +28,12 @@ void objects_register_type(object_type *type) {
 
     if (registry.capacity == 0) {
         registry.capacity = 16;
-        registry.names = mem_alloc(sizeof(char *) * registry.capacity);
-        registry.types = mem_alloc(sizeof(object_type *) * registry.capacity);
+        registry.names = malloc(sizeof(char *) * registry.capacity);
+        registry.types = malloc(sizeof(object_type *) * registry.capacity);
     } else if (registry.length + 1 >= registry.capacity) {
         registry.capacity *= 2;
-        registry.names = mem_realloc(registry.names, sizeof(char *) * registry.capacity);
-        registry.types = mem_realloc(registry.types, sizeof(object_type *) * registry.capacity);
+        registry.names = realloc(registry.names, sizeof(char *) * registry.capacity);
+        registry.types = realloc(registry.types, sizeof(object_type *) * registry.capacity);
     }
     registry.names[registry.length] = type->name;
     registry.types[registry.length] = type;

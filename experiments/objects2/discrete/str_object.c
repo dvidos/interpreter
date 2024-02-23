@@ -12,14 +12,14 @@ typedef struct str {
 
 static void initialize(str *s, object *args, object *named_args) {
     s->capacity = 32; // for starters
-    s->buffer = mem_alloc(s->capacity);
+    s->buffer = malloc(s->capacity);
     s->length = 0;
     s->buffer[s->length] = '\0';
 }
 
 static void destruct(str *s) {
     if (s->buffer != NULL)
-        mem_free(s->buffer);
+        free(s->buffer);
 }
 
 static void ensure_capacity(str *s, int capacity) {
@@ -28,13 +28,13 @@ static void ensure_capacity(str *s, int capacity) {
             s->capacity = 1;
         while (s->capacity < capacity)
             s->capacity *= 2;
-        s->buffer = mem_realloc(s->buffer, s->capacity);
+        s->buffer = realloc(s->buffer, s->capacity);
     }
 }
 
 static void copy_initialize(str *s, str *other) {
     s->capacity = other->capacity;
-    s->buffer = mem_alloc(s->capacity);
+    s->buffer = malloc(s->capacity);
     strcpy(s->buffer, other->buffer);
     s->length = other->length;
 }

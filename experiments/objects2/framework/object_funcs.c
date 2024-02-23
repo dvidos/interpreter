@@ -3,7 +3,7 @@
 
 
 object *object_create(object_type *type, object *args, object *named_args) {
-    object *p = mem_alloc(type->instance_size);
+    object *p = malloc(type->instance_size);
     p->_type = type;
     p->_references_count = 1; // the one we are going to return
     if (type->initializer != NULL) {
@@ -16,7 +16,7 @@ object *object_clone(object *obj) {
     if (obj->_type->copy_initializer == NULL)
         return NULL;
     
-    object *clone = mem_alloc(obj->_type->instance_size);
+    object *clone = malloc(obj->_type->instance_size);
     clone->_type = obj->_type;
     clone->_references_count = 1; // the one we are going to return
 
@@ -43,7 +43,7 @@ void object_drop_ref(object *obj) {
     if (obj->_type->destructor)
         obj->_type->destructor(obj);
     
-    mem_free(obj);
+    free(obj);
 }
 
 bool object_is(object *obj, object_type *type) {

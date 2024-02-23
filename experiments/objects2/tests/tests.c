@@ -21,6 +21,7 @@ static void destruct(coordinates *c) {
 }
 
 static void copy_initializer(coordinates *c, coordinates *other) {
+    printf("coordinates being copy-initialized!\n");
     c->longitude = other->longitude;
     c->lattitude = other->lattitude;
 }
@@ -40,9 +41,11 @@ object_type *coordinates_type = &(object_type){
     .stringifier = (stringifier_func)stringifier,
 };
 
-static void test_class_creation() {
+static void test_class_setup() {
     objects_register_type(coordinates_type);
+}
 
+static void test_class_creation() {
     object *c = object_create(coordinates_type, NULL, NULL);
     assert(((coordinates *)c)->longitude == 101);
     assert(((coordinates *)c)->lattitude == 102);
@@ -62,5 +65,10 @@ static void test_class_creation() {
 
 
 void run_objects_tests() {
+    test_class_setup();
+
+    mem_set_verbose_mode(0);
+    mem_stats_take_snapshot();
     test_class_creation();
+    mem_stats_compare_snapshot();
 }
