@@ -4,8 +4,9 @@ FILES = \
 	tests/tests.c \
 	framework/mem.c \
 	framework/error.c \
-	framework/type_object.c \
-	framework/object_funcs.c
+	framework/object_type.c \
+	framework/object_funcs.c \
+	discrete/str_object.c
 
 $(BINARY): $(FILES)
 	gcc -g -o $(BINARY) $(FILES)

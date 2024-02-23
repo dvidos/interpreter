@@ -3,7 +3,7 @@
 
 #include "../framework/objects.h"
 
-extern type_object *list_type;
+extern object_type *list_type;
 
 object *new_list_object();
 

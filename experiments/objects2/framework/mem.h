@@ -3,7 +3,9 @@
 
 void *mem_alloc(int size);
 void *mem_realloc(void *ptr, int size);
-void mem_free(void **ptr_ptr);
+void mem_free(void *ptr);
+
+
 
 
 #endif

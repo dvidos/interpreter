@@ -2,15 +2,15 @@
 #define _BASE_OBJECT_H
 
 
-// all "object" structures (including the type_object) 
+// all "object" structures (including the object_type) 
 // must have these as the first items, to allow uniform treatment
 #define FIRST_OBJECT_ATTRIBUTES        \
-            struct type_object *type;  \
-            int references_count
+            struct object_type *_type;  \
+            int _references_count
 
 
 // for statically allocated objects, we don't need to count references
-// so use this define for the `references_count` attribute
+// so use this define for the `_references_count` attribute
 #define OBJECT_STATICALLY_ALLOCATED   (-2)
 
 

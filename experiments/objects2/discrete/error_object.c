@@ -12,7 +12,7 @@
 
 
 
-type_object *error_object = &(type_object){
+object_type *error_object = &(object_type){
     .name = "error",
 };
 

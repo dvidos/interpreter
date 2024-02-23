@@ -3,7 +3,7 @@
 
 #include "../framework/objects.h"
 
-extern type_object *skeleton_type;
+extern object_type *skeleton_type;
 
 object *new_skeleton();
 

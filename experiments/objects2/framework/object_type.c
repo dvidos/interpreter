@@ -4,7 +4,7 @@
 #include "objects.h"
 
 
-type_object *type_of_types = &(type_object){
+object_type *type_of_types = &(object_type){
     .name = "type",
 };
 
@@ -12,7 +12,7 @@ type_object *type_of_types = &(type_object){
 static struct {
     // realloc'able arrays
     const char **names;
-    type_object **types;
+    object_type **types;
     int capacity;
     int length;
 } registry = { 
@@ -22,22 +22,25 @@ static struct {
     .length = 0
 };
 
-void objects_register_type(type_object *type) {
+void objects_register_type(object_type *type) {
+    // setting this here, as we cannot set it statically.
+    type->_type = type_of_types;
+
     if (registry.capacity == 0) {
         registry.capacity = 16;
         registry.names = mem_alloc(sizeof(char *) * registry.capacity);
-        registry.types = mem_alloc(sizeof(type_object *) * registry.capacity);
+        registry.types = mem_alloc(sizeof(object_type *) * registry.capacity);
     } else if (registry.length + 1 >= registry.capacity) {
         registry.capacity *= 2;
         registry.names = mem_realloc(registry.names, sizeof(char *) * registry.capacity);
-        registry.types = mem_realloc(registry.types, sizeof(type_object *) * registry.capacity);
+        registry.types = mem_realloc(registry.types, sizeof(object_type *) * registry.capacity);
     }
     registry.names[registry.length] = type->name;
     registry.types[registry.length] = type;
     registry.length += 1;
 }
 
-type_object *objects_get_named_type(const char *name) {
+object_type *objects_get_named_type(const char *name) {
     for (int i = 0; i < registry.length; i++) {
         if (strcmp(registry.names[i], name) == 0)
             return registry.types[i];

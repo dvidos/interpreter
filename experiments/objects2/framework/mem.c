@@ -18,10 +18,9 @@ void *mem_realloc(void *ptr, int size) {
     return realloc(ptr, size);
 }
 
-void mem_free(void **ptr_ptr) {
+void mem_free(void *ptr) {
     // much more capabilities here, from tracking to ref counting etc.
-    if ((*ptr_ptr) != NULL)
-        free(*ptr_ptr);
-    *ptr_ptr = NULL;
+    if (ptr != NULL)
+        free(ptr);
 }
 

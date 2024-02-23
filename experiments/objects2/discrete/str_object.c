@@ -1,22 +1,46 @@
-#include "../objects.h"
-#include "../mem.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include "../framework/objects.h"
 
-typedef struct str_object {
-    BASE_OBJECT_ATTRIBUTES;
-    const char *buffer;
+typedef struct str {
+    FIRST_OBJECT_ATTRIBUTES;
+    char *buffer;
     int capacity;
     int length;
-} str_object;
+} str;
 
-static void initializer(object *obj, object *args, object *named_args) {
-    str_object *e = (str_object *)obj;
-    // ...
+static void initialize(str *s, object *args, object *named_args) {
+    s->capacity = 32; // for starters
+    s->buffer = mem_alloc(s->capacity);
+    s->length = 0;
+    s->buffer[s->length] = '\0';
 }
 
-static void destructor(object *obj) {
-    str_object *e = (str_object *)obj;
-    if (e->buffer != NULL)
-        mem_free(e->buffer);
+static void destruct(str *s) {
+    if (s->buffer != NULL)
+        mem_free(s->buffer);
+}
+
+static void ensure_capacity(str *s, int capacity) {
+    if (s->capacity < capacity) {
+        if (s->capacity == 0)
+            s->capacity = 1;
+        while (s->capacity < capacity)
+            s->capacity *= 2;
+        s->buffer = mem_realloc(s->buffer, s->capacity);
+    }
+}
+
+static void copy_initialize(str *s, str *other) {
+    s->capacity = other->capacity;
+    s->buffer = mem_alloc(s->capacity);
+    strcpy(s->buffer, other->buffer);
+    s->length = other->length;
+}
+
+static object *stringify(object *obj) {
+    return object_clone(obj);
 }
 
 static struct type_method_definition methods[] = {
@@ -24,25 +48,49 @@ static struct type_method_definition methods[] = {
 };
 
 static struct type_attrib_definition attributes[] = {
-    { "buffer", NULL, NULL, offsetof(str_object, buffer), TMT_CONST_CHAR_PTR },
+    { "length", NULL, NULL, offsetof(str, length), TAT_INT + TAT_READ_ONLY },
     { NULL }
 };
 
-static object *str_stringify(object *obj) {
-    // what about references?
-    return obj;
-}
-
 // instance of the type info
-static type_object error_type_object = {
+static object_type *str_type = &(object_type){
     .name = "error",
-    .instance_size = sizeof(str_object),
-    .initializer = initializer,
-    .destructor = destructor,
+    .instance_size = sizeof(str),
+    .initializer = (initialize_func)initialize,
+    .copy_initializer = (copy_initializer_func)copy_initialize,
+    .destructor = (destruct_func)destruct,
+    .stringifier = (stringifier_func)stringify,
     .methods = methods,
     .attributes = attributes,
-    .stringifier = str_stringify
 };
 
-object *new_str_object_from_char_ptr(const char *ptr);
-const char *ptr str_object_as_char_ptr(object *obj);
+object *new_str_object(const char *fmt, ...) {
+    str *s = (str *)object_create(str_type, NULL, NULL);
+    char temp[128];
+    const char *src;
+
+    if (fmt != NULL) {
+        if (strchr(fmt, '%') == NULL) {
+            src = fmt;
+        } else {
+            va_list args;
+            va_start(args, fmt);
+            vsnprintf(temp, sizeof(temp), fmt, args);
+            va_end(args);
+            src = temp;
+        }
+
+        ensure_capacity(s, strlen(src) + 1);
+        strcpy(s->buffer, src);
+        s->length = strlen(src);
+    }
+
+    return (object *)s;
+}
+
+const char *str_object_as_char_ptr(object *obj) {
+    if (obj == NULL) return NULL;
+    if (obj->_type != str_type) return NULL;
+    return ((str *)obj)->buffer;
+}
+

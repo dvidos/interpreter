@@ -36,7 +36,7 @@ static struct type_attrib_definition attributes[] = {
 };
 
 // instance of the type info
-static type_object *int_type_object = &(type_object){
+static object_type *int_type_object = &(object_type){
     .name = "int",
     .instance_size = sizeof(int_object),
     .initializer = initializer,

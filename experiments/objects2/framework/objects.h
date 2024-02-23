@@ -7,10 +7,10 @@
     Each object contains a copy of the base `object` contents, 
     therefore can be used or cast to a base object.
 
-    Each object has a pointer named 'type', that points to a type_object that
+    Each object has a pointer named 'type', that points to a object_type that
     describes this class, and contains the methods of the instances.
 
-    The type_object's type points to a single instance of the 'type' instance.
+    The object_type's type points to a single instance of the 'type' instance.
 
     For more code than you can read in a day...
     see https://github.com/python/cpython/blob/main/Include/object.h#L554-L588 
@@ -28,13 +28,13 @@
 
 // forward declarations
 typedef struct object object;
-typedef struct type_object type_object;
+typedef struct object_type object_type;
 
 
 #include "mem.h"
 #include "error.h"
 #include "base_object.h" 
-#include "type_object.h" 
+#include "object_type.h" 
 #include "object_funcs.h"
 
 

@@ -1,7 +1,7 @@
 #include "_skeleton.h"
 
 
-type_object *skeleton_type = &(type_object) {
+object_type *skeleton_type = &(object_type) {
     .name = "skeleton",
     .base = NULL,
 

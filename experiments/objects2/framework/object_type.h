@@ -8,16 +8,18 @@
 
 // forward declarations
 typedef struct object object;
-typedef struct type_object type_object;
+typedef struct object_type object_type;
 
 // some specific function types, used in types
-typedef void (*visitor_func)(object *obj);
-typedef object *(*objobj_func)(object *obj);
-typedef unsigned (*hushing_func)(object *obj);
-typedef int (*compare_func)(object *a, object *b);
-typedef bool (*boolobjobj_func)(object *a, object *b);
 typedef void (*initialize_func)(object *obj, object *args, object *named_args);
-typedef object *(*call_func)(object *obj, object *args, object *named_args);
+typedef void (*destruct_func)(object *obj);
+typedef void (*copy_initializer_func)(object *obj, object *original);
+typedef object *(*return_obj_func)(object *obj);
+typedef object *(*stringifier_func)(object *obj);
+typedef unsigned (*hashing_func)(object *obj);
+typedef int (*compare_func)(object *a, object *b);
+typedef bool (*equals_func)(object *a, object *b);
+typedef object *(*call_handler_func)(object *obj, object *args, object *named_args);
 
 // each object has zero or more methods. 
 // they are defined in an array of this structure
@@ -56,10 +58,10 @@ typedef struct type_attrib_definition {
 } type_attrib_definition;
 
 
-// each object is associated with a type_object. 
+// each object is associated with a object_type. 
 // that type describes how instances behave, initialize, destruct, etc.
-// the type_object also is associated with a static type_object instance, the type-type!
-struct type_object {
+// the object_type also is associated with a static object_type instance, the type-type!
+struct object_type {
 
     // base attributes allow this to impersonate a `object` struct.
     FIRST_OBJECT_ATTRIBUTES;
@@ -67,35 +69,35 @@ struct type_object {
     // name of the class, instance_size to allocate, base type
     const char *name;
     int instance_size;
-    struct type_object *base_type;
+    struct object_type *base_type;
 
     // class wide functions to define behavior of instances
     // e.g. to_string(), to_bool(), hash(), len(), call(), serialize(), iterator() etc
     // wherever supported
-    initialize_func  initializer;
-    visitor_func     destructor; // should not free the object
-    objobj_func      stringifier;
-    objobj_func      cloner;
-    boolobjobj_func  equality_checker;
-    hushing_func     hasher;
-    compare_func     comparer;
-    objobj_func      iterator_factory;
-    objobj_func      iterator_next_implementation;
-    call_func        call_implementation;
+    initialize_func    initializer;
+    destruct_func      destructor;
+    copy_initializer_func   copy_initializer;
+    stringifier_func   stringifier;
+    equals_func        equality_checker;
+    hashing_func       hasher;
+    compare_func       comparer;
+    return_obj_func    iterator_factory;
+    return_obj_func    iterator_next_implementation;
+    call_handler_func  call_handler;
 
     // array of attributes and methods of the instances
     // last element in array has a NULL name
-    struct type_attrib_definition **attributes;
-    struct type_method_definition **methods;
+    struct type_attrib_definition *attributes;
+    struct type_method_definition *methods;
 };
 
 
 // this is the type of a type object. an instance of type 'type'.
-extern type_object *type_of_types;
+extern object_type *type_of_types;
 
 // type manipulation functions
-void objects_register_type(type_object *type);
-type_object *objects_get_named_type(const char *name);
+void objects_register_type(object_type *type);
+object_type *objects_get_named_type(const char *name);
 
 
 #endif
