@@ -1,57 +1,8 @@
-#include <stdbool.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <string.h>
-
-#include "mem.h"
 #include "objects.h"
-#include "../discrete/error_object.h"
-#include "../discrete/int_object.h"
-#include "../discrete/str_object.h"
-
-/*  Despite their name 'object', the structures below represent 
-    the _classes_ of the instances. They allow instances to be created using 'new'
-
-    Each object contains a copy of the base `object` contents, 
-    therefore can be used or cast to a base object.
-
-    Each object has a pointer named 'type', that points to a type_object that
-    describes this class, and contains the methods of the instances.
-
-    The type_object's type points to a single instance of the 'type' instance.
-
-    For more code than you can read in a day...
-    see https://github.com/python/cpython/blob/main/Include/object.h#L554-L588 
-    see https://docs.python.org/3/c-api/structures.html#base-object-types-and-macros
-
-    Essentially, the objects and methods in this file, should be direct
-    implementation of the expressions in the language and the AST tree.
-    Example `is_true(object *)` should be used to evaluate a value as bool.
-*/
 
 
-
-// first, the poorer man's error subsystem
-static char error_message[256] = {0};
-void set_error(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(error_message, sizeof(error_message), fmt, args);
-    va_end(args);
-}
-void clear_error() {
-    error_message[0] = '\0';
-}
-bool is_error() {
-    return error_message[0] != 0;
-}
-const char *get_error() {
-    return error_message;
-}
-
-
-
-object *new_typed_instance(type_object *type, object *args, object *named_args) {
+object *object_create(type_object *type, object *args, object *named_args) {
     object *p = mem_alloc(type->instance_size);
     p->type = type;
     p->references_count = 1; // the one we are going to return
@@ -59,15 +10,6 @@ object *new_typed_instance(type_object *type, object *args, object *named_args) 
         type->initializer(p, args, named_args);
     }
     return p;
-}
-
-object *new_named_instance(const char *type_name, object *args, object *named_args) {
-    type_object *type = objects_get_named_type(type_name);
-    if (type == NULL) {
-        set_error("type '%s' not found", type_name);
-        return NULL;
-    }
-    return new_typed_instance(type, args, named_args);
 }
 
 void object_add_ref(object *obj) {

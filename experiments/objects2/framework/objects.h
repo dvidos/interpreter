@@ -1,70 +1,41 @@
 #ifndef _OBJECTS_H
 #define _OBJECTS_H
 
+/*  Despite their name 'object', the structures represent the _classes_ 
+    of the instances. They allow instances to be created using 'new'
+
+    Each object contains a copy of the base `object` contents, 
+    therefore can be used or cast to a base object.
+
+    Each object has a pointer named 'type', that points to a type_object that
+    describes this class, and contains the methods of the instances.
+
+    The type_object's type points to a single instance of the 'type' instance.
+
+    For more code than you can read in a day...
+    see https://github.com/python/cpython/blob/main/Include/object.h#L554-L588 
+    see https://docs.python.org/3/c-api/structures.html#base-object-types-and-macros
+
+    Essentially, the objects and methods in this file, should be direct
+    implementation of the expressions in the language and the AST tree.
+    Example `is_true(object *)` should be used to evaluate a value as bool.
+*/
+
 #include <stdlib.h> // for NULL
 #include <stddef.h> // for offsetof()
 #include <stdbool.h> // for bool
 
-// all objects need memory, even goldfish...
-#include "mem.h"
 
-// objects depend on type, not the other way around
-// most files should include this header anyway (objects.h)
-#include "type_object.h" 
-
-
-// all objects can be cast to this pointer
-// essentially, they can all pretend to be this structure
-// check the "type" attribute, to find which "subclass" they are
+// forward declarations
 typedef struct object object;
-struct object { // all objects children of this
-    FIRST_OBJECT_ATTRIBUTES;
-};
+typedef struct type_object type_object;
 
 
-// for statically allocated objects, we don't need to count references
-#define OBJECT_STATICALLY_ALLOCATED   (-2)
-
-// very poor man's error subsystem
-void set_error(const char *fmt, ...);
-void clear_error();
-bool is_error();
-const char *get_error();
-
-
-
-
-
-// call this to create a new instance
-object *new_typed_instance(type_object *type,     object *args, object *named_args);
-object *new_named_instance(const char *type_name, object *args, object *named_args);
-
-// references count, ala python.
-void object_add_ref(object *obj);
-void object_drop_ref(object *obj);
-
-// type checks
-bool object_is(object *obj, type_object *type);          // type or a subtype of it
-bool object_is_exactly(object *obj, type_object *type);  // type or a subtype of it
-
-
-// call these to manipulate properties on an object
-bool    object_has_attr(object *obj, const char *name);
-object *object_get_attr(object *obj, const char *name);
-object *object_set_attr(object *obj, const char *name, object *value);
-
-// call these to manipulate methods on an object
-bool object_has_method(object *obj, const char *name);
-object *object_call_method(object *obj, const char *name, object *args, object *named_args);
-
-// a few utilitiy methods without knowing the object type
-object  *object_to_string(object *obj);
-bool     objects_are_equal(object *a, object *b);
-int      object_compare(object *a, object *b);
-unsigned object_hash(object *obj);
-object  *object_get_iterator(object *obj); // create & reset iterator to before first
-object  *object_iterator_next(object *obj); // advance and get next, or return error
-object  *object_call(object *obj, object *args, object *named_args);
+#include "mem.h"
+#include "error.h"
+#include "base_object.h" 
+#include "type_object.h" 
+#include "object_funcs.h"
 
 
 

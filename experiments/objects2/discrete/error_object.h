@@ -1,6 +1,7 @@
 #ifndef _ERROR_OBJECT_C
 #define _ERROR_OBJECT_C
 
+#include "../framework/type_object.h"
 #include "../framework/objects.h"
 
 extern type_object *error_object;

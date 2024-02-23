@@ -1,23 +1,34 @@
 #include <assert.h>
+#include <stdio.h>
 #include "../framework/objects.h"
 
-
-struct coordinates_object {
+typedef struct coordinates coordinates;
+struct coordinates {
     FIRST_OBJECT_ATTRIBUTES;
     double longitude;
     double lattitude;
 };
 
-type_object *coordinates_object_type = &(type_object){
+void coordinates_initialize(coordinates *c, object *args, object *named_args) {
+    printf("coordinates being initialized!\n");
+    c->longitude = 101;
+    c->lattitude = 102;
+}
+
+type_object *coordinates_type = &(type_object){
+    .type = type_of_types,
+    .references_count = OBJECT_STATICALLY_ALLOCATED,
     .name = "coordinates",
-    .instance_size = sizeof(struct coordinates_object),
+    .instance_size = sizeof(coordinates),
+    .initializer = (initialize_func)coordinates_initialize,
 };
 
 static void test_class_creation() {
-    object *a = new_named_instance("test", NULL, NULL);
-    assert(a == NULL);
+    objects_register_type(coordinates_type);
 
-    objects_register_type(coordinates_object_type);
+    coordinates *c = (coordinates *)object_create(coordinates_type, NULL, NULL);
+    assert(c != NULL);
+    assert(c->longitude == 101);
 }
 
 
