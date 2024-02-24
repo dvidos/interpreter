@@ -1,7 +1,12 @@
+#include <float.h>
+#include <math.h>
 #include <assert.h>
 #include <stdio.h>
 #include "../framework/objects.h"
 #include "../discrete/str_object.h"
+
+
+#define flt_equal_ish(a, b)  (fabs((a)-(b)) < 0.0000001)
 
 typedef struct coordinates coordinates;
 struct coordinates {
@@ -30,6 +35,23 @@ static object *stringifier(coordinates *c) {
     return new_str_object("coordinates(%f,%f)", c->longitude, c->lattitude);
 }
 
+static bool equality_checker(coordinates *a, coordinates *b) {
+    return flt_equal_ish(a->longitude, b->longitude) &&
+           flt_equal_ish(a->lattitude, b->lattitude);
+}
+
+static int comparer(coordinates *a, coordinates *b) {
+    if (!flt_equal_ish(a->longitude, b->longitude))
+        return a->longitude < b->longitude ? -1 : 1;
+    if (!flt_equal_ish(a->lattitude, b->lattitude))
+        return a->lattitude < b->lattitude ? -1 : 1;
+    return 0;
+}
+
+static unsigned hasher(coordinates *c) {
+    return (unsigned)((c->longitude * 100000) + (c->lattitude * 100000));
+}
+
 object_type *coordinates_type = &(object_type){
     // .type = type_of_types,
     ._references_count = OBJECT_STATICALLY_ALLOCATED,
@@ -39,6 +61,9 @@ object_type *coordinates_type = &(object_type){
     .copy_initializer = (copy_initializer_func)copy_initializer,
     .destructor = (destruct_func)destruct,
     .stringifier = (stringifier_func)stringifier,
+    .equality_checker = (equals_func)equality_checker,
+    .comparer = (compare_func)comparer,
+    .hasher = (hashing_func)hasher,
 };
 
 static void test_class_setup() {
@@ -54,8 +79,13 @@ static void test_class_creation() {
     assert(((coordinates *)clone)->longitude == 101);
     assert(((coordinates *)clone)->lattitude == 102);
 
+    assert(objects_are_equal(c, clone));
+    assert(object_compare(c, clone) == 0);
+
     object *stringified = object_to_string(c);
-    printf("object is: '%s'\n", str_object_as_char_ptr(stringified));
+    printf("object str  is '%s'\n", str_object_as_char_ptr(stringified));
+
+    printf("object hash is 0x%x\n", object_hash(c));
 
     object_drop_ref(c);
     object_drop_ref(clone);
