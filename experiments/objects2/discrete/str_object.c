@@ -4,7 +4,7 @@
 #include "../framework/objects.h"
 
 typedef struct str {
-    FIRST_OBJECT_ATTRIBUTES;
+    BASE_OBJECT_FIRST_ATTRIBUTES;
     char *buffer;
     int capacity;
     int length;

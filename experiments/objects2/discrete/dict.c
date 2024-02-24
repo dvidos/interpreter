@@ -1,5 +1,5 @@
 typedef struct dict_object {
-    FIRST_OBJECT_ATTRIBUTES;
+    BASE_OBJECT_FIRST_ATTRIBUTES;
     void **entries_arr;
     int capacity;
     int length;

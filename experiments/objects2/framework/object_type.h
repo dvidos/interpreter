@@ -64,7 +64,7 @@ typedef struct type_attrib_definition {
 struct object_type {
 
     // base attributes allow this to impersonate a `object` struct.
-    FIRST_OBJECT_ATTRIBUTES;
+    BASE_OBJECT_FIRST_ATTRIBUTES;
 
     // name of the class, instance_size to allocate, base type
     const char *name;

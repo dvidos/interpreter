@@ -4,7 +4,7 @@
 
 // all "object" structures (including the object_type) 
 // must have these as the first items, to allow uniform treatment
-#define FIRST_OBJECT_ATTRIBUTES        \
+#define BASE_OBJECT_FIRST_ATTRIBUTES        \
             struct object_type *_type;  \
             int _references_count
 
@@ -18,7 +18,7 @@
 // essentially, they can all pretend to be this structure
 // check the "type" attribute, to find which "subclass" they are
 struct object { // all objects children of this
-    FIRST_OBJECT_ATTRIBUTES;
+    BASE_OBJECT_FIRST_ATTRIBUTES;
 };
 
 
