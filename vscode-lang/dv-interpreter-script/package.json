@@ -1,0 +1,25 @@
+{
+  "name": "interpreter-script-support",
+  "displayName": "interpreter script support",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.86.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "scr",
+      "aliases": ["Script for dv interpreter", "scr"],
+      "extensions": [".scr"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "scr",
+      "scopeName": "root_scope",
+      "path": "./syntaxes/scr.tmLanguage.json"
+    }]
+  }
+}

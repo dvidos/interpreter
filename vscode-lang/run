@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# run generator in a docket container
+# instructions taken from here:
+# https://github.com/microsoft/vscode-generator-code?tab=readme-ov-file
+
+docker run -it -v $(pwd):/usr/src/app vscode-generator-code
+
+
