@@ -52,7 +52,7 @@ struct_info *skeleton_class = &(struct_info){
     .enclosed = NULL,
     ._class_info_magic_number = CLASS_INFO_MAGIC_NUMBER,
     
-    .describe = (describe_instance_func *)skeleton_describe,
+    .describe = (describe_func *)skeleton_describe,
     .equals   = (instances_are_equal_func *)skeleton_equals,
     .hash     = (hash_instance_func *)skeleton_hash,
     .clone    = (clone_instance_func *)skeleton_clone,

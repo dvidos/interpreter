@@ -14,7 +14,7 @@ typedef struct struct_info struct_info;
     struct_info *_class;  \
     vtable_type *_vt
 
-typedef void (*describe_instance_func)(void *instance, str_builder *sb);
+typedef void (*describe_func)(void *instance, str_builder *sb);
 typedef bool (*instances_are_equal_func)(void *instance_a, void *instance_b);
 typedef unsigned (*hash_instance_func)(void *instance);
 typedef void *(*clone_instance_func)(void *instance);
@@ -25,7 +25,7 @@ struct struct_info {
     const char *struct_name;
     struct_info *enclosed; // a.k.a. base class
     
-    describe_instance_func describe;
+    describe_func describe;
     instances_are_equal_func equals;
     hash_instance_func hash;
     clone_instance_func clone;
