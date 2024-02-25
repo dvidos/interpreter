@@ -15,16 +15,16 @@ static void person_describe(person *p, str_builder *sb) {
 }
 
 static unsigned person_hash(person *p) {
-    return class_generic_hash(0, p->name, strlen(p->name));
+    return instance_generic_hash(0, p->name, strlen(p->name));
 }
 
 // public instance of class info
-class_info *person_class = &(class_info){
-    .name = "person",
-    .parent = NULL,
+struct_info *person_class = &(struct_info){
+    .struct_name = "person",
+    .enclosed = NULL,
     ._class_info_magic_number = CLASS_INFO_MAGIC_NUMBER,
-    .describe = (describe_func)person_describe,
-    .hash = (hash_func)person_hash,
+    .describe = (describe_instance_func)person_describe,
+    .hash = (hash_instance_func)person_hash,
 };
 
 // private instance of the vtable

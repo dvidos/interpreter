@@ -1,7 +1,7 @@
 #ifndef _STUDENT_H
 #define _STUDENT_H
 
-#include "../framework/class_info.h"
+#include "../framework/struct_info.h"
 #include "person.h"
 
 
@@ -23,7 +23,7 @@ struct student_vtable {
 };
 
 // public instance of class info
-extern class_info *student_class;
+extern struct_info *student_class;
 
 // public constructor
 student *new_student(const char *name);

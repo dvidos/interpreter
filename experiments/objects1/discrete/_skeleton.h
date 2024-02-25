@@ -1,7 +1,7 @@
 #ifndef _SKELETON_H
 #define _SKELETON_H
 
-#include "../framework/class_info.h"
+#include "../framework/struct_info.h"
 
 /*
     At a glance:
@@ -40,7 +40,7 @@ struct skeleton_vtable { // one instance for this, contains methods
 };
 
 // the public "class" of the skeleton, for type checking
-extern class_info *skeleton_class;
+extern struct_info *skeleton_class;
 
 // finally, a constructor, with possible arguments
 skeleton *new_skeleton();

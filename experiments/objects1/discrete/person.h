@@ -1,7 +1,7 @@
 #ifndef _PERSON_H
 #define _PERSON_H
 
-#include "../framework/class_info.h"
+#include "../framework/struct_info.h"
 
 
 // reusable base attributes for child classes
@@ -29,7 +29,7 @@ struct person_vtable {
 };
 
 // public instance of class info
-extern class_info *person_class;
+extern struct_info *person_class;
 
 // constructor(s)
 person *new_person(const char *name);

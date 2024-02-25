@@ -10,34 +10,34 @@
 void act_on_person(person *person) {
     
     // it could be a person, or a student
-    assert(is_of_class_or_subclass(person, person_class));
+    assert(is_or_encloses_struct(person, person_class));
     person->_vt->dream(person);
 
     str_builder *sb = new_str_builder();
-    class_describe(person, sb);
+    instance_describe(person, sb);
     printf("person is '%s'\n", str_builder_charptr(sb));
     str_builder_free(sb);
 }
 
 void act_on_student(student *student) {
 
-    assert(is_of_class_or_subclass(student, student_class));
+    assert(is_or_encloses_struct(student, student_class));
     student->_vt->take_test(student, 90);
     student->_vt->dream(student);
     student->_class->_class_info_magic_number;
 
     str_builder *sb = new_str_builder();
-    class_describe(student, sb);
+    instance_describe(student, sb);
     printf("student is '%s'\n", str_builder_charptr(sb));
     str_builder_free(sb);
 }
 
 void act_on_unknown(void *instance) {
     str_builder *sb = new_str_builder();
-    class_describe(instance, sb);
-    unsigned hash = class_hash(instance);
+    instance_describe(instance, sb);
+    unsigned hash = instance_hash(instance);
     printf("acting on instance of class '%s', description is '%s', hash is 0x%x\n", 
-        class_name(instance),
+        instance_struct_name(instance),
         str_builder_charptr(sb),
         hash
     );

@@ -5,7 +5,7 @@
     ------------------
     * All static methods in the vtable
     * All supported methods in the class info
-    * Public variable pointing to class_info
+    * Public variable pointing to struct_info
     * Private variable pointing to vtable
     * Public constructor
 */
@@ -47,17 +47,17 @@ static void skeleton_destruct(skeleton *p) {
 }
 
 // public instance of class info
-class_info *skeleton_class = &(class_info){
-    .name = "skeleton",
-    .parent = NULL,
+struct_info *skeleton_class = &(struct_info){
+    .struct_name = "skeleton",
+    .enclosed = NULL,
     ._class_info_magic_number = CLASS_INFO_MAGIC_NUMBER,
     
-    .describe = (describe_func *)skeleton_describe,
-    .equals   = (equals_func *)skeleton_equals,
-    .hash     = (hash_func *)skeleton_hash,
-    .clone    = (clone_func *)skeleton_clone,
-    .compare  = (compare_func *)skeleton_compare,
-    .destruct = (destruct_func *)skeleton_destruct,
+    .describe = (describe_instance_func *)skeleton_describe,
+    .equals   = (instances_are_equal_func *)skeleton_equals,
+    .hash     = (hash_instance_func *)skeleton_hash,
+    .clone    = (clone_instance_func *)skeleton_clone,
+    .compare  = (compare_instances_func *)skeleton_compare,
+    .destruct = (destruct_instance_func *)skeleton_destruct,
 };
 
 // private instance of the vtable
