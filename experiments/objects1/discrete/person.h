@@ -29,7 +29,7 @@ struct person_vtable {
 };
 
 // public instance of class info
-extern struct_info *person_class;
+extern struct_info *person_struct;
 
 // constructor(s)
 person *new_person(const char *name);

@@ -47,7 +47,7 @@ static void skeleton_destruct(skeleton *p) {
 }
 
 // public instance of class info
-struct_info *skeleton_class = &(struct_info){
+struct_info *skeleton_struct = &(struct_info){
     .struct_name = "skeleton",
     .enclosed = NULL,
     ._class_info_magic_number = CLASS_INFO_MAGIC_NUMBER,
@@ -70,7 +70,7 @@ static skeleton_vtable *skeleton_vt = &(skeleton_vtable){
 // public constructor(s)
 skeleton *new_skeleton() {
     skeleton *p = malloc(sizeof(skeleton));
-    p->_class = skeleton_class;
+    p->_class = skeleton_struct;
     p->_vt = skeleton_vt;
     p->skeleton_attr_1 = NULL;
     p->skeleton_attr_2 = 12;

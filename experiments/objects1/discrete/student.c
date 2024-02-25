@@ -25,9 +25,9 @@ static unsigned student_hash(student *s) {
 }
 
 // public instance of class info
-struct_info *student_class = &(struct_info){
+struct_info *student_struct = &(struct_info){
     .struct_name = "student",
-    // .enclosed = person_class, (we cannot initialize to another compile-time pointer)
+    // .enclosed = person_struct, (we cannot initialize to another compile-time pointer)
     ._class_info_magic_number = CLASS_INFO_MAGIC_NUMBER,
     .describe = (describe_func)student_describe,
     .hash = (hash_instance_func)student_hash
@@ -41,11 +41,11 @@ static student_vtable *student_vt = &(student_vtable){
 
 // public constructor(s)
 student *new_student(const char *name) {
-    if (student_class->enclosed == NULL)
-        student_class->enclosed = person_class;
+    if (student_struct->enclosed == NULL)
+        student_struct->enclosed = person_struct;
     
     student *s = malloc(sizeof(student));
-    s->_class = student_class;
+    s->_class = student_struct;
     s->_vt = student_vt;
     s->name = name;
     s->grade = 50;

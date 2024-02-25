@@ -5,11 +5,11 @@
 
 /*
     At a glance:
-    * define for instance attributes
-    * define for vtable methods
-    * typedef & declaration of the two structures
-    * public class variable
-    * public constructor
+    * a define for instance attributes (so we can be encapsulated)
+    * a define for vtable methods (so we can be encapsulated)
+    * typedef & declaration of the two structures (struct & struct_vtable)
+    * public struct_info variable (usually xxxx_struct)
+    * public constructor          (usually new_xxxx())
 */
 
 
@@ -40,7 +40,7 @@ struct skeleton_vtable { // one instance for this, contains methods
 };
 
 // the public "class" of the skeleton, for type checking
-extern struct_info *skeleton_class;
+extern struct_info *skeleton_struct;
 
 // finally, a constructor, with possible arguments
 skeleton *new_skeleton();

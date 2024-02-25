@@ -23,7 +23,7 @@ struct student_vtable {
 };
 
 // public instance of class info
-extern struct_info *student_class;
+extern struct_info *student_struct;
 
 // public constructor
 student *new_student(const char *name);

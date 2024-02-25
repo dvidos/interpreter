@@ -19,7 +19,7 @@ static unsigned person_hash(person *p) {
 }
 
 // public instance of class info
-struct_info *person_class = &(struct_info){
+struct_info *person_struct = &(struct_info){
     .struct_name = "person",
     .enclosed = NULL,
     ._class_info_magic_number = CLASS_INFO_MAGIC_NUMBER,
@@ -35,7 +35,7 @@ static person_vtable *person_vt = &(person_vtable){
 // public constructor(s)
 person *new_person(const char *name) {
     person *p = malloc(sizeof(person));
-    p->_class = person_class;
+    p->_class = person_struct;
     p->_vt = person_vt;
     p->name = name;
     return p;
