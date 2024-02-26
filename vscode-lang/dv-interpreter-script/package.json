@@ -18,7 +18,7 @@
     }],
     "grammars": [{
       "language": "scr",
-      "scopeName": "root_scope",
+      "scopeName": "source.scr",
       "path": "./syntaxes/scr.tmLanguage.json"
     }]
   }

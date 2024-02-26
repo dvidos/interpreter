@@ -6,6 +6,7 @@
 maze = {
     rooms: [],
 };
+
 function make_room() {
     descriptions = ["big", "huge", "tall", "enormous", "narrow", "low-ceiling"];
     nouns = ["room", "hall", "corridor", "passage"];
@@ -54,6 +55,7 @@ function do_debug() {
     output("maze:");
     output(maze);
 }
+
 function handle_command(cmd) {
     if (cmd == "help" || cmd == "h") {
         do_help();

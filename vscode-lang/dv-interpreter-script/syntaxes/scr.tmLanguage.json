@@ -1,32 +1,54 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "Script for dv interpreter",
+	"scopeName": "source.scr",
 	"patterns": [
-		{
-			"include": "#keywords"
-		},
-		{
-			"include": "#strings"
-		}
+		{ "include": "#line-comments" },
+		{ "include": "#block-comments" },
+		{ "include": "#single-quoted-strings" },
+		{ "include": "#double-quoted-strings" },
+		{ "include": "#numeric-literals" },
+		{ "include": "#boolean-literals" },
+		{ "include": "#keywords" }
 	],
 	"repository": {
+		"line-comments": {
+			"name": "comment.line.scr",
+			"begin": "//",
+			"end": "\\n"
+		},
+		"block-comments": {
+			"name": "comment.block.scr",
+			"begin": "/\\*",
+			"end": "\\*/"
+		},
+		"single-quoted-strings": {
+			"name": "string.quoted.double.scr",
+			"begin": "'",
+			"end": "'"
+		},
+		"double-quoted-strings": {
+			"name": "string.quoted.single.scr",
+			"begin": "\"",
+			"end": "\""
+		},
+		"numeric-literals": {
+			"name": "constant.numeric.scr",
+			"match": "\\b([0-9]+)\\b"
+		},
+		"boolean-literals": {
+			"name": "constant.language.scr",
+			"match": "\\b(true|false)\\b"
+		},
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.scr",
-				"match": "\\b(if|while|for|return)\\b"
-			}]
-		},
-		"strings": {
-			"name": "string.quoted.double.scr",
-			"begin": "\"",
-			"end": "\"",
-			"patterns": [
-				{
-					"name": "constant.character.escape.scr",
-					"match": "\\\\."
-				}
-			]
-		}
-	},
-	"scopeName": "root_scope"
+				"match": "\\b(if|else|while|for|break|continue|return)\\b"
+			},
+			{
+				"name": "keyword.other.scr",
+				"match": "\\b(breakpoint)\\b"
+			}			
+		]}
+	}
 }
