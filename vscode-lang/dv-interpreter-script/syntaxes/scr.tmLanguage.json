@@ -9,7 +9,10 @@
 		{ "include": "#double-quoted-strings" },
 		{ "include": "#numeric-literals" },
 		{ "include": "#boolean-literals" },
-		{ "include": "#keywords" }
+		{ "include": "#keywords" },
+		{ "include": "#function-definition" },
+		{ "include": "#function-call" },
+		{ "include": "#identifiers" }
 	],
 	"repository": {
 		"line-comments": {
@@ -41,14 +44,27 @@
 			"match": "\\b(true|false)\\b"
 		},
 		"keywords": {
-			"patterns": [{
-				"name": "keyword.control.scr",
-				"match": "\\b(if|else|while|for|break|continue|return)\\b"
-			},
-			{
-				"name": "keyword.other.scr",
-				"match": "\\b(breakpoint)\\b"
-			}			
-		]}
+			"name": "keyword.control.scr",
+			"match": "\\b(if|else|while|for|break|continue|return|breakpoint)\\b"
+		},
+		"function-definition": {
+			"name": "meta.function.definition.scr",
+			"match": "\\b(function)\\s+([_a-zA-Z0-9]+)\\s*\\(",
+			"captures": {
+				"1": { "name": "keyword.other.scr" },
+				"2": { "name": "entity.name.function.scr" }
+			}
+		},
+		"function-call": {
+			"name": "meta.function-call.scr",
+			"match": "\\b([_a-zA-Z0-9]+)\\(",
+			"captures": {
+				"1": { "name": "entity.name.function.scr" }
+			}
+		},
+		"identifiers": {
+			"name": "variable.other.scr",
+			"match": "\\b([_a-zA-Z0-9]+)\\b"
+		}
 	}
 }
