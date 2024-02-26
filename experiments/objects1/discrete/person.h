@@ -5,13 +5,12 @@
 
 
 // reusable base attributes for child classes
-#define PERSON_INSTANCE_ATTRIBUTES(vtable_type)  \
+#define PERSON_ATTRIBUTES(vtable_type)  \
     BASE_INSTANCE_ATTRIBUTES(vtable_type); \
-    /* remaining instance properties */  \
     const char *name
 
 // reusable base methods for child classes
-#define PERSON_VTABLE_METHODS(instance_type)  \
+#define PERSON_METHODS(instance_type)  \
     void (*dream)(instance_type *p)
 
 
@@ -21,11 +20,11 @@ typedef struct person person;
 typedef struct person_vtable person_vtable;
 
 struct person {
-    PERSON_INSTANCE_ATTRIBUTES(person_vtable);
+    PERSON_ATTRIBUTES(person_vtable);
 };
 
 struct person_vtable {
-    PERSON_VTABLE_METHODS(person);
+    PERSON_METHODS(person);
 };
 
 // public instance of class info

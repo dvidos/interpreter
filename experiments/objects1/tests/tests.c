@@ -24,7 +24,7 @@ void act_on_student(student *student) {
     assert(is_or_encloses_struct(student, student_struct));
     student->_vt->take_test(student, 90);
     student->_vt->dream(student);
-    student->_class->_class_info_magic_number;
+    student->_info->_struct_info_magic_number;
 
     str_builder *sb = new_str_builder();
     instance_describe(student, sb);

@@ -28,7 +28,7 @@ static unsigned student_hash(student *s) {
 struct_info *student_struct = &(struct_info){
     .struct_name = "student",
     // .enclosed = person_struct, (we cannot initialize to another compile-time pointer)
-    ._class_info_magic_number = CLASS_INFO_MAGIC_NUMBER,
+    ._struct_info_magic_number = STRUCT_INFO_MAGIC_NUMBER,
     .describe = (describe_func)student_describe,
     .hash = (hash_instance_func)student_hash
 };
@@ -45,7 +45,7 @@ student *new_student(const char *name) {
         student_struct->enclosed = person_struct;
     
     student *s = malloc(sizeof(student));
-    s->_class = student_struct;
+    s->_info = student_struct;
     s->_vt = student_vt;
     s->name = name;
     s->grade = 50;

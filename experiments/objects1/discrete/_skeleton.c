@@ -22,27 +22,27 @@ static void skeleton_method_3(skeleton *p, const char *ptr) {
     // ...
 }
 
-static void skeleton_describe(skeleton *p, str_builder *sb) {
+static void struct_describe(skeleton *p, str_builder *sb) {
     // ...
 }
 
-static bool skeleton_equals(skeleton *a, skeleton *b) {
+static bool struct_equals(skeleton *a, skeleton *b) {
     // ...
 }
 
-static unsigned skeleton_hash(skeleton *p) {
+static unsigned struct_hash(skeleton *p) {
     // ...
 }
 
-static void *skeleton_clone(skeleton *p) {
+static void *struct_clone(skeleton *p) {
     // ...
 }
 
-static int skeleton_compare(skeleton *a, skeleton *b) {
+static int struct_compare(skeleton *a, skeleton *b) {
     // ...
 }
 
-static void skeleton_destruct(skeleton *p) {
+static void struct_destruct(skeleton *p) {
     // ...
 }
 
@@ -50,14 +50,14 @@ static void skeleton_destruct(skeleton *p) {
 struct_info *skeleton_struct = &(struct_info){
     .struct_name = "skeleton",
     .enclosed = NULL,
-    ._class_info_magic_number = CLASS_INFO_MAGIC_NUMBER,
+    ._struct_info_magic_number = STRUCT_INFO_MAGIC_NUMBER,
     
-    .describe = (describe_func *)skeleton_describe,
-    .equals   = (instances_are_equal_func *)skeleton_equals,
-    .hash     = (hash_instance_func *)skeleton_hash,
-    .clone    = (clone_instance_func *)skeleton_clone,
-    .compare  = (compare_instances_func *)skeleton_compare,
-    .destruct = (destruct_instance_func *)skeleton_destruct,
+    .describe = (describe_func *)struct_describe,
+    .equals   = (instances_are_equal_func *)struct_equals,
+    .hash     = (hash_instance_func *)struct_hash,
+    .clone    = (clone_instance_func *)struct_clone,
+    .compare  = (compare_instances_func *)struct_compare,
+    .destruct = (destruct_instance_func *)struct_destruct,
 };
 
 // private instance of the vtable
@@ -70,7 +70,7 @@ static skeleton_vtable *skeleton_vt = &(skeleton_vtable){
 // public constructor(s)
 skeleton *new_skeleton() {
     skeleton *p = malloc(sizeof(skeleton));
-    p->_class = skeleton_struct;
+    p->_info = skeleton_struct;
     p->_vt = skeleton_vt;
     p->skeleton_attr_1 = NULL;
     p->skeleton_attr_2 = 12;

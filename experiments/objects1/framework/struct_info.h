@@ -11,7 +11,7 @@ typedef struct struct_info struct_info;
 // useful macro for when defining any instance struct
 // at least the class info MUST be the first in the instance
 #define BASE_INSTANCE_ATTRIBUTES(vtable_type)  \
-    struct_info *_class;  \
+    struct_info *_info;  \
     vtable_type *_vt
 
 typedef void (*describe_func)(void *instance, str_builder *sb);
@@ -32,10 +32,10 @@ struct struct_info {
     compare_instances_func compare;
     destruct_instance_func destruct;
     
-    unsigned int _class_info_magic_number;
+    unsigned int _struct_info_magic_number;
 };
 
-#define CLASS_INFO_MAGIC_NUMBER   0xC1A55DEF
+#define STRUCT_INFO_MAGIC_NUMBER   0x49DC37E6
 
 struct_info *get_instance_info(void *instance);
 const char *instance_struct_name(void *instance);

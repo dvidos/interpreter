@@ -8,7 +8,7 @@ struct_info *get_instance_info(void *instance) {
     struct_info *c = *((struct_info **)instance);
     if (c == NULL)
         return NULL;
-    if (c->_class_info_magic_number != CLASS_INFO_MAGIC_NUMBER)
+    if (c->_struct_info_magic_number != STRUCT_INFO_MAGIC_NUMBER)
         return NULL;
     
     return c;
