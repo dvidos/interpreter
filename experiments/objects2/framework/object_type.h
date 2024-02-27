@@ -43,10 +43,10 @@ typedef object *type_attrib_getter(object *self, const char *name);
 typedef object *type_attrib_setter(object *self, const char *name, object *value);
 enum type_attrib_type {
     TAT_DEFAULT = 0,
-    TAT_CHAR    = 1,
-    TAT_INT     = 2,
-    TAT_LONG    = 3,
-    TAT_CONST_CHAR_PTR = 4,
+    TAT_INT     = 1,
+    TAT_BOOL    = 2,
+    TAT_CONST_CHAR_PTR = 3,
+    TAT_OBJECT_PTR = 4,
     TAT_READ_ONLY = 1024,
 };
 typedef struct type_attrib_definition {

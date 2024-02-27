@@ -1,6 +1,22 @@
 #include <string.h>
 #include "objects.h"
 
+typedef object *(*box_int_func)(int value);
+typedef object *(*box_bool_func)(bool value);
+typedef object *(*box_const_char_ptr_func)(const char *value);
+typedef int (*unbox_int_func)(object *value);
+typedef bool (*unbox_bool_func)(object *value);
+typedef const char *(*unbox_const_char_ptr_func)(object *value);
+
+static struct object_methods {
+    box_int_func               int_boxer;
+    box_bool_func              bool_boxer;
+    box_const_char_ptr_func    const_char_ptr_boxer;
+    unbox_int_func             int_unboxer;
+    unbox_bool_func            bool_unboxer;
+    unbox_const_char_ptr_func  const_char_ptr_unboxer;
+} methods;
+
 
 object *object_create(object_type *type, object *args, object *named_args) {
     object *p = malloc(type->instance_size);
@@ -82,8 +98,27 @@ object *object_get_attr(object *obj, const char *name) {
         type_attrib_definition *def = &type->attributes[i];
         if (def->getter != NULL) {
             return def->getter(obj, name);
+
+        } else if (def->tat_flags & TAT_OBJECT_PTR) {
+            object *obj_ptr = (object *)(((char *)obj) + def->offset);
+            object_add_ref(obj_ptr); // the one returned
+            return obj_ptr;
+
+        } else if (def->tat_flags & TAT_INT) {
+            int *int_ptr = (int *)(((char *)obj) + def->offset);
+            return methods.int_boxer(*int_ptr);
+
+        } else if (def->tat_flags & TAT_BOOL) {
+            bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
+            return methods.bool_boxer(*bool_ptr);
+
+        } else if (def->tat_flags & TAT_CONST_CHAR_PTR) {
+            const char *char_ptr = (((const char *)obj) + def->offset);
+            return methods.const_char_ptr_boxer(char_ptr);
+
         } else {
-            // read with internal generic getter
+            set_error("attribute '%s' not supported type '%d'", def->tat_flags);
+            return NULL;
         }
     }
 
@@ -106,12 +141,27 @@ object *object_set_attr(object *obj, const char *name, object *value) {
 
         if (def->setter != NULL) {
             return def->setter(obj, name, value); // error checking
+
+        } else if (def->tat_flags & TAT_OBJECT_PTR) {
+            object **obj_ptr = (object **)(((char *)obj) + def->offset);
+            object_add_ref(value); // the one stored
+            *obj_ptr = value;
+
+        } else if (def->tat_flags & TAT_INT) {
+            int *int_ptr = (int *)(((char *)obj) + def->offset);
+            *int_ptr = methods.int_unboxer(value);
+
+        } else if (def->tat_flags & TAT_BOOL) {
+            bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
+            *bool_ptr = methods.bool_unboxer(value);
+
+        } else if (def->tat_flags & TAT_CONST_CHAR_PTR) {
+            const char **char_ptr = (const char **)(((char *)obj) + def->offset);
+            *char_ptr = methods.const_char_ptr_unboxer(value);
+
         } else {
-            // set directly using internal logic. (e.g. integers)
-            // ... how to get actual value from the objectified type?
-            // see https://docs.python.org/3/c-api/long.html#c.PyLong_AsLong
-            // using PyLong_AsLong() or in our case: int_object_as_int()...
-            // also we have new_long_object_from_long()
+            set_error("attribute '%s' not supported type '%d'", def->tat_flags);
+            return NULL;
         }
     }
     set_error("attribute '%s' not found in type '%s'", name, type->name);
@@ -190,5 +240,3 @@ object *object_call(object *obj, object *args, object *named_args) {
         return obj->_type->call_handler(obj, args, named_args);
     return NULL;
 }
-
-

@@ -127,7 +127,6 @@ static failable_variant execute_single_statement(statement *stmt, exec_context *
     return ok_variant(return_value);
 }
 
-
 static failable_variant execute_statements_once(list *statements, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return) {
     variant *return_value = new_null_variant();
 
@@ -176,7 +175,6 @@ static failable_variant execute_statements_in_loop(expression *pre_condition, li
 
     return ok_variant(return_value);
 }
-
 
 failable_variant statement_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
 
