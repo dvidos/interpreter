@@ -40,6 +40,7 @@ FILES = \
 	src/runtime/built_in_funcs.c \
 	src/runtime/built_in_funcs_tests.c \
 	src/runtime/expression_execution.c \
+	src/runtime/execution_result.c \
 	src/runtime/statement_execution.c \
 	\
 	src/debugger/debugger.c \

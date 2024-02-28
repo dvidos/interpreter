@@ -11,10 +11,10 @@ typedef enum token_type {
 
     T_LPAREN,
     T_RPAREN,
-    T_LBRACKET,
-    T_RBRACKET,
-    T_LSQBRACKET,
-    T_RSQBRACKET,
+    T_LBRACKET,    // '{'
+    T_RBRACKET,    // '}'
+    T_LSQBRACKET,  // '['
+    T_RSQBRACKET,  // ']'
     T_SEMICOLON,
     T_PLUS,
     T_MINUS,
@@ -66,6 +66,10 @@ typedef enum token_type {
     T_CONTINUE,
     T_RETURN,
     T_FUNCTION_KEYWORD,
+    T_TRY,
+    T_CATCH,
+    T_FINALLY,
+    T_THROW,
     T_BREAKPOINT,
 
     T_END, // the last token of the stream

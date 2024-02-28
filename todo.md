@@ -1,5 +1,10 @@
 # todo
 
+* implement exceptions in the script language
+* implement the `with() { ... }` statement doing a cleanup.
+
+
+
 * cpython, inner code, gets the intepreter state and the current thread's state
 (that includes the current stack frame) by calling a function, which refers 
 to a static variable inside the C file. This way, call mechanism 

@@ -1,0 +1,32 @@
+
+function test_manual_exceptions() {
+    try {
+        log("before manual throw");
+        throw "error!";
+        log("after manual throw");
+    } catch (e) {
+        // how to tell what exception it was?
+        // how to have trees of things, without a class system?
+        log("in manual throw exception handler");
+    } finally {
+        log("in manual throw finally clause", divisor);
+    }
+}
+
+function test_division(divisor) {
+    try {
+        log("before division with", divisor);
+        a = 1 / divisor;
+        log("after division with", divisor);
+    } catch (e) {
+        // how to tell what exception it was?
+        // how to have trees of things, without a class system?
+        log("in exception handler with", divisor);
+    } finally {
+        log("in finally clause of division", divisor);
+    }
+}
+
+test_manual_exceptions();
+test_division(1);
+test_division(0);

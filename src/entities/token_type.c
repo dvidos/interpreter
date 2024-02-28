@@ -72,6 +72,10 @@ static struct token_type_info token_type_infos[] = {
     { T_CONTINUE,           "",    "CONTINUE" },
     { T_RETURN,             "",    "RETURN" },
     { T_FUNCTION_KEYWORD,   "",    "FUNCTION" },
+    { T_TRY,                "",    "TRY" },
+    { T_CATCH,              "",    "CATCH" },
+    { T_FINALLY,            "",    "FINALLY" },
+    { T_THROW,              "",    "THROW" },
     { T_BREAKPOINT,         "",    "BREAKPOINT" },
     
     { T_END,                "",    "END" },

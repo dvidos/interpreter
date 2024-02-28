@@ -54,6 +54,21 @@ failable *__fail_clone(void *some_failable_ptr);
             return f; \
         }
 
+// for pointed types: const_char, structs, etc
+#define STRONGLY_TYPED_FAILABLE_PTR_INLINE(type)  \
+    typedef struct failable_##type { \
+        bool failed; failable *inner; const char *func; const char *file; int line; const char *err_msg; type *result; \
+    } failable_##type; \
+    failable_##type inline ok_##type(type *result) \
+        { return (failable_##type){ false, NULL, NULL, NULL, 0, NULL, result }; } \
+    failable_##type inline  __failed_##type(void *inner, const char *func, const char *file, int line, const char *fmt, ...) \
+        { \
+            failable_##type f = (failable_##type){ true, NULL, func, file, line, NULL }; \
+            if (inner != NULL) { f.inner = __fail_clone(inner); } \
+            if (fmt != NULL) { va_list(vl); va_start(vl,fmt); f.err_msg = __fail_message(fmt, vl); va_end(vl); } \
+            return f; \
+        }
+
 // for value types: bool, int, float, enums etc
 #define STRONGLY_TYPED_FAILABLE_VAL_DECLARATION(type)  \
     typedef struct failable_##type { \

@@ -59,6 +59,15 @@ statement *new_function_statement(const char *name, list *arg_names, list *state
     s->per_type.function.statements = statements;
     return s;
 }
+statement *new_try_catch_statement(list *try_statements, const char *exception_identifier, list *catch_statements, list *finally_statements, token *token) {
+    statement *s = new_statement(ST_TRY_CATCH, token);
+    s->per_type.try_catch.try_statements = try_statements;
+    s->per_type.try_catch.exception_identifier = exception_identifier;
+    s->per_type.try_catch.catch_statements = catch_statements;
+    s->per_type.try_catch.finally_statements = finally_statements;
+    return s;
+}
+
 statement *new_breakpoint_statement(token *token) {
     return new_statement(ST_BREAKPOINT, token);
 }
@@ -128,6 +137,17 @@ const void statement_describe(statement *s, str_builder *sb) {
             list_describe(s->per_type.function.statements, "\n    ", sb);
             str_builder_add(sb, "\n}");
             break;
+        case ST_TRY_CATCH:
+            str_builder_add(sb, "try {\n    ");
+            list_describe(s->per_type.try_catch.try_statements, "\n    ", sb);
+            str_builder_addf(sb, "\n} catch (%s) {\n    ", s->per_type.try_catch.exception_identifier);
+            list_describe(s->per_type.try_catch.catch_statements, "\n    ", sb);
+            if (s->per_type.try_catch.finally_statements != NULL && !list_empty(s->per_type.try_catch.finally_statements)) {
+                str_builder_addf(sb, "\n} finally {\n    ");
+                list_describe(s->per_type.try_catch.finally_statements, "\n    ", sb);
+            }
+            str_builder_add(sb, "\n}");
+            break;
     }
 }
 
@@ -169,6 +189,12 @@ bool statements_are_equal(statement *a, statement *b) {
             if (!strs_are_equal(a->per_type.function.name, b->per_type.function.name)) return false;
             if (!lists_are_equal(a->per_type.function.arg_names, b->per_type.function.arg_names)) return false;
             if (!lists_are_equal(a->per_type.function.statements, b->per_type.function.statements)) return false;
+            break;
+        case ST_TRY_CATCH:
+            if (!lists_are_equal(a->per_type.try_catch.try_statements, b->per_type.try_catch.try_statements)) return false;
+            if (!strs_are_equal(a->per_type.try_catch.exception_identifier, b->per_type.try_catch.exception_identifier)) return false;
+            if (!lists_are_equal(a->per_type.try_catch.catch_statements, b->per_type.try_catch.catch_statements)) return false;
+            if (!lists_are_equal(a->per_type.try_catch.finally_statements, b->per_type.try_catch.finally_statements)) return false;
             break;
     }
 

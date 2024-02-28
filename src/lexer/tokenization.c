@@ -68,6 +68,10 @@ static struct reserved_word {
     { "continue",   T_CONTINUE },
     { "return",     T_RETURN },
     { "function",   T_FUNCTION_KEYWORD },
+    { "try",        T_TRY },
+    { "catch",      T_CATCH },
+    { "finally",    T_FINALLY },
+    { "throw",      T_THROW },
     { "breakpoint", T_BREAKPOINT },
 };
 

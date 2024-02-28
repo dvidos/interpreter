@@ -39,6 +39,12 @@ struct statement {
             list *arg_names;
             list *statements;
         } function;
+        struct try_catch {
+            list *try_statements;
+            const char *exception_identifier;
+            list *catch_statements;
+            list *finally_statements;
+        } try_catch;
     } per_type;
     token *token;
 };
@@ -52,6 +58,7 @@ statement *new_break_statement(token *token);
 statement *new_continue_statement(token *token);
 statement *new_return_statement(expression *value, token *token);
 statement *new_function_statement(const char *name, list *arg_names, list *statements, token *token);
+statement *new_try_catch_statement(list *try_statements, const char *exception_identifier, list *catch_statements, list *finally_statements, token *token);
 statement *new_breakpoint_statement(token *token);
 
 bool statement_is_at(statement *s, const char *filename, int line_no);

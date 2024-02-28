@@ -24,6 +24,9 @@ static bool walk_ast_statement(statement *statement, enum ast_task task, const c
 
 
 static bool walk_ast_statements(list *statements, enum ast_task task, const char *filename, int line_no) {
+    if (statements == NULL)
+        return false;
+    
     if (task == AST_ADD_BREAKPOINT) {
         int index = 0;
         for_list(statements, it, statement, stmt) {
@@ -72,6 +75,13 @@ static bool walk_ast_statement(statement *stmt, enum ast_task task, const char *
         if (done) return true;
     } else if (stmt->type == ST_FUNCTION) {
         done = walk_ast_statements(stmt->per_type.function.statements, task, filename, line_no);
+        if (done) return true;
+    } else if (stmt->type == ST_TRY_CATCH) {
+        done = walk_ast_statements(stmt->per_type.try_catch.try_statements, task, filename, line_no);
+        if (done) return true;
+        done = walk_ast_statements(stmt->per_type.try_catch.catch_statements, task, filename, line_no);
+        if (done) return true;
+        done = walk_ast_statements(stmt->per_type.try_catch.finally_statements, task, filename, line_no);
         if (done) return true;
     }
     return false;

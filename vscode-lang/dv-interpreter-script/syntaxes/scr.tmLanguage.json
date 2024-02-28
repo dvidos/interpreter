@@ -45,7 +45,7 @@
 		},
 		"keywords": {
 			"name": "keyword.control.scr",
-			"match": "\\b(if|else|while|for|break|continue|return|breakpoint)\\b"
+			"match": "\\b(if|else|while|for|break|continue|return|breakpoint|try|catch|finally|throw)\\b"
 		},
 		"function-definition": {
 			"name": "meta.function.definition.scr",

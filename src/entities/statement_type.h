@@ -10,6 +10,7 @@ typedef enum statement_type {
     ST_BREAK,
     ST_RETURN,
     ST_FUNCTION,
+    ST_TRY_CATCH,
     ST_BREAKPOINT,
 } statement_type;
 

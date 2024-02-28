@@ -1,3 +1,4 @@
 #!/bin/sh
 
+echo 'cp -r dv-interpreter-script ~/.vscode/extensions'
 cp -r dv-interpreter-script ~/.vscode/extensions
