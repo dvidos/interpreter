@@ -67,7 +67,11 @@ statement *new_try_catch_statement(list *try_statements, const char *exception_i
     s->per_type.try_catch.finally_statements = finally_statements;
     return s;
 }
-
+statement *new_throw_statement(expression *exception, token *token) {
+    statement *s = new_statement(ST_THROW, token);
+    s->per_type.throw.exception = exception;
+    return s;
+}
 statement *new_breakpoint_statement(token *token) {
     return new_statement(ST_BREAKPOINT, token);
 }
@@ -148,6 +152,11 @@ const void statement_describe(statement *s, str_builder *sb) {
             }
             str_builder_add(sb, "\n}");
             break;
+        case ST_THROW:
+            str_builder_add(sb, "throw (");
+            expression_describe(s->per_type.throw.exception, sb);
+            str_builder_add(sb, ");");
+            break;
     }
 }
 
@@ -195,6 +204,9 @@ bool statements_are_equal(statement *a, statement *b) {
             if (!strs_are_equal(a->per_type.try_catch.exception_identifier, b->per_type.try_catch.exception_identifier)) return false;
             if (!lists_are_equal(a->per_type.try_catch.catch_statements, b->per_type.try_catch.catch_statements)) return false;
             if (!lists_are_equal(a->per_type.try_catch.finally_statements, b->per_type.try_catch.finally_statements)) return false;
+            break;
+        case ST_THROW:
+            if (!expressions_are_equal(a->per_type.throw.exception, b->per_type.throw.exception)) return false;
             break;
     }
 

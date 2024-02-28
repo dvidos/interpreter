@@ -205,6 +205,29 @@ static failable_statement parse_try_catch_statement() {
     return ok_statement(new_try_catch_statement(try_statements, identifier, catch_statements, finally_statements, token));
 }
 
+static failable_statement parse_throw_statement() {
+    if (!accept(T_THROW)) return failed_statement(NULL, "was expecting 'throw'");
+    token *token = accepted();
+
+    failable_expression parsing;
+    expression *exception_expression;
+
+    if (accept(T_SEMICOLON)) {
+        exception_expression = NULL;
+    } else if (accept(T_LPAREN)) {
+        parsing = parse_expression(tokens_it, CM_RPAREN, false);
+        if (parsing.failed) return failed_statement(&parsing, "cannot parse value");
+        exception_expression = parsing.result;
+        if (!accept(T_SEMICOLON)) return failed_statement(NULL, "was expecting ';'");
+    } else {
+        parsing = parse_expression(tokens_it, CM_SEMICOLON, false);
+        if (parsing.failed) return failed_statement(&parsing, "cannot parse value");
+        exception_expression = parsing.result;
+    }
+
+    return ok_statement(new_throw_statement(exception_expression, token));
+}
+
 static failable_statement parse_breakpoint_statement() {
     if (!accept(T_BREAKPOINT)) return failed_statement(NULL, "was expecting 'breakpoint'");
     token *token = accepted();
@@ -225,6 +248,7 @@ failable_statement parse_statement(iterator *tokens) {
         case T_RETURN:           return parse_return_statement();
         case T_FUNCTION_KEYWORD: return parse_function_statement();
         case T_TRY:              return parse_try_catch_statement();
+        case T_THROW:            return parse_throw_statement();
         case T_BREAKPOINT:       return parse_breakpoint_statement();
         default:                 return parse_expression_statement();
     }

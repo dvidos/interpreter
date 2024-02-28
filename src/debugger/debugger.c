@@ -83,6 +83,8 @@ static bool walk_ast_statement(statement *stmt, enum ast_task task, const char *
         if (done) return true;
         done = walk_ast_statements(stmt->per_type.try_catch.finally_statements, task, filename, line_no);
         if (done) return true;
+    } else if (stmt->type == ST_THROW) {
+        // nothing
     }
     return false;
 }

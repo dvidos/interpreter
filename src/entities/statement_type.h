@@ -11,6 +11,7 @@ typedef enum statement_type {
     ST_RETURN,
     ST_FUNCTION,
     ST_TRY_CATCH,
+    ST_THROW,
     ST_BREAKPOINT,
 } statement_type;
 
