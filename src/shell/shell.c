@@ -19,18 +19,23 @@ static bool get_command(char *buffer, int buffer_size) {
 
 static void execute_command(const char *code, dict *values, bool verbose, bool enable_debugger) {
 
-    failable_variant execution = interpret_and_execute(code, "interactive", values, verbose, enable_debugger, false);
+    failable_execution_outcome execution = interpret_and_execute(code, "interactive", values, verbose, enable_debugger, false);
     if (execution.failed) {
         printf("Evaluation failed!\n");
         failable_print(&execution);
         printf("\n");
         return;
+    } else if (execution.result->exception_thrown) {
+        str_builder *sb = new_str_builder();
+        variant_describe(execution.result->exception, sb);
+        printf("exception: %s\n", str_builder_charptr(sb));
+        str_builder_free(sb);
+    } else {
+        str_builder *sb = new_str_builder();
+        variant_describe(execution.result->successful, sb);
+        printf("%s\n", str_builder_charptr(sb));
+        str_builder_free(sb);
     }
-
-    str_builder *sb = new_str_builder();
-    variant_describe(execution.result, sb);
-    printf("%s\n", str_builder_charptr(sb));
-    str_builder_free(sb);
 }
 
 void interactive_shell(bool verbose, bool enable_debugger) {

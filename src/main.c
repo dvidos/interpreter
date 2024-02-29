@@ -80,7 +80,7 @@ void parse_options(int argc, char *argv[]) {
                 case 'h': options.show_help = true; break;
                 case 'v': options.verbose = true; break;
                 case 'b': options.show_built_in_functions = true; break;
-                case 'u': options.run_unit_tests = true; break;
+                case 'u': options.run_unit_tests = true; options.suppress_log_echo = true; break;
                 case 'q': options.suppress_log_echo = true; break;
                 case 'd': options.enable_debugger = true; break;
                 case 'i': options.start_interactive_shell = true; break;
@@ -108,13 +108,18 @@ void show_help() {
 void execute_code(const char *code, const char *filename) {
     printf("Executing %s...\n", filename);
     dict *values = new_dict(variant_class);
-    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.enable_debugger, true);
-    if (execution.failed)
+    failable_execution_outcome execution = interpret_and_execute(code, filename, values, options.verbose, options.enable_debugger, true);
+    if (execution.failed) {
         failable_print(&execution);
-    else {
+    } else if (execution.result->exception_thrown) {
         str_builder *sb = new_str_builder();
-        variant_describe(execution.result, sb);
-        printf("Execution was successful, result is %s\n", str_builder_charptr(sb));
+        variant_describe(execution.result->exception, sb);
+        printf("Execution caught exception: %s\n", str_builder_charptr(sb));
+        str_builder_free(sb);
+    } else {
+        str_builder *sb = new_str_builder();
+        variant_describe(execution.result->successful, sb);
+        printf("Execution successful, result is %s\n", str_builder_charptr(sb));
         str_builder_free(sb);
     }
 }
