@@ -27,14 +27,14 @@ void initialize_interpreter() {
 }
 
 
-failable_execution_outcome interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose, bool enable_debugger, bool start_with_debugger) {
+failable_variant interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose, bool enable_debugger, bool start_with_debugger) {
     str_builder *sb = new_str_builder();
 
     listing *code_listing = new_listing(code);
 
     failable_list tokenization = parse_code_into_tokens(code, filename);
     if (tokenization.failed)
-        return failed_execution_outcome(&tokenization, "Tokenization failed");
+        return failed_variant(&tokenization, "Tokenization failed");
     if (verbose) {
         str_builder_clear(sb);
         list_describe(tokenization.result, ", ", sb);
@@ -45,7 +45,7 @@ failable_execution_outcome interpret_and_execute(const char *code, const char *f
     tokens_it->reset(tokens_it);
     failable_list parsing = parse_statements(tokens_it, SP_SEQUENTIAL_STATEMENTS);
     if (parsing.failed)
-        return failed_execution_outcome(&parsing, "Statement parsing failed");
+        return failed_variant(&parsing, "Statement parsing failed");
     if (verbose) {
         str_builder_clear(sb);
         list_describe(parsing.result, "\n", sb);
@@ -63,7 +63,7 @@ failable_execution_outcome interpret_and_execute(const char *code, const char *f
         printf("------------- executing -------------\n");
     failable_variant execution = execute_statements(parsing.result, ctx);
     if (execution.failed)
-        return failed_execution_outcome(&execution, "Execution failed");
+        return failed_variant(&execution, "Execution failed");
 
-    return ok_execution_outcome(new_execution_outcome_successful(execution.result));
+    return ok_variant(execution.result);
 }

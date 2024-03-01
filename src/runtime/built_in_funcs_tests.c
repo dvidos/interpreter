@@ -10,13 +10,13 @@
 
 static void run_use_case(const char *code, variant *expected, bool verbose) {
     dict *values = new_dict(variant_class);
-    failable_execution_outcome execution = interpret_and_execute(code, "test", values, verbose, false, false);
+    failable_variant execution = interpret_and_execute(code, "test", values, verbose, false, false);
     if (execution.failed)
         assertion_failed(execution.err_msg, code);
-    else if (execution.result->exception_thrown)
-        assertion_failed("exception thrown", code);
+    else if (variant_is_exception(execution.result))
+        assertion_failed(variant_as_str(execution.result), code);
     else
-        assert_variants_are_equal(execution.result->successful, expected, code);
+        assert_variants_are_equal(execution.result, expected, code);
 }
 
 void built_in_self_diagnostics(bool verbose) {

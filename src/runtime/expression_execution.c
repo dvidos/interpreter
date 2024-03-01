@@ -204,7 +204,8 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
         case MAS_MUL: result_int = original_int * operand_int; break;
         case MAS_DIV: 
             if (operand_int == 0)
-                return failed_variant(NULL, "division by zero not possible with integers");
+                return ok_variant(new_exception_variant("division by zero not possible with integers"));
+                // failed_variant(NULL, "division by zero not possible with integers");
             result_int = original_int / operand_int;
             break;
         case MAS_MOD: result_int = original_int  % operand_int; break;

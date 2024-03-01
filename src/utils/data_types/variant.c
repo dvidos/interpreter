@@ -141,6 +141,10 @@ bool variant_is_callable(variant *v) {
     return v->type == VT_CALLABLE;
 }
 
+bool variant_is_exception(variant *v) {
+    return v->type == VT_EXCEPTION;
+}
+
 bool variant_as_bool(variant *v) {
     switch (v->type) {
         case VT_NULL:

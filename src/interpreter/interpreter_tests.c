@@ -13,7 +13,7 @@
 
 static void verify_execution_failed(char *code) {
     dict *values = new_dict(variant_class);
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (!evaluation.failed)
         assertion_failed("Evaluation did not fail as expected", code);
     else
@@ -22,10 +22,10 @@ static void verify_execution_failed(char *code) {
 
 static void verify_execution_exceptioned(char *code) {
     dict *values = new_dict(variant_class);
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_passed();
     else
         assertion_failed("Evaluation did not throw exception as expected", code);
@@ -33,12 +33,12 @@ static void verify_execution_exceptioned(char *code) {
 
 static void verify_execution_null(char *code) {
     dict *values = new_dict(variant_class);
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
-    else if (!variant_is_null(evaluation.result->successful))
+    else if (!variant_is_null(evaluation.result))
         assertion_failed("Result is not null", code);
     else
         assertion_passed();
@@ -46,117 +46,117 @@ static void verify_execution_null(char *code) {
 
 static void verify_execution_b(char *code, bool expected_result) {
     dict *values = new_dict(variant_class);
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_bool_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_bool_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_bb(char *code, bool a, bool expected_result) {
     dict *values = new_dict(variant_class);
     dict_set(values, "a", new_bool_variant(a));
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_bool_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_bool_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_bbb(char *code, bool a, bool b, bool expected_result) {
     dict *values = new_dict(variant_class);
     dict_set(values, "a", new_bool_variant(a));
     dict_set(values, "b", new_bool_variant(b));
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_bool_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_bool_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_i(char *code, int expected_result) {
     dict *values = new_dict(variant_class);
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_int_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_int_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_ii(char *code, int a, int expected_result) {
     dict *values = new_dict(variant_class);
     dict_set(values, "a", new_int_variant(a));
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_int_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_int_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_iii(char *code, int a, int b, int expected_result) {
     dict *values = new_dict(variant_class);
     dict_set(values, "a", new_int_variant(a));
     dict_set(values, "b", new_int_variant(b));
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_int_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_int_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_ib(char *code, int a, bool expected_result) {
     dict *values = new_dict(variant_class);
     dict_set(values, "a", new_int_variant(a));
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_bool_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_bool_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_s(char *code, char *expected_result) {
     dict *values = new_dict(variant_class);
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_str_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_str_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_ss(char *code, char *a, char *expected_result) {
     dict *values = new_dict(variant_class);
     dict_set(values, "a", new_str_variant(a));
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
-        assert_variant_has_str_value(evaluation.result->successful, expected_result, code);
+        assert_variant_has_str_value(evaluation.result, expected_result, code);
 }
 
 static void verify_execution_log(char *code, char *expected_log) {
     dict *values = new_dict(variant_class);
-    failable_execution_outcome evaluation = interpret_and_execute(code, "test", values, false, false, false);
+    failable_variant evaluation = interpret_and_execute(code, "test", values, false, false, false);
     if (evaluation.failed)
         assertion_failed(evaluation.err_msg, code);
-    else if (evaluation.result->exception_thrown)
+    else if (variant_is_exception(evaluation.result))
         assertion_failed("exception thrown", code);
     else
         assert_strs_are_equal(exec_context_get_log(), expected_log, code);

@@ -201,19 +201,19 @@ static void print_expression(statement *curr_stmt, expression *curr_expr, exec_c
     dict *vars = (stack_empty(ctx->stack_frames) ? ctx->built_in_symbols : 
         ((stack_frame *)stack_peek(ctx->stack_frames))->symbols);
     
-    failable_execution_outcome execution = interpret_and_execute(cmd_arg, "(debugger)", 
+    failable_variant execution = interpret_and_execute(cmd_arg, "(debugger)", 
         vars, false, false, false);
     
     if (execution.failed) {
         printf("Evaluation failed: %s\n", execution.err_msg);
-    } else if (execution.result->exception_thrown) {
+    } else if (variant_is_exception(execution.result)) {
         str_builder *sb = new_str_builder();
-        variant_describe(execution.result->exception, sb);
+        variant_describe(execution.result, sb);
         printf("Exception: %s\n", str_builder_charptr(sb));
         str_builder_free(sb);
     } else {
         str_builder *sb = new_str_builder();
-        variant_describe(execution.result->successful, sb);
+        variant_describe(execution.result, sb);
         printf("%s\n", str_builder_charptr(sb));
         str_builder_free(sb);
     }

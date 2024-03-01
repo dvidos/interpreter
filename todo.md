@@ -1,9 +1,6 @@
 # todo
 
 * implement exceptions in the script language
-  * make everything return an `execution_outcome` so that exceptions can be checked
-  * then make executing the `throw` statement return an exception.
-  *
 
 * implement the `with() { ... }` statement doing a cleanup.
 
