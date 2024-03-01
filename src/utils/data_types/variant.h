@@ -17,6 +17,7 @@ typedef enum variant_type {
     VT_LIST,
     VT_DICT,
     VT_CALLABLE,
+    VT_EXCEPTION,
 
     VT_ANYTHING, // for (non) filtering function arguments
     VT_VOID,     // for functions not returning anything
@@ -32,6 +33,7 @@ variant *new_str_variant(const char *p);
 variant *new_list_variant(list *l);
 variant *new_dict_variant(dict *d);
 variant *new_callable_variant(callable *c);
+variant *new_exception_variant(const char *msg, ...);
 
 bool variant_is_null(variant *v);
 bool variant_is_bool(variant *v);
@@ -41,6 +43,7 @@ bool variant_is_str(variant *v);
 bool variant_is_list(variant *v);
 bool variant_is_dict(variant *v);
 bool variant_is_callable(variant *v);
+bool variant_is_exception(variant *v);
 variant_type variant_get_type(variant *v);
 
 bool variant_as_bool(variant *v);

@@ -21,6 +21,9 @@ struct variant {
         list *list_;
         dict *dict_;
         callable *callable_;
+        struct {
+            const char *msg;
+        } exception;
     } per_type;
     const char *str_repr;
 };
@@ -89,6 +92,20 @@ variant *new_callable_variant(callable *c) {
     variant *v = new_null_variant();
     v->type = VT_CALLABLE;
     v->per_type.callable_ = c;
+    return v;
+}
+
+variant *new_exception_variant(const char *fmt, ...) {
+    char buffer[256];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+
+    variant *v = new_null_variant();
+    v->type = VT_EXCEPTION;
+    v->per_type.exception.msg = malloc(strlen(buffer) + 1);
+    strcpy((char *)v->per_type.exception.msg, buffer);
     return v;
 }
 
@@ -240,6 +257,8 @@ const char *variant_as_str(variant *v) {
             return v->str_repr;
         case VT_CALLABLE:
             return callable_name(v->per_type.callable_);
+        case VT_EXCEPTION:
+            return v->per_type.exception.msg;
         default:
             return NULL;
     }
@@ -343,6 +362,8 @@ bool variants_are_equal(variant *a, variant *b) {
             return dicts_are_equal(a->per_type.dict_, b->per_type.dict_);
         case VT_CALLABLE:
             return callables_are_equal(a->per_type.callable_, b->per_type.callable_);
+        case VT_EXCEPTION:
+            return strcmp(a->per_type.exception.msg, b->per_type.exception.msg) == 0;
     }
 
     // we shouldn't get here...
