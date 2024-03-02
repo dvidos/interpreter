@@ -194,33 +194,37 @@ static failable_token get_token_at_code_position() {
     if (code_finished())
         return ok_token(NULL);
     
+    // we want the row/col at the start of the token, not after parsing it.
+    int start_line = code_line_no;
+    int start_column = code_column_no;
+
     // try a char-based token first
     token_type char_token_type = get_char_token_type();
     if (char_token_type != T_UNKNOWN) {
-        return ok_token(new_token(char_token_type, code_filename, code_line_no, code_column_no));
+        return ok_token(new_token(char_token_type, code_filename, start_line, start_column));
     }
 
     char c = *code_curr_char;
     if (c == '"' || c == '\'') {
         char *data = collect_string_literal();
-        return ok_token(new_data_token(T_STRING_LITERAL, data, code_filename, code_line_no, code_column_no));
+        return ok_token(new_data_token(T_STRING_LITERAL, data, code_filename, start_line, start_column));
 
     } else if (is_number_char(c)) {
         char *data = collect(is_number_char);
-        return ok_token(new_data_token(T_NUMBER_LITERAL, data, code_filename, code_line_no, code_column_no));
+        return ok_token(new_data_token(T_NUMBER_LITERAL, data, code_filename, start_line, start_column));
 
     } else if (is_identifier_char(c)) {
         char *data = collect(is_identifier_char);
         token_type reserved_word_token = get_reserved_word_token(data);
         if (reserved_word_token != T_UNKNOWN)
-            return ok_token(new_token(reserved_word_token, code_filename, code_line_no, code_column_no));
+            return ok_token(new_token(reserved_word_token, code_filename, start_line, start_column));
         else if (strcmp(data, "true") == 0 || strcmp(data, "false") == 0)
-            return ok_token(new_data_token(T_BOOLEAN_LITERAL, data, code_filename, code_line_no, code_column_no));
+            return ok_token(new_data_token(T_BOOLEAN_LITERAL, data, code_filename, start_line, start_column));
         else
-            return ok_token(new_data_token(T_IDENTIFIER, data, code_filename, code_line_no, code_column_no));
+            return ok_token(new_data_token(T_IDENTIFIER, data, code_filename, start_line, start_column));
     }
     
-    return failed_token(NULL, "Unrecognized character '%c' at %s:%d:%d", *code_curr_char, code_filename, code_line_no, code_column_no);
+    return failed_token(NULL, "Unrecognized character '%c' at %s:%d:%d", *code_curr_char, code_filename, start_line, start_column);
 }
 
 failable_list parse_code_into_tokens(const char *code, const char *filename) {
