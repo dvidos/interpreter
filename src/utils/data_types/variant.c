@@ -230,7 +230,7 @@ float variant_as_float(variant *v) {
 const char *variant_as_str(variant *v) {
     switch (v->type) {
         case VT_NULL:
-            return NULL;
+            return "(null)";
         case VT_BOOL:
             return v->per_type.bool_ ? "true" : "false";
         case VT_INT:

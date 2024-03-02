@@ -301,7 +301,7 @@ static failable_bool handle_command(char *cmd, statement *curr_stmt, expression 
         case 'n': setup_stepping(false, true, false, false, curr_stmt, curr_expr, ctx); done = true; break;
         case 'r': setup_stepping(false, false, true, false, curr_stmt, curr_expr, ctx); done = true; break;
         case 'c': setup_stepping(false, false, false, true, curr_stmt, curr_expr, ctx); done = true; break;
-        case 'q': return failed_bool(NULL, "Execution aborted!"); break;
+        case 'q': return failed_bool(NULL, "Execution aborted!"); break;    
         case 'w': show_stack_trace(curr_stmt, curr_expr, ctx); break;
         case 'a': show_args_and_values(curr_stmt, curr_expr, ctx); break;
         case 'b': manipulate_breakpoint(curr_stmt, curr_expr, ctx, cmd + 1); break;
