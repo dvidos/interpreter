@@ -118,6 +118,10 @@ bool operator_type_is_unary(operator_type op) {
     return pos == PREFIX || pos == POSTFIX;
 }
 
+const char *operator_type_name(operator_type op) {
+    return op_type_infos_per_operator[op].name;
+}
+
 const void operator_type_describe(operator_type op, str_builder *sb) {
     str_builder_add(sb, op_type_infos_per_operator[op].name);
 }

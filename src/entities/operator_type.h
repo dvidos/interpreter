@@ -78,6 +78,7 @@ int operator_type_precedence(operator_type op);
 op_type_position operator_type_position(operator_type op);
 op_type_associativity operator_type_associativity(operator_type op);
 bool operator_type_is_unary(operator_type op);
+const char *operator_type_name(operator_type op);
 const void operator_type_describe(operator_type op, str_builder *sb);
 
 extern class *operator_type_class;

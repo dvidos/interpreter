@@ -103,6 +103,32 @@ void *dict_get(dict *d, const char *key) {
     return NULL;
 }
 
+bool dict_del(dict *d, const char *key) {
+    if (!dict_has(d, key))
+        return false;
+    int slot = hash(key) % d->capacity;
+
+    // if it's the only one in chain..
+    if (strcmp(d->entries_array[slot]->key, key) == 0 && d->entries_array[slot]->next == NULL) {
+        d->entries_array[slot] = NULL;
+        d->count -= 1;
+        return true;
+    }
+
+    // else find trailing node to reset theh "next" pointer
+    dict_entry *trailing = d->entries_array[slot];
+    while (trailing->next != NULL) {
+        if (strcmp(trailing->next->key, key) == 0) {
+            trailing->next = trailing->next->next;
+            d->count -= 1;
+            return true;
+        }
+        trailing = trailing->next;
+    }
+    
+    return false;
+}
+
 int dict_count(dict *d) {
     return d->count;
 }

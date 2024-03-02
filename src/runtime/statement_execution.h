@@ -4,9 +4,9 @@
 #include "../utils/data_types/_module.h"
 #include "../utils/containers/_module.h"
 #include "../entities/_module.h"
+#include "execution_outcome.h"
 
-
-failable_variant execute_statements(list *statements, exec_context *ctx);
+execution_outcome execute_statements(list *statements, exec_context *ctx);
 
 
 #endif

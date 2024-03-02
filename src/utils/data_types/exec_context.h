@@ -44,6 +44,7 @@ variant *exec_context_resolve_symbol(exec_context *c, const char *name);
 bool exec_context_symbol_exists(exec_context *c, const char *name);
 failable exec_context_register_symbol(exec_context *c, const char *name, variant *v);
 failable exec_context_update_symbol(exec_context *c, const char *name, variant *v);
+failable exec_context_unregister_symbol(exec_context *c, const char *name);
 
 
 

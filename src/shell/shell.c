@@ -19,20 +19,18 @@ static bool get_command(char *buffer, int buffer_size) {
 
 static void execute_command(const char *code, dict *values, bool verbose, bool enable_debugger) {
 
-    failable_variant execution = interpret_and_execute(code, "interactive", values, verbose, enable_debugger, false);
-    if (execution.failed) {
-        printf("Evaluation failed!\n");
-        failable_print(&execution);
-        printf("\n");
-        return;
-    } else if (variant_is_exception(execution.result)) {
+    execution_outcome ex = interpret_and_execute(code, "interactive", values, verbose, enable_debugger, false);
+    if (ex.failed) {
+        printf("Evaluation failed: %s\n", ex.failure_message);
+
+    } else if (ex.exception_thrown) {
         str_builder *sb = new_str_builder();
-        variant_describe(execution.result, sb);
-        printf("exception: %s\n", str_builder_charptr(sb));
+        variant_describe(ex.exception, sb);
+        printf("Uncaught exception: %s\n", str_builder_charptr(sb));
         str_builder_free(sb);
     } else {
         str_builder *sb = new_str_builder();
-        variant_describe(execution.result, sb);
+        variant_describe(ex.result, sb);
         printf("%s\n", str_builder_charptr(sb));
         str_builder_free(sb);
     }

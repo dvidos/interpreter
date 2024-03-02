@@ -23,6 +23,10 @@ struct variant {
         callable *callable_;
         struct {
             const char *msg;
+            const char *script_filename;
+            int script_line;
+            int script_column;
+            variant *inner;
         } exception;
     } per_type;
     const char *str_repr;
@@ -95,17 +99,23 @@ variant *new_callable_variant(callable *c) {
     return v;
 }
 
-variant *new_exception_variant(const char *fmt, ...) {
+variant *new_exception_variant(const char *script_filename, int script_line, int script_column, variant *inner, const char *fmt, ...) {
     char buffer[256];
     va_list args;
     va_start(args, fmt);
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
 
+    char *msg = malloc(strlen(buffer) + 1);
+    strcpy(msg, buffer);
+
     variant *v = new_null_variant();
     v->type = VT_EXCEPTION;
-    v->per_type.exception.msg = malloc(strlen(buffer) + 1);
-    strcpy((char *)v->per_type.exception.msg, buffer);
+    v->per_type.exception.msg = msg;
+    v->per_type.exception.script_filename = script_filename;
+    v->per_type.exception.script_line = script_line;
+    v->per_type.exception.script_column = script_column;
+    v->per_type.exception.inner = inner;
     return v;
 }
 
@@ -262,6 +272,21 @@ const char *variant_as_str(variant *v) {
         case VT_CALLABLE:
             return callable_name(v->per_type.callable_);
         case VT_EXCEPTION:
+            if (v->str_repr == NULL) {
+                str_builder *sb = new_str_builder();
+                str_builder_addf(sb, "%s at %s:%d:%d",
+                    v->per_type.exception.msg,
+                    v->per_type.exception.script_filename,
+                    v->per_type.exception.script_line,
+                    v->per_type.exception.script_column);
+                if (v->per_type.exception.inner != NULL)
+                    str_builder_addf(sb, "\n\t%s", variant_as_str(v->per_type.exception.inner));
+                v->str_repr = malloc(strlen(str_builder_charptr(sb)) + 1);
+                strcpy((char *)v->str_repr, str_builder_charptr(sb));
+                str_builder_free(sb);
+            }
+            return v->str_repr;
+
             return v->per_type.exception.msg;
         default:
             return NULL;

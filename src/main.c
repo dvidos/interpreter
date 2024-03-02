@@ -107,19 +107,21 @@ void show_help() {
 
 void execute_code(const char *code, const char *filename) {
     printf("Executing %s...\n", filename);
+
     dict *values = new_dict(variant_class);
-    failable_variant execution = interpret_and_execute(code, filename, values, options.verbose, options.enable_debugger, true);
-    if (execution.failed) {
-        printf("Execution failed:\n");
-        failable_print(&execution);
-    } else if (variant_is_exception(execution.result)) {
+    execution_outcome ex = interpret_and_execute(code, filename, values, options.verbose, options.enable_debugger, true);
+    if (ex.failed) {
+        printf("Execution failed: %s\n", ex.failure_message);
+
+    } else if (ex.exception_thrown) {
         str_builder *sb = new_str_builder();
-        variant_describe(execution.result, sb);
-        printf("Execution caught exception: %s\n", str_builder_charptr(sb));
+        variant_describe(ex.exception, sb);
+        printf("Unhandled exception: %s\n", str_builder_charptr(sb));
         str_builder_free(sb);
+        
     } else {
         str_builder *sb = new_str_builder();
-        variant_describe(execution.result, sb);
+        variant_describe(ex.result, sb);
         printf("Execution successful, result is %s\n", str_builder_charptr(sb));
         str_builder_free(sb);
     }

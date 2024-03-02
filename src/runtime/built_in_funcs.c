@@ -19,11 +19,11 @@ static dict *built_in_list_methods = NULL;
 static dict *built_in_dict_methods = NULL;
 
 #define BUILT_IN_CALLABLE(name)  \
-    static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx); \
+    static execution_outcome built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx); \
     static inline callable *built_in_ ## name ## _callable() { \
         return new_callable(#name, built_in_ ## name ## _body, NULL); \
     } \
-    static failable_variant built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx)
+    static execution_outcome built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx)
 
 #define STR_ARG(num)    (num >= list_length(positional_args)) ? NULL : variant_as_str(list_get(positional_args, num))
 #define INT_ARG(num)    (num >= list_length(positional_args)) ? 0 : variant_as_int(list_get(positional_args, num))
@@ -32,9 +32,9 @@ static dict *built_in_dict_methods = NULL;
 #define CALL_ARG(num)   (num >= list_length(positional_args)) ? NULL : variant_as_callable(list_get(positional_args, num))
 #define VARNT_ARG(num)  (num >= list_length(positional_args)) ? NULL : list_get(positional_args, num)
 
-#define RET_STR(val)    ok_variant(new_str_variant(val))
-#define RET_INT(val)    ok_variant(new_int_variant(val))
-#define RET_VOID()      ok_variant(new_null_variant())
+#define RET_STR(val)    ok_outcome(new_str_variant(val))
+#define RET_INT(val)    ok_outcome(new_int_variant(val))
+#define RET_VOID()      ok_outcome(new_null_variant())
 
 #define BUILT_IN_METHOD(target_obj_type, name, function)  \
     dict_set(built_in_ ## target_obj_type ## _methods, \
@@ -107,8 +107,10 @@ BUILT_IN_CALLABLE(log) {
 BUILT_IN_CALLABLE(input) {
     // something like gets() ?
     char buffer[128];
-    if (fgets(buffer, sizeof(buffer), stdin) == NULL)
-        return failed_variant(NULL, "EOF while reading input");
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+            "EOF while reading input"));
+    }
 
     if (buffer[strlen(buffer) - 1] == '\n')
         buffer[strlen(buffer) - 1] = 0;        
@@ -153,21 +155,21 @@ BUILT_IN_CALLABLE(int) {
 }
 
 
-static failable_variant built_in_list_empty(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_empty(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = variant_as_list(this_obj);
-    return ok_variant(new_bool_variant(list_length(l) == 0));
+    return ok_outcome(new_bool_variant(list_length(l) == 0));
 }
-static failable_variant built_in_list_length(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_length(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = variant_as_list(this_obj);
-    return ok_variant(new_int_variant(list_length(l)));
+    return ok_outcome(new_int_variant(list_length(l)));
 }
-static failable_variant built_in_list_add(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_add(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = variant_as_list(this_obj);
     variant *item = list_get(positional_args, 0);
     list_add(l, item);
-    return ok_variant(new_null_variant());
+    return ok_outcome(new_null_variant());
 }
-static failable_variant built_in_list_filter(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_filter(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = variant_as_list(this_obj);
     list *result = new_list(list_contained_item(l));
     callable *func = CALL_ARG(0);
@@ -175,18 +177,21 @@ static failable_variant built_in_list_filter(list *positional_args, dict *named_
     for_list(l, it, variant, item) {
         list *func_args = list_of(variant_class, 3,
             item, new_int_variant(index), this_obj);
-        failable_variant call = callable_call(func, func_args, NULL, NULL, ctx);
-        if (call.failed) return failed_variant(&call, NULL);
-        if (!variant_is_bool(call.result)) 
-            return failed_variant(NULL, "filter requires a function returning boolean");
+        execution_outcome call = callable_call(func, func_args, NULL, NULL, ctx);
+
+        if (call.exception_thrown || call.failed) return call;
+        if (!variant_is_bool(call.result)) {
+            return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+                "filter requires a function returning boolean"));
+        }
         bool passed = variant_as_bool(call.result);
         if (passed)
             list_add(result, item);
         index++;
     }
-    return ok_variant(new_list_variant(result));
+    return ok_outcome(new_list_variant(result));
 }
-static failable_variant built_in_list_map(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_map(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = variant_as_list(this_obj);
     list *result = new_list(list_contained_item(l));
     callable *func = CALL_ARG(0);
@@ -194,14 +199,15 @@ static failable_variant built_in_list_map(list *positional_args, dict *named_arg
     for_list(l, it, variant, item) {
         list *func_args = list_of(variant_class, 3,
             item, new_int_variant(index), this_obj);
-        failable_variant call = callable_call(func, func_args, NULL, NULL, ctx);
-        if (call.failed) return failed_variant(&call, NULL);
+        execution_outcome call = callable_call(func, func_args, NULL, NULL, ctx);
+        if (call.exception_thrown || call.failed) return call;
+
         list_add(result, call.result);
         index++;
     }
-    return ok_variant(new_list_variant(result));
+    return ok_outcome(new_list_variant(result));
 }
-static failable_variant built_in_list_reduce(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_reduce(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = variant_as_list(this_obj);
     variant *accumulator = VARNT_ARG(0);
     callable *func = CALL_ARG(1);
@@ -211,35 +217,35 @@ static failable_variant built_in_list_reduce(list *positional_args, dict *named_
     for_list(l, it, variant, item) {
         list *func_args = list_of(variant_class, 4,
             accumulator, item, new_int_variant(index), this_obj);
-        failable_variant new_accum = callable_call(func, func_args, NULL, NULL, ctx);
-        if (new_accum.failed) return failed_variant(&new_accum, NULL);
+        execution_outcome new_accum = callable_call(func, func_args, NULL, NULL, ctx);
+        if (new_accum.exception_thrown || new_accum.failed) return new_accum;
         accumulator = new_accum.result;
         index++;
     }
-    return ok_variant(accumulator);
+    return ok_outcome(accumulator);
 }
 
-static failable_variant built_in_dict_empty(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_dict_empty(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = variant_as_dict(this_obj);
-    return ok_variant(new_bool_variant(dict_is_empty(d)));
+    return ok_outcome(new_bool_variant(dict_is_empty(d)));
 }
-static failable_variant built_in_dict_length(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_dict_length(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = variant_as_dict(this_obj);
-    return ok_variant(new_int_variant(dict_count(d)));
+    return ok_outcome(new_int_variant(dict_count(d)));
 }
-static failable_variant built_in_dict_keys(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_dict_keys(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = variant_as_dict(this_obj);
     list *result = new_list(str_class);
     for_dict(d, it, str, key)
         list_add(result, (void *)key); // we lose const here
-    return ok_variant(new_list_variant(result));
+    return ok_outcome(new_list_variant(result));
 }
-static failable_variant built_in_dict_values(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_dict_values(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = variant_as_dict(this_obj);
     list *result = new_list(str_class);
     for_dict(d, it, str, key)
         list_add(result, dict_get(d, key));
-    return ok_variant(new_list_variant(result));
+    return ok_outcome(new_list_variant(result));
 }
 
 

@@ -8,5 +8,6 @@
 #include "statement_execution.h"
 
 #include "built_in_funcs_tests.h"
+#include "execution_outcome.h"
 
 #endif

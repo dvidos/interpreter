@@ -55,6 +55,12 @@ failable stack_frame_update_symbol(stack_frame *f, const char *name, variant *v)
     return ok();
 }
 
+failable stack_frame_unregister_symbol(stack_frame *f, const char *name) {
+    if (!dict_has(f->symbols, name))
+        return failed("Symbol %s does not exist", name);
+    dict_del(f->symbols, name);
+    return ok();
+}
 
 
 

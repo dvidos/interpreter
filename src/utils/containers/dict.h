@@ -16,6 +16,7 @@ dict *dict_of(class *item_class, int pairs_count, ...);
 void  dict_set(dict *d, const char *key, void *item);
 bool  dict_has(dict *d, const char *key);
 void *dict_get(dict *d, const char *key);
+bool  dict_del(dict *d, const char *key);
 int dict_count(dict *d);
 bool dict_is_empty(dict *d);
 iterator *dict_keys_iterator(dict *d);

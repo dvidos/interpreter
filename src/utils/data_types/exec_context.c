@@ -95,7 +95,7 @@ failable exec_context_register_symbol(exec_context *c, const char *name, variant
     }
     
     if (dict_has(c->global_values, name))
-        return failed("Value %s already exists", name);
+        return failed("symbol %s already exists", name);
     dict_set(c->global_values, name, v);
     return ok();
 }
@@ -110,6 +110,20 @@ failable exec_context_update_symbol(exec_context *c, const char *name, variant *
     if (!dict_has(c->global_values, name))
         return failed("Symbol %s does not exist", name);
     dict_set(c->global_values, name, v);
+    return ok();
+}
+
+failable exec_context_unregister_symbol(exec_context *c, const char *name) {
+    stack_frame *f = stack_peek(c->stack_frames);
+    if (f != NULL) {
+        failable registration = stack_frame_unregister_symbol(f, name);
+        if (registration.failed) return failed(&registration, NULL);
+        return ok();
+    }
+    
+    if (!dict_has(c->global_values, name))
+        return failed("symbol %s not found", name);
+    dict_del(c->global_values, name);
     return ok();
 }
 

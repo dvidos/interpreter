@@ -3,6 +3,7 @@
 #include "../debugger/debugger.h"
 #include "../utils/str.h"
 #include "../utils/str_builder.h"
+#include "execution_outcome.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
 #include "built_in_funcs.h"
@@ -20,17 +21,18 @@ enum comparison {
     COMP_EQ, COMP_NE
 };
 
-static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx);
-static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **this_value);
-static failable         store_value(expression *lvalue, exec_context *ctx, variant *rvalue);
-static failable_variant retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value);
-static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
+static execution_outcome modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx);
+static execution_outcome retrieve_value(expression *e, exec_context *ctx, variant **this_value);
+static execution_outcome store_value(expression *lvalue, exec_context *ctx, variant *rvalue);
+static execution_outcome retrieve_element(expression *list_exp, expression *index_exp, exec_context *ctx);
+static execution_outcome retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value);
+static execution_outcome make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
 
-static failable_variant calculate_unary_operation(operator_type op, variant *value, exec_context *ctx);
-static failable_variant calculate_binary_operation(operator_type op, variant *v1, variant *v2, exec_context *ctx);
-static failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant *v2);
+static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx);
+static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx);
+static execution_outcome calculate_comparison(expression *op_expr, enum comparison cmp, variant *v1, variant *v2);
 
-static failable_variant expression_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx);
+static execution_outcome expression_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx);
 
 
 
@@ -39,7 +41,7 @@ void initialize_expression_execution() {
     one = new_numeric_literal_expression("1", NULL);
 }
 
-failable_variant execute_expression(expression *e, exec_context *ctx) {
+execution_outcome execute_expression(expression *e, exec_context *ctx) {
     // first concern is whether the expression stores data, or is read only
     expression_type et = e->type;
     operator_type op = e->op;
@@ -48,7 +50,7 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
 
     if (should_start_debugger(NULL, e, ctx)) {
         failable session = run_debugger(NULL, e, ctx);
-        if (session.failed) return failed_variant(&session, NULL);
+        if (session.failed) return failed_outcome("%s", session.err_msg);
     }
 
     if (et == ET_UNARY_OP) {
@@ -65,10 +67,10 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
         rval_expr = e->per_type.operation.operand2;
         switch (op) {
             case OP_ASSIGNMENT:
-                failable_variant retrieval = retrieve_value(rval_expr, ctx, NULL);
-                if (retrieval.failed) return failed_variant(&retrieval, NULL);
-                failable storage = store_value(lval_expr, ctx, retrieval.result);
-                if (storage.failed) return failed_variant(&storage, "Cannot store");
+                execution_outcome retrieval = retrieve_value(rval_expr, ctx, NULL);
+                if (retrieval.exception_thrown || retrieval.failed) return retrieval;
+                execution_outcome storage = store_value(lval_expr, ctx, retrieval.result);
+                if (retrieval.exception_thrown || retrieval.failed) return retrieval;
                 return retrieval;
             
             case OP_ADD_ASSIGN: return modify_and_store(lval_expr, MAS_ADD, rval_expr, false, ctx);
@@ -88,8 +90,8 @@ failable_variant execute_expression(expression *e, exec_context *ctx) {
     return retrieve_value(e, ctx, NULL);
 }
 
-static failable_variant retrieve_value(expression *e, exec_context *ctx, variant **this_value) {
-    failable_variant execution, variant1, variant2;
+static execution_outcome retrieve_value(expression *e, exec_context *ctx, variant **this_value) {
+    execution_outcome ex;
     operator_type op = e->op;
     const char *data = e->per_type.terminal_data;
     expression *operand1, *operand2;
@@ -97,40 +99,44 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
     switch (e->type) {
         case ET_IDENTIFIER:
             variant *v = exec_context_resolve_symbol(ctx, data);
-            if (v == NULL || variant_is_null(v))
-                return failed_variant(NULL, "identifier not found \"%s\"", data);
-            return ok_variant(v);
+            if (v == NULL || variant_is_null(v)) {
+                return exception_outcome(new_exception_variant(e->token->filename, e->token->line_no, e->token->column_no, NULL,
+                    "identifier '%s' not found", data));
+            }
+            return ok_outcome(v);
         case ET_NUMERIC_LITERAL:
-            return ok_variant(new_int_variant(atoi(data)));
+            return ok_outcome(new_int_variant(atoi(data)));
         case ET_STRING_LITERAL:
-            return ok_variant(new_str_variant(data));
+            return ok_outcome(new_str_variant(data));
         case ET_BOOLEAN_LITERAL:
-            return ok_variant(new_bool_variant(strcmp(data, "true") == 0));
+            return ok_outcome(new_bool_variant(strcmp(data, "true") == 0));
+
         case ET_LIST_DATA:
             list *expressions_list = e->per_type.list_;
             list *values_list = new_list(variant_class);
             for_list(expressions_list, list_iter, expression, list_exp) {
-                execution = execute_expression(list_exp, ctx);
-                if (execution.failed) return failed_variant(&execution, NULL);
-                list_add(values_list, execution.result);
+                ex = execute_expression(list_exp, ctx);
+                if (ex.exception_thrown || ex.failed) return ex;
+                list_add(values_list, ex.result);
             }
-            return ok_variant(new_list_variant(values_list));
+            return ok_outcome(new_list_variant(values_list));
+
         case ET_DICT_DATA:
             dict *expressions_dict = e->per_type.dict_;
             dict *values_dict = new_dict(variant_class);
             iterator *keys_it = dict_keys_iterator(expressions_dict);
             for_iterator(keys_it, str, key) {
-                execution = execute_expression(dict_get(expressions_dict, key), ctx);
-                if (execution.failed) return failed_variant(&execution, NULL);
-                dict_set(values_dict, key, execution.result);
+                ex = execute_expression(dict_get(expressions_dict, key), ctx);
+                if (ex.exception_thrown || ex.failed) return ex;
+                dict_set(values_dict, key, ex.result);
             }
-            return ok_variant(new_dict_variant(values_dict));
+            return ok_outcome(new_dict_variant(values_dict));
 
         case ET_UNARY_OP:
             operand1 = e->per_type.operation.operand1;
-            variant1 = execute_expression(operand1, ctx);
-            if (variant1.failed) return failed_variant(&variant1, "Single operand execution failed");
-            return calculate_unary_operation(op, variant1.result, ctx);
+            ex = execute_expression(operand1, ctx);
+            if (ex.exception_thrown || ex.failed) return ex;
+            return calculate_unary_expression(e, ex.result, ctx);
 
         case ET_BINARY_OP:
             op = e->op;
@@ -138,64 +144,54 @@ static failable_variant retrieve_value(expression *e, exec_context *ctx, variant
             operand2 = e->per_type.operation.operand2;
 
             if (op == OP_ARRAY_SUBSCRIPT) {
-                variant1 = execute_expression(operand1, ctx);
-                if (variant1.failed) return failed_variant(&variant1, "Operand 1 failed");
-                if (!variant_is_list(variant1.result)) return failed_variant(NULL, "ARRAY_SUBSCRIPT requires a list as left operand");
-                list *l = variant_as_list(variant1.result);
-                variant2 = execute_expression(operand2, ctx);
-                if (variant2.failed) return failed_variant(&variant2, "Operand 2 failed");
-                if (!variant_is_int(variant2.result)) return failed_variant(NULL, "ARRAY_SUBSCRIPT requires a number value as right operand");
-                int index = variant_as_int(variant2.result);
-                if (index >= list_length(l)) return failed_variant(NULL, "array index (%d) more than max index (%d)", index, list_length(l) - 1);
-                return ok_variant(list_get(l, index));
-
+                return retrieve_element(operand1, operand2, ctx);
             } else if (op == OP_MEMBER) {
                 return retrieve_member(operand1, operand2, ctx, this_value);
-
             } else if (op == OP_FUNC_CALL) {
                 return make_function_call(operand1, operand2, ctx);
-
             } else {
-                variant1 = execute_expression(operand1, ctx);
-                if (variant1.failed) return failed_variant(&variant1, "Operand 1 failed");
-                variant2 = execute_expression(operand2, ctx);
-                if (variant2.failed) return failed_variant(&variant2, "Operand 2 failed");
-                return calculate_binary_operation(op, variant1.result, variant2.result, ctx);
+                ex = execute_expression(operand1, ctx);
+                if (ex.exception_thrown || ex.failed) return ex;
+                variant *v1 = ex.result;
+                ex = execute_expression(operand2, ctx);
+                if (ex.exception_thrown || ex.failed) return ex;
+                variant *v2 = ex.result;
+                return calculate_binary_expression(e, v1, v2, ctx);
             }
+            break;
         
         case ET_FUNC_DECL:
-            // "retrieving" a `function () { ...}` expression 
+            // "retrieving" a `function () { ...}` expression
             // merely creates and returns a callable variant
-            return ok_variant(new_callable_variant(new_callable(
-                "(user nameless expression function)",
-                expression_function_callable_executor,
-                e
+            return ok_outcome(new_callable_variant(new_callable(
+                "(user anonymous expression function)",
+                expression_function_callable_executor, e
             )));
     }
 
-    return failed_variant(NULL, "Cannot retrieve value, unknown expr type / operator_type");
+    return exception_outcome(new_exception_variant(e->token->filename, e->token->line_no, e->token->column_no, NULL,
+        "Cannot retrieve value, unknown expression / operator type"));
 }
 
-static failable_variant modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx) {
-    failable_variant retrieval;
-    variant *original = NULL;
+static execution_outcome modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx) {
+    execution_outcome retrieval;
     int original_int = 0;
     int operand_int;
     int result_int;
 
     // for now we allow variable creation via simple assignment
     retrieval = retrieve_value(lvalue, ctx, NULL);
-    if (retrieval.failed) return failed_variant(&retrieval, "Failed retrieving lvalue");
-    original = retrieval.result;
+    if (retrieval.exception_thrown || retrieval.failed) return retrieval;
+    variant *original = retrieval.result;
     if (!variant_is_int(original))
-        return failed_variant(NULL, "Modify-and-store applies only to integers");
+        return failed_outcome("modify_and_store() should be called for integers only");
     original_int = variant_as_int(original);
 
     retrieval = retrieve_value(rvalue, ctx, NULL);
-    if (retrieval.failed) return failed_variant(&retrieval, "Failed retrieving rvalue");
+    if (retrieval.exception_thrown || retrieval.failed) return retrieval;
     variant *operand = retrieval.result;
     if (!variant_is_int(operand))
-        return failed_variant(NULL, "Modify-and-store requires integers as operands");
+        return failed_outcome("modify_and_store() should be called for integers only");
     operand_int = variant_as_int(operand);
 
     switch (op) {
@@ -204,8 +200,8 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
         case MAS_MUL: result_int = original_int * operand_int; break;
         case MAS_DIV: 
             if (operand_int == 0)
-                return ok_variant(new_exception_variant("division by zero not possible with integers"));
-                // failed_variant(NULL, "division by zero not possible with integers");
+                return exception_outcome(new_exception_variant(rvalue->token->filename, rvalue->token->line_no, rvalue->token->column_no, NULL,
+                    "division by zero not possible with integers"));
             result_int = original_int / operand_int;
             break;
         case MAS_MOD: result_int = original_int  % operand_int; break;
@@ -217,13 +213,13 @@ static failable_variant modify_and_store(expression *lvalue, enum modify_and_sto
     }
     
     variant *result = new_int_variant(result_int);
-    failable storing = store_value(lvalue, ctx, result);
-    if (storing.failed)
-        return failed_variant(&storing, "Error storing");
-    return ok_variant(return_original ? original : result);
+    execution_outcome storing = store_value(lvalue, ctx, result);
+    if (storing.exception_thrown || storing.failed) return storing;
+
+    return ok_outcome(return_original ? original : result);
 }
 
-static failable store_value(expression *lvalue, exec_context *ctx, variant *rvalue) {
+static execution_outcome store_value(expression *lvalue, exec_context *ctx, variant *rvalue) {
 
     expression_type et = lvalue->type;
     if (et == ET_IDENTIFIER) {
@@ -232,314 +228,411 @@ static failable store_value(expression *lvalue, exec_context *ctx, variant *rval
             exec_context_update_symbol(ctx, name, rvalue);
         else
             exec_context_register_symbol(ctx, name, rvalue);
-        return ok();
+        return ok_outcome(NULL);
 
     } else if (et == ET_BINARY_OP) {
         operator_type op = lvalue->op;
         if (op == OP_ARRAY_SUBSCRIPT) {
             // e.g. "ARRAY_SUBSCRIPT(<list_like_executionable>, <int_like_executionable>)"
             expression *op1 = lvalue->per_type.operation.operand1;
-            failable_variant op1_exec = execute_expression(op1, ctx);
-            if (op1_exec.failed) return failed(&op1_exec, NULL);
-            if (!variant_is_list(op1_exec.result)) return failed(NULL, "Array subscripts apply only to arrays");
+            execution_outcome op1_exec = execute_expression(op1, ctx);
+            if (op1_exec.exception_thrown || op1_exec.failed) return op1_exec;
+            if (!variant_is_list(op1_exec.result))
+                return exception_outcome(new_exception_variant(op1->token->filename, op1->token->line_no, op1->token->column_no, NULL,
+                    "array subscripts apply only to lists"));
 
             expression *op2 = lvalue->per_type.operation.operand2;
-            failable_variant op2_exec = execute_expression(op2, ctx);
-            if (op2_exec.failed) return failed(&op2_exec, NULL);
-            if (!variant_is_int(op2_exec.result)) return failed(NULL, "only integer results can be used as array indices");
+            execution_outcome op2_exec = execute_expression(op2, ctx);
+            if (op2_exec.exception_thrown || op2_exec.failed) return op2_exec;
+            if (!variant_is_int(op2_exec.result))
+                return exception_outcome(new_exception_variant(op2->token->filename, op2->token->line_no, op2->token->column_no, NULL,
+                    "only integer expression can be used as list indices"));
 
             list *l = variant_as_list(op1_exec.result);
             int i = variant_as_int(op2_exec.result);
             list_set(l, i, rvalue);
-            return ok();
+            return ok_outcome(NULL);
 
         } else if (op == OP_MEMBER) {
             expression *op1 = lvalue->per_type.operation.operand1;
-            failable_variant op1_exec = execute_expression(op1, ctx);
-            if (op1_exec.failed) return failed(&op1_exec, NULL);
-            if (!variant_is_dict(op1_exec.result)) return failed(NULL, "Struct members work only with identifiers");
+            execution_outcome op1_exec = execute_expression(op1, ctx);
+            if (op1_exec.exception_thrown || op1_exec.failed) return op1_exec;
+            if (!variant_is_dict(op1_exec.result))
+                return exception_outcome(new_exception_variant(op1->token->filename, op1->token->line_no, op1->token->column_no, NULL,
+                    "identifier member storage works only with dictionaries"));
 
             expression *op2 = lvalue->per_type.operation.operand2;
             if (op2->type != ET_IDENTIFIER)
-                return failed(NULL, "only identifiers can be used as structure members");
+                return exception_outcome(new_exception_variant(op1->token->filename, op1->token->line_no, op1->token->column_no, NULL,
+                    "only identifiers can be used for dictionary member storage"));
 
             dict *d = variant_as_dict(op1_exec.result);
             const char *key = op2->per_type.terminal_data;
             dict_set(d, key, rvalue);
-            return ok();
+            return ok_outcome(NULL);
 
         } else {
-            str_builder *sb = new_str_builder();
-            operator_type_describe(op, sb);
-            return failed(NULL, "operator_type cannot be used as lvalue: %s", str_builder_charptr(sb));
+            return exception_outcome(new_exception_variant(lvalue->token->filename, lvalue->token->line_no, lvalue->token->column_no, NULL,
+                "operator type cannot be used as lvalue: %s", operator_type_name(op)));
         }
         
     } else {
         str_builder *sb = new_str_builder();
         expression_describe(lvalue, sb);
-        return failed(NULL, "expression cannot be used as lvalue: %s", str_builder_charptr(sb));
+        return exception_outcome(new_exception_variant(lvalue->token->filename, lvalue->token->line_no, lvalue->token->column_no, NULL,
+            "expression cannot be used as lvalue: %s", str_builder_charptr(sb)));
     }
 }
 
-static failable_variant calculate_comparison(enum comparison cmp, variant *v1, variant *v2) {
+static execution_outcome calculate_comparison(expression *op_expr, enum comparison cmp, variant *v1, variant *v2) {
+
     if (variant_is_int(v1) && variant_is_int(v2)) {
         int i1 = variant_as_int(v1);
         int i2 = variant_as_int(v2);
         switch (cmp) {
-            case COMP_GT: return ok_variant(new_bool_variant(i1 >  i2));
-            case COMP_GE: return ok_variant(new_bool_variant(i1 >= i2));
-            case COMP_LT: return ok_variant(new_bool_variant(i1 <  i2));
-            case COMP_LE: return ok_variant(new_bool_variant(i1 <= i2));
-            case COMP_EQ: return ok_variant(new_bool_variant(i1 == i2));
-            case COMP_NE: return ok_variant(new_bool_variant(i1 != i2));
+            case COMP_GT: return ok_outcome(new_bool_variant(i1 >  i2));
+            case COMP_GE: return ok_outcome(new_bool_variant(i1 >= i2));
+            case COMP_LT: return ok_outcome(new_bool_variant(i1 <  i2));
+            case COMP_LE: return ok_outcome(new_bool_variant(i1 <= i2));
+            case COMP_EQ: return ok_outcome(new_bool_variant(i1 == i2));
+            case COMP_NE: return ok_outcome(new_bool_variant(i1 != i2));
         }
     } else if (variant_is_float(v1) && variant_is_float(v2)) {
         float f1 = variant_as_float(v1);
         float f2 = variant_as_float(v2);
         switch (cmp) {
-            case COMP_GT: return ok_variant(new_bool_variant(f1 >  f2));
-            case COMP_GE: return ok_variant(new_bool_variant(f1 >= f2));
-            case COMP_LT: return ok_variant(new_bool_variant(f1 <  f2));
-            case COMP_LE: return ok_variant(new_bool_variant(f1 <= f2));
-            case COMP_EQ: return ok_variant(new_bool_variant(f1 == f2));
-            case COMP_NE: return ok_variant(new_bool_variant(f1 != f2));
+            case COMP_GT: return ok_outcome(new_bool_variant(f1 >  f2));
+            case COMP_GE: return ok_outcome(new_bool_variant(f1 >= f2));
+            case COMP_LT: return ok_outcome(new_bool_variant(f1 <  f2));
+            case COMP_LE: return ok_outcome(new_bool_variant(f1 <= f2));
+            case COMP_EQ: return ok_outcome(new_bool_variant(f1 == f2));
+            case COMP_NE: return ok_outcome(new_bool_variant(f1 != f2));
         }
     } else if (variant_is_str(v1) && variant_is_str(v2)) {
         int c = strcmp(variant_as_str(v1), variant_as_str(v2));
         switch (cmp) {
-            case COMP_GT: return ok_variant(new_bool_variant(c >  0));
-            case COMP_GE: return ok_variant(new_bool_variant(c >= 0));
-            case COMP_LT: return ok_variant(new_bool_variant(c <  0));
-            case COMP_LE: return ok_variant(new_bool_variant(c <= 0));
-            case COMP_EQ: return ok_variant(new_bool_variant(c == 0));
-            case COMP_NE: return ok_variant(new_bool_variant(c != 0));
+            case COMP_GT: return ok_outcome(new_bool_variant(c >  0));
+            case COMP_GE: return ok_outcome(new_bool_variant(c >= 0));
+            case COMP_LT: return ok_outcome(new_bool_variant(c <  0));
+            case COMP_LE: return ok_outcome(new_bool_variant(c <= 0));
+            case COMP_EQ: return ok_outcome(new_bool_variant(c == 0));
+            case COMP_NE: return ok_outcome(new_bool_variant(c != 0));
         }
     } else if (variant_is_bool(v1) && variant_is_bool(v2)) {
         bool b1 = variant_as_bool(v1);
         bool b2 = variant_as_bool(v2);
         switch (cmp) {
-            case COMP_EQ: return ok_variant(new_bool_variant(b1 == b2));
-            case COMP_NE: return ok_variant(new_bool_variant(b1 != b2));
+            case COMP_EQ: return ok_outcome(new_bool_variant(b1 == b2));
+            case COMP_NE: return ok_outcome(new_bool_variant(b1 != b2));
         }
     } else if (variant_is_list(v1) && variant_is_list(v2)) {
         list *l1 = variant_as_list(v1);
         list *l2 = variant_as_list(v2);
         bool eq = lists_are_equal(l1, l2);
         switch (cmp) {
-            case COMP_EQ: return ok_variant(new_bool_variant(eq));
-            case COMP_NE: return ok_variant(new_bool_variant(!eq));
+            case COMP_EQ: return ok_outcome(new_bool_variant(eq));
+            case COMP_NE: return ok_outcome(new_bool_variant(!eq));
         }
     }
 
     str_builder *sb = new_str_builder();
+    str_builder_add(sb, "cannot compare given operands: ");
     variant_describe(v1, sb);
-    str_builder_add(sb, " and ");
+    str_builder_add(sb, ", ");
     variant_describe(v2, sb);
-    return failed_variant(NULL, "cannot compare with given operands (%s)", str_builder_charptr(sb));
+    return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+        "%s", str_builder_charptr(sb)));
 }
 
-static failable_variant retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value) {
+static execution_outcome retrieve_element(expression *list_exp, expression *index_exp, exec_context *ctx) {
+
+    execution_outcome ex = execute_expression(list_exp, ctx);
+    if (ex.exception_thrown || ex.failed) return ex;
+    if (!variant_is_list(ex.result)) 
+        return exception_outcome(new_exception_variant(
+            list_exp->token->filename, list_exp->token->line_no, list_exp->token->column_no, NULL,
+            "ARRAY_SUBSCRIPT requires a list as left operand"
+        ));
+    list *l = variant_as_list(ex.result);
+
+    ex = execute_expression(index_exp, ctx);
+    if (ex.exception_thrown || ex.failed) return ex;
+    variant *subscript = ex.result;
+    if (!variant_is_int(subscript))
+        return exception_outcome(new_exception_variant(
+            index_exp->token->filename, index_exp->token->line_no, index_exp->token->column_no, NULL,
+            "ARRAY_SUBSCRIPT requires an integer as right operand"
+        ));
+    int index = variant_as_int(subscript);
+
+    if (index < 0 || index >= list_length(l))
+        return exception_outcome(new_exception_variant(
+            index_exp->token->filename, index_exp->token->line_no, index_exp->token->column_no, NULL,
+            "array index (%d) out of bounds (0..%d)", index, list_length(l)
+        ));
+    return ok_outcome(list_get(l, index));
+}
+
+static execution_outcome retrieve_member(expression *obj_exp, expression *mbr_exp, exec_context *ctx, variant **this_value) {
+
     /* some objects, like a list, may behave as a dict,
-    in the sense of methods, e.g. "list1.length()", or "items.add(item)"
-    */
-    failable_variant obj_eval = execute_expression(object, ctx);
-    if (obj_eval.failed) return failed_variant(&obj_eval, NULL);
-    variant *obj = obj_eval.result;
-    if (this_value != NULL)
-        *this_value = obj;
+    in the sense of methods, e.g. "list1.length()", or "items.add(item)" */
+    execution_outcome ex = execute_expression(obj_exp, ctx);
+    if (ex.exception_thrown || ex.failed) return ex;
+    variant *object = ex.result;
+    if (this_value != NULL) // save for caller
+        *this_value = object;
     
-    if (member->type != ET_IDENTIFIER)
-        return failed_variant(NULL, "MEMBER_OF requires identifier as right operand");
-    const char *member_name = member->per_type.terminal_data;
+    if (mbr_exp->type != ET_IDENTIFIER)
+        return exception_outcome(new_exception_variant(
+            mbr_exp->token->filename, mbr_exp->token->line_no, mbr_exp->token->column_no, NULL,
+            "MEMBER_OF requires identifier as right operand"
+        ));
+    const char *member = mbr_exp->per_type.terminal_data;
     
     dict *d = NULL;
-    if (variant_is_dict(obj)) {
+    if (variant_is_dict(object)) {
         // find member in normal members, fallback to built-it methods
-        d = variant_as_dict(obj);
-        if (dict_has(d, member_name))
-            return ok_variant(dict_get(d, member_name));
+        d = variant_as_dict(object);
+        if (dict_has(d, member))
+            return ok_outcome(dict_get(d, member));
         
         d = get_built_in_dict_methods_dictionary();
-        if (dict_has(d, member_name))
-            return ok_variant(dict_get(d, member_name));
+        if (dict_has(d, member))
+            return ok_outcome(dict_get(d, member));
 
-    } else if (variant_is_list(obj)) {
+    } else if (variant_is_list(object)) {
         d = get_built_in_list_methods_dictionary();
-        if (dict_has(d, member_name))
-            return ok_variant(dict_get(d, member_name));
+        if (dict_has(d, member))
+            return ok_outcome(dict_get(d, member));
         
-    } else if (variant_is_str(obj)) {
+    } else if (variant_is_str(object)) {
         d = get_built_in_str_methods_dictionary();
-        if (dict_has(d, member_name))
-            return ok_variant(dict_get(d, member_name));
+        if (dict_has(d, member))
+            return ok_outcome(dict_get(d, member));
     }
-                    
-    return failed_variant(NULL, "member '%s' not found in object", member_name);
+
+    return exception_outcome(new_exception_variant(
+        mbr_exp->token->filename, mbr_exp->token->line_no, mbr_exp->token->column_no, NULL,
+        "member '%s' not found in object / dict", member
+    ));
 }
 
-static failable_variant make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx) {
+static execution_outcome make_function_call(expression *target_exp, expression *args_expr, exec_context *ctx) {
 
     variant *this_value = NULL;
-    failable_variant callable_retrieval = retrieve_value(callable_expr, ctx, &this_value);
-    if (callable_retrieval.failed) return failed_variant(&callable_retrieval, NULL);
-    variant *v = callable_retrieval.result;
+    execution_outcome retrieval = retrieve_value(target_exp, ctx, &this_value);
+    if (retrieval.exception_thrown || retrieval.failed) return retrieval;
+    variant *target = retrieval.result;
 
-    if (v == NULL) return failed_variant(NULL, "could not resolve call target");
-    if (!variant_is_callable(v))
-        return failed_variant(NULL, "call target is not a callable");
-    callable *c = variant_as_callable(v);
+    if (target == NULL)
+        return exception_outcome(new_exception_variant(
+            target_exp->token->filename, target_exp->token->line_no, target_exp->token->column_no, NULL,
+            "could not resolve call target"
+        ));
+    if (!variant_is_callable(target))
+        return exception_outcome(new_exception_variant(
+            target_exp->token->filename, target_exp->token->line_no, target_exp->token->column_no, NULL,
+            "call target is not callable"
+        ));
+    callable *c = variant_as_callable(target);
 
-    failable_variant args_retrieval = retrieve_value(args_expr, ctx, NULL);
-    if (args_retrieval.failed) return failed_variant(&args_retrieval, "error retrieving arguments");
-    list *arg_values = variant_as_list(args_retrieval.result);
+    retrieval = retrieve_value(args_expr, ctx, NULL);
+    if (retrieval.exception_thrown || retrieval.failed) return retrieval;
+    list *arg_values = variant_as_list(retrieval.result);
 
     return callable_call(c, arg_values, NULL, this_value, ctx);
 }
 
-static failable_variant calculate_unary_operation(operator_type op, variant *value, exec_context *ctx) {
-    switch (op) {
+static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx) {
+    switch (op_expr->op) {
         case OP_POSITIVE_NUM:
             if (variant_is_int(value) || variant_is_float(value))
-                return ok_variant(value);
-            return failed_variant(NULL, "positive num only works for int / float values");
+                return ok_outcome(value);
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "positive num only works for int / float values"
+            ));
 
         case OP_NEGATIVE_NUM:
             if (variant_is_int(value))
-                return ok_variant(new_int_variant(variant_as_int(value) * -1));
+                return ok_outcome(new_int_variant(variant_as_int(value) * -1));
             if (variant_is_float(value))
-                return ok_variant(new_float_variant(variant_as_float(value) * -1));
-            return failed_variant(NULL, "negative num only works for int / float values");
+                return ok_outcome(new_float_variant(variant_as_float(value) * -1));
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "negative num only works for int / float values"
+            ));
 
         case OP_LOGICAL_NOT:
             // let's avoid implicit conversion to bool for now.
             if (variant_is_bool(value))
-                return ok_variant(new_bool_variant(!variant_as_bool(value)));
-            return failed_variant(NULL, "logical not only works for bool values");
+                return ok_outcome(new_bool_variant(!variant_as_bool(value)));
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "logical-not only works for bool values"
+            ));
 
         case OP_BITWISE_NOT:
             if (variant_is_int(value))
-                return ok_variant(new_int_variant(~variant_as_int(value)));
-            return failed_variant(NULL, "bitwise not only works for int values");
+                return ok_outcome(new_int_variant(~variant_as_int(value)));
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "bitwise-not only works for int values"
+            ));
     }
 
-    str_builder *sb = new_str_builder();
-    operator_type_describe(op, sb);
-    return failed_variant(NULL, "Unknown unary operator_type %s", str_builder_charptr(sb));
+    return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+        "Unknown unary operator type %s", operator_type_name(op_expr->type)));
 }
 
-static failable_variant calculate_binary_operation(operator_type op, variant *v1, variant *v2, exec_context *ctx) {
-    switch (op) {
+static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx) {
+    switch (op_expr->op) {
         case OP_MULTIPLY:
-            if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) * variant_as_int(v2)));
-            if (variant_is_float(v1))
-                return ok_variant(new_float_variant(variant_as_float(v1) * variant_as_float(v2)));
+            if (variant_is_int(v1) && variant_is_int(v2))
+                return ok_outcome(new_int_variant(variant_as_int(v1) * variant_as_int(v2)));
+            if (variant_is_float(v1) && variant_is_float(v2))
+                return ok_outcome(new_float_variant(variant_as_float(v1) * variant_as_float(v2)));
             if (variant_is_str(v1) && variant_is_int(v2)) {
                 str_builder *tmp = new_str_builder();
                 for (int i = 0; i < variant_as_int(v2); i++)
                     str_builder_add(tmp, variant_as_str(v1));
-                return ok_variant(new_str_variant(str_builder_charptr(tmp)));
+                return ok_outcome(new_str_variant(str_builder_charptr(tmp)));
             }
-            return failed_variant(NULL, "multiplication is only supported in int/float types");
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "multiplication is only supported in int/float types"
+            ));
 
         case OP_DIVIDE:
             if (variant_is_int(v1)) {
                 int denominator = variant_as_int(v2);
-                if (denominator == 0) return failed_variant(NULL, "division by zero not possible in integers");
-                return ok_variant(new_int_variant(variant_as_int(v1) / denominator));
+                if (denominator == 0)
+                    return exception_outcome(new_exception_variant(
+                        op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                        "division by zero not possible in integers"
+                    ));
+                return ok_outcome(new_int_variant(variant_as_int(v1) / denominator));
             }
             if (variant_is_float(v1)) {
                 // in floats, the result is "infinity"
-                return ok_variant(new_float_variant(variant_as_float(v1) / variant_as_float(v2)));
+                return ok_outcome(new_float_variant(variant_as_float(v1) / variant_as_float(v2)));
             }
-            return failed_variant(NULL, "division is only supported in int/float types");
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "division is only supported in int/float types"
+            ));
 
         case OP_MODULO:
             if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) % variant_as_int(v2)));
-            return failed_variant(NULL, "modulo is only supported in int types");
+                return ok_outcome(new_int_variant(variant_as_int(v1) % variant_as_int(v2)));
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "modulo is only supported in int types"
+            ));
 
         case OP_ADD:
-            if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) + variant_as_int(v2)));
-            if (variant_is_float(v1))
-                return ok_variant(new_float_variant(variant_as_float(v1) + variant_as_float(v2)));
+            if (variant_is_int(v1) && variant_is_int(v2))
+                return ok_outcome(new_int_variant(variant_as_int(v1) + variant_as_int(v2)));
+            if (variant_is_float(v1) && variant_is_float(v2))
+                return ok_outcome(new_float_variant(variant_as_float(v1) + variant_as_float(v2)));
             if (variant_is_str(v1)) {
                 str_builder *sb = new_str_builder();
                 str_builder_add(sb, variant_as_str(v1));
                 str_builder_add(sb, variant_as_str(v2));
                 variant *v = new_str_variant(strdup(str_builder_charptr(sb)));
                 str_builder_free(sb);
-                return ok_variant(v);
+                return ok_outcome(v);
             }
-            return failed_variant(NULL, "addition is only supported in int, float, string types");
+            // how about adding items to a list???
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "addition is only supported in int, float, string types"
+            ));
 
         case OP_SUBTRACT:
             if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) - variant_as_int(v2)));
+                return ok_outcome(new_int_variant(variant_as_int(v1) - variant_as_int(v2)));
             if (variant_is_float(v1))
-                return ok_variant(new_float_variant(variant_as_float(v1) - variant_as_float(v2)));
-            return failed_variant(NULL, "subtraction is only supported in int/float types");
+                return ok_outcome(new_float_variant(variant_as_float(v1) - variant_as_float(v2)));
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "subtraction is only supported in int/float types"
+            ));
 
         case OP_LSHIFT:
             if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) << variant_as_int(v2)));
-            return failed_variant(NULL, "left shift is only supported in int types");
+                return ok_outcome(new_int_variant(variant_as_int(v1) << variant_as_int(v2)));
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "left shift is only supported in int types"
+            ));
 
         case OP_RSHIFT:
             if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) >> variant_as_int(v2)));
-            return failed_variant(NULL, "right shift is only supported in int types");
+                return ok_outcome(new_int_variant(variant_as_int(v1) >> variant_as_int(v2)));
+            return exception_outcome(new_exception_variant(
+                op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "right shift is only supported in int types"
+            ));
 
-        case OP_LESS_THAN:      return calculate_comparison(COMP_LT, v1, v2);
-        case OP_LESS_EQUAL:     return calculate_comparison(COMP_LE, v1, v2);
-        case OP_GREATER_THAN:   return calculate_comparison(COMP_GT, v1, v2);
-        case OP_GREATER_EQUAL:  return calculate_comparison(COMP_GE, v1, v2);
-        case OP_EQUAL:          return calculate_comparison(COMP_EQ, v1, v2);
-        case OP_NOT_EQUAL:      return calculate_comparison(COMP_NE, v1, v2);
+        case OP_LESS_THAN:      return calculate_comparison(op_expr, COMP_LT, v1, v2);
+        case OP_LESS_EQUAL:     return calculate_comparison(op_expr, COMP_LE, v1, v2);
+        case OP_GREATER_THAN:   return calculate_comparison(op_expr, COMP_GT, v1, v2);
+        case OP_GREATER_EQUAL:  return calculate_comparison(op_expr, COMP_GE, v1, v2);
+        case OP_EQUAL:          return calculate_comparison(op_expr, COMP_EQ, v1, v2);
+        case OP_NOT_EQUAL:      return calculate_comparison(op_expr, COMP_NE, v1, v2);
 
         case OP_BITWISE_AND:
             if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) & variant_as_int(v2)));
-            return failed_variant(NULL, "bitwise operations only supported in int types");
+                return ok_outcome(new_int_variant(variant_as_int(v1) & variant_as_int(v2)));
+            return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "bitwise operations only supported in int types"));
+
         case OP_BITWISE_XOR:
             if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) ^ variant_as_int(v2)));
-            return failed_variant(NULL, "bitwise operations only supported in int types");
+                return ok_outcome(new_int_variant(variant_as_int(v1) ^ variant_as_int(v2)));
+            return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "bitwise operations only supported in int types"));
+
         case OP_BITWISE_OR:
             if (variant_is_int(v1))
-                return ok_variant(new_int_variant(variant_as_int(v1) | variant_as_int(v2)));
-            return failed_variant(NULL, "bitwise operations only supported in int types");
+                return ok_outcome(new_int_variant(variant_as_int(v1) | variant_as_int(v2)));
+            return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "bitwise operations only supported in int types"));
 
         case OP_LOGICAL_AND:
             // we could do shorthand here...
             if (variant_is_bool(v1) && variant_is_bool(v2))
-                return ok_variant(new_bool_variant(variant_as_bool(v1) && variant_as_bool(v2)));
-            return failed_variant(NULL, "logical operations only supported in bool types");
+                return ok_outcome(new_bool_variant(variant_as_bool(v1) && variant_as_bool(v2)));
+            return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "logical operations only supported in bool types"));
+            
         case OP_LOGICAL_OR:
             // we could do shorthand here...
             if (variant_is_bool(v1) && variant_is_bool(v2))
-                return ok_variant(new_bool_variant(variant_as_bool(v1) || variant_as_bool(v2)));
-            return failed_variant(NULL, "logical operations only supported in bool types");
+                return ok_outcome(new_bool_variant(variant_as_bool(v1) || variant_as_bool(v2)));
+            return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                "logical operations only supported in bool types"));
 
         case OP_SHORT_IF:
             if (!variant_is_bool(v1))
-                return failed_variant(NULL, "? operator_type requires boolean condition");
-            if (!variant_is_list(v2))
-                return failed_variant(NULL, "? operator_type was expecting a list of 2 arguments");
+                return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+                    "shorthand-if operator_type requires boolean condition"));
             bool passed = variant_as_bool(v1);
+            if (!variant_is_list(v2))
+                return failed_outcome("shorthand-if operator_type was expecting a list of 2 arguments, maybe parsing has a bug?");
             list *values_pair = variant_as_list(v2);
             if (list_length(values_pair) != 2)
-                return failed_variant(NULL, "? operator_type was expecting exactly two arguments in the list");
-            return ok_variant(list_get(values_pair, passed ? 0 : 1));
+                return failed_outcome("shorthand-if operator_type was expecting exactly two arguments in the list, maybe parsing has a bug?");
+            return ok_outcome(list_get(values_pair, passed ? 0 : 1));
     }
 
-    str_builder *sb = new_str_builder();
-    operator_type_describe(op, sb);
-    return failed_variant(NULL, "Unknown binary operator_type %s", str_builder_charptr(sb));
+    return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+        "Unknown binary operator type %s", operator_type_name(op_expr->type)));
 }
 
-static failable_variant expression_function_callable_executor(
+static execution_outcome expression_function_callable_executor(
     list *positional_args, 
     dict *named_args, 
     void *callable_data, 
@@ -549,15 +642,21 @@ static failable_variant expression_function_callable_executor(
     expression *expr = (expression *)callable_data;
 
     list *arg_names = expr->per_type.func.arg_names;
-    if (list_length(positional_args) < list_length(arg_names))
-        return failed_variant(NULL, "expected %d arguments, got only %d", list_length(arg_names), list_length(positional_args));
+    if (list_length(positional_args) < list_length(arg_names)) {
+        // we should report where the call was made, not where the function is
+        return exception_outcome(new_exception_variant(
+            expr->token->filename, expr->token->line_no, expr->token->column_no, NULL,
+            "%s() expected %d arguments, got %d", expr->per_type.func.name, list_length(arg_names), list_length(positional_args)
+        ));
+    }
 
-    stack_frame *f = new_stack_frame("expr_func", NULL, expr);
-    stack_frame_initialization(f, arg_names, positional_args, named_args, this_obj);
-    exec_context_push_stack_frame(ctx, f);
+    stack_frame *frame = new_stack_frame(expr->per_type.func.name, NULL, expr);
+    stack_frame_initialization(frame, arg_names, positional_args, named_args, this_obj);
+    exec_context_push_stack_frame(ctx, frame);
 
-    failable_variant result = execute_statements(expr->per_type.func.statements, ctx);
+    execution_outcome result = execute_statements(expr->per_type.func.statements, ctx);
     
+    // even if an exception was raised, we still must pop the stack frame
     exec_context_pop_stack_frame(ctx);
 
     return result;

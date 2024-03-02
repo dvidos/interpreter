@@ -37,10 +37,11 @@ FILES = \
 	src/parser/statement_parser.c \
 	src/parser/statement_parser_tests.c \
 	\
-	src/runtime/built_in_funcs.c \
-	src/runtime/built_in_funcs_tests.c \
+	src/runtime/execution_outcome.c \
 	src/runtime/expression_execution.c \
 	src/runtime/statement_execution.c \
+	src/runtime/built_in_funcs.c \
+	src/runtime/built_in_funcs_tests.c \
 	\
 	src/debugger/debugger.c \
 	src/debugger/breakpoint.c \

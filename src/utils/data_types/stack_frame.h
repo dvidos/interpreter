@@ -27,7 +27,7 @@ variant *stack_frame_resolve_symbol(stack_frame *f, const char *name);
 bool stack_frame_symbol_exists(stack_frame *f, const char *name);
 failable stack_frame_register_symbol(stack_frame *f, const char *name, variant *v);
 failable stack_frame_update_symbol(stack_frame *f, const char *name, variant *v);
-
+failable stack_frame_unregister_symbol(stack_frame *f, const char *name);
 
 const void stack_frame_describe(stack_frame *f, str_builder *sb);
 bool stack_frames_are_equal(stack_frame *a, stack_frame *b);
