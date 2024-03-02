@@ -2,8 +2,11 @@
 
 * implement exceptions in the script language
 
+
+
 * implement the `with() { ... }` statement doing a cleanup.
 
+* implement read only execution mode, where the root symbols are never changed.
 
 
 * cpython, inner code, gets the intepreter state and the current thread's state
