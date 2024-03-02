@@ -274,7 +274,7 @@ const char *variant_as_str(variant *v) {
         case VT_EXCEPTION:
             if (v->str_repr == NULL) {
                 str_builder *sb = new_str_builder();
-                str_builder_addf(sb, "%s at %s:%d:%d",
+                str_builder_addf(sb, "%s, at %s:%d:%d",
                     v->per_type.exception.msg,
                     v->per_type.exception.script_filename,
                     v->per_type.exception.script_line,

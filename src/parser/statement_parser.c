@@ -176,24 +176,25 @@ static failable_statement parse_function_statement() {
 static failable_statement parse_try_catch_statement() {
     if (!accept(T_TRY)) return failed_statement(NULL, "was expecting 'try'");
     token *token = accepted();
-    list *try_statements;
-    const char *identifier;
-    list *catch_statements;
-    list *finally_statements;
+    list *try_statements = NULL;
+    const char *identifier = NULL;
+    list *catch_statements = NULL;
+    list *finally_statements = NULL;
 
     failable_list parsing = parse_statements(tokens_it, SP_BLOCK_MANDATORY);
     if (parsing.failed) return failed_statement(&parsing, "Parsing try statements");
     try_statements = parsing.result;
 
-    if (!accept(T_CATCH)) return failed_statement(NULL, "was expecting 'catch'");
-    if (!accept(T_LPAREN)) return failed_statement(NULL, "was expecting '('");
-    if (!accept(T_IDENTIFIER)) return failed_statement(NULL, "was expecting identifier");
-    identifier = accepted()->data;
-    if (!accept(T_RPAREN)) return failed_statement(NULL, "was expecting ')'");
-
-    parsing = parse_statements(tokens_it, SP_BLOCK_MANDATORY);
-    if (parsing.failed) return failed_statement(&parsing, "Parsing catch statements");
-    catch_statements = parsing.result;
+    if (accept(T_CATCH)) {
+        if (accept(T_LPAREN)) {
+            if (!accept(T_IDENTIFIER)) return failed_statement(NULL, "was expecting identifier");
+            identifier = accepted()->data;
+            if (!accept(T_RPAREN)) return failed_statement(NULL, "was expecting ')'");
+        }
+        parsing = parse_statements(tokens_it, SP_BLOCK_MANDATORY);
+        if (parsing.failed) return failed_statement(&parsing, "Parsing catch statements");
+        catch_statements = parsing.result;
+    }
 
     finally_statements = NULL;
     if (accept(T_FINALLY)) {

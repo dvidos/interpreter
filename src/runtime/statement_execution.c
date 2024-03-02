@@ -128,26 +128,34 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
 
     } else if (s_type == ST_TRY_CATCH) {
         ex = execute_statements_with_flow(stmt->per_type.try_catch.try_statements, ctx, should_break, should_continue, should_return);
-        if (ex.failed)
-            return ex;
-        else if (ex.exception_thrown) {
+        if (ex.failed) return ex;
+
+        // save this for later, we may run a "finally" block
+        execution_outcome try_catch_outcome = ex;
+
+        if (ex.exception_thrown && stmt->per_type.try_catch.catch_statements != NULL) {
+            variant *exception = ex.exception;
+
             if (stmt->per_type.try_catch.exception_identifier != NULL)
-                exec_context_register_symbol(ctx, stmt->per_type.try_catch.exception_identifier, ex.exception);
+                exec_context_register_symbol(ctx, stmt->per_type.try_catch.exception_identifier, exception);
             ex = execute_statements_with_flow(stmt->per_type.try_catch.catch_statements, ctx, should_break, should_continue, should_return);
+            if (ex.failed) return ex;
             if (stmt->per_type.try_catch.exception_identifier != NULL)
                 exec_context_unregister_symbol(ctx, stmt->per_type.try_catch.exception_identifier);
-
-            // if exception is raised in the "catch" block, should we run the "finaly" block?
-            if (ex.exception_thrown || ex.failed) return ex;
+            
+            // if exception was successfully handled, we are ok
+            // if new exception was raised inside catch, save for post-finally
+            try_catch_outcome = ex;
         }
+
+        // finally will run in any case, but will not influence the result.
         if (stmt->per_type.try_catch.finally_statements != NULL) {
             ex = execute_statements_with_flow(stmt->per_type.try_catch.finally_statements, ctx, should_break, should_continue, should_return);    
             if (ex.exception_thrown || ex.failed) return ex;
         }
+        
+        return try_catch_outcome;
 
-        // execute all statements in try,
-        // if exception, execute statements in catch
-        // definitely execute statements in finally, if any...
     } else if (s_type == ST_THROW) {
         // calculate thrown value, just a string for now
         const char *msg = "";
@@ -160,7 +168,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
             stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL, msg));
         
     } else if (s_type == ST_BREAKPOINT) {
-        // ignored in execution
+        // ignored in execution, bebugger entry is checked before executing a row.
     } else {
         str_builder *sb = new_str_builder();
         statement_describe(stmt, sb);

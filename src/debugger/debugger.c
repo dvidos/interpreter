@@ -269,7 +269,14 @@ static void show_globals(exec_context *ctx) {
     show_values_of_symbols_of(ctx->built_in_symbols);
 }
 
-static void setup_stepping(bool single, bool next, bool ret_, bool cont, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+enum step_type {
+    STEP_SINGLE,
+    STEP_TO_DIFF_LINE,
+    STEP_TILL_RETURN,
+    STEP_CONTINUE,
+};
+
+static void setup_stepping(enum step_type type, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
     // clear all flags first
     ctx->debugger.enter_at_next_instruction = false;
     ctx->debugger.enter_when_at_different_line = false;
@@ -278,30 +285,32 @@ static void setup_stepping(bool single, bool next, bool ret_, bool cont, stateme
     ctx->debugger.enter_at_next_return = false;
     ctx->debugger.return_stack_size = 0;
 
-    if (single) {
+    if (type == STEP_SINGLE) {
         ctx->debugger.enter_at_next_instruction = true;
-    } else if (next) {
+    } else if (type == STEP_TO_DIFF_LINE) {
         ctx->debugger.enter_when_at_different_line = true;
         ctx->debugger.original_filename = get_curr_filename(curr_stmt, curr_expr);
         ctx->debugger.original_line_no = get_curr_line_no(curr_stmt, curr_expr);
-    } else if (ret_) {
+    } else if (type == STEP_TILL_RETURN) {
         ctx->debugger.enter_at_next_return = true;
         ctx->debugger.return_stack_size = stack_length(ctx->stack_frames);
-    } else if (cont) {
+    } else if (type == STEP_CONTINUE) {
         // nothing to change.
     }
 }
 
-static failable_bool handle_command(char *cmd, statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
-    bool done = false;
+static failable handle_command(char *cmd, statement *curr_stmt, expression *curr_expr, exec_context *ctx, bool *should_resume, bool *should_quit) {
+    *should_resume = false;
+    *should_quit = false;
+
     switch (cmd[0]) {
         case 'h': show_help(); break;
         case 'l': list_code(curr_stmt, curr_expr, ctx, cmd + 1); break;
-        case 's': setup_stepping(true, false, false, false, curr_stmt, curr_expr, ctx); done = true; break;
-        case 'n': setup_stepping(false, true, false, false, curr_stmt, curr_expr, ctx); done = true; break;
-        case 'r': setup_stepping(false, false, true, false, curr_stmt, curr_expr, ctx); done = true; break;
-        case 'c': setup_stepping(false, false, false, true, curr_stmt, curr_expr, ctx); done = true; break;
-        case 'q': return failed_bool(NULL, "Execution aborted!"); break;    
+        case 's': setup_stepping(STEP_SINGLE,       curr_stmt, curr_expr, ctx); *should_resume = true; break;
+        case 'n': setup_stepping(STEP_TO_DIFF_LINE, curr_stmt, curr_expr, ctx); *should_resume = true; break;
+        case 'r': setup_stepping(STEP_TILL_RETURN,  curr_stmt, curr_expr, ctx); *should_resume = true; break;
+        case 'c': setup_stepping(STEP_CONTINUE,     curr_stmt, curr_expr, ctx); *should_resume = true; break;
+        case 'q': *should_quit = true; break;
         case 'w': show_stack_trace(curr_stmt, curr_expr, ctx); break;
         case 'a': show_args_and_values(curr_stmt, curr_expr, ctx); break;
         case 'b': manipulate_breakpoint(curr_stmt, curr_expr, ctx, cmd + 1); break;
@@ -309,7 +318,7 @@ static failable_bool handle_command(char *cmd, statement *curr_stmt, expression 
         case 'g': show_globals(ctx); break;
         default : printf("unknown command, enter 'h' for help\n"); break;
     }
-    return ok_bool(done);
+    return ok();
 }
 
 static bool get_command(char *buffer, int buffer_size) {
@@ -351,19 +360,26 @@ bool should_start_debugger(statement *curr_stmt, expression *curr_expr, exec_con
 
 failable run_debugger(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
     char buffer[128];
-    bool done = false;
 
     printf("Inline debugger. Enter 'h' for help.\n");
     show_curr_code_line(curr_stmt, curr_expr, ctx);
 
-    while (!done) {
+    bool should_resume;
+    bool should_quit;
+
+    while (true) {
         fputs("debug: ", stdout);
         if (!get_command(buffer, sizeof(buffer)))
             break;
         
-        failable_bool handling = handle_command(buffer, curr_stmt, curr_expr, ctx);
+        failable handling = handle_command(buffer, curr_stmt, curr_expr, ctx, &should_resume, &should_quit);
         if (handling.failed) return failed(&handling, NULL);
-        done = handling.result;
+
+        if (should_resume)
+            break; // leave the debugger loop
+        if (should_quit)
+            return failed(NULL, "Quit requested in debugger!");
     }
+
     return ok();
 }

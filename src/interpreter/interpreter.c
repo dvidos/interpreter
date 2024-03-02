@@ -33,8 +33,10 @@ execution_outcome interpret_and_execute(const char *code, const char *filename, 
     listing *code_listing = new_listing(code);
 
     failable_list tokenization = parse_code_into_tokens(code, filename);
-    if (tokenization.failed)
+    if (tokenization.failed) {
+        failable_print(&tokenization);
         return failed_outcome("Tokenization failed");
+    }
     if (verbose) {
         str_builder_clear(sb);
         list_describe(tokenization.result, ", ", sb);
@@ -44,8 +46,10 @@ execution_outcome interpret_and_execute(const char *code, const char *filename, 
     iterator *tokens_it = list_iterator(tokenization.result);
     tokens_it->reset(tokens_it);
     failable_list parsing = parse_statements(tokens_it, SP_SEQUENTIAL_STATEMENTS);
-    if (parsing.failed)
+    if (parsing.failed) {
+        failable_print(&parsing);
         return failed_outcome("Statement parsing failed");
+    }
     if (verbose) {
         str_builder_clear(sb);
         list_describe(parsing.result, "\n", sb);

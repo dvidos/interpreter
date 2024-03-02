@@ -1,37 +1,53 @@
 
-function test_manual_exceptions() {
+function test_manual_throw() {
     try {
-        log("before manual throw");
+        log("test_manual_throw(): before throw");
         throw "manually thrown error";
-        log("after manual throw");
+        log("test_manual_throw(): after throw");
     } catch (e) {
-        // how to tell what exception it was?
-        // how to have trees of things, without a class system?
-        log("in manual throw exception handler, e:", e);
+        log("test_manual_throw(): in catch block, exception=" + str(e));
     } finally {
-        log("in manual throw finally clause");
+        log("test_manual_throw(): in finally block");
     }
 }
 
 function test_division(divisor) {
     try {
-        log("before division with", divisor);
+        log("test_division(" + str(divisor) + "): before division");
         a = 1 / divisor;
-        log("after division with", divisor);
+        log("test_division(" + str(divisor) + "): after division");
     } catch (e) {
-        // how to tell what exception it was?
-        // how to have trees of things, without a class system?
-        log("in exception handler with ", divisor, ", e:", e);
+        log("test_division(" + str(divisor) + "): in catch block, exception=" + str(e));
     } finally {
-        log("in finally clause of division", divisor);
+        log("test_division(" + str(divisor) + "): in finally block");
     }
 }
 
-log("--- running test_manual_exceptions() ---");
-test_manual_exceptions();
+function risky_operation() {
+    try {
+        log("risky_operation(): attempting risky operation");
+        throw "that did not go well!";
+        log("risky_operation(): risky operation succeeded ???");
+    } finally {
+        log("risky_operation(): in finally clause");
+    }
+}
 
-log("--- running test_division() with 1 ---");
+function test_nested_exceptions() {
+    try {
+        log("test_nested_exceptions(): before risky_operation()");
+        risky_operation();
+        log("test_nested_exceptions(): after risky_operation()");
+    } catch (e) {
+        log("test_nested_exceptions(): risky_operation() excepted: " + str(e));
+        throw "aaaa!";
+    } finally {
+        log("test_nested_exceptions(): cleaning up...");
+        throw "outer-finally-block is throwing!";
+    }
+}
+
+test_manual_throw();
 test_division(1);
-
-log("--- running test_division() with 0 ---");
 test_division(0);
+test_nested_exceptions();
