@@ -280,6 +280,41 @@ void interpreter_self_diagnostics() {
     
     verify_execution_i("i = 5; return i * i;", 25);
 
+    verify_execution_log("try {"
+                         "  log('in try block');"
+                         "} catch (e) {"
+                         "  log('in catch block');"
+                         "} finally {"
+                         "  log('in finally block');"
+                         "}",
+                         "in try block\n"
+                         "in finally block\n");
+    
+    verify_execution_log("try {"
+                         "  log('before throwing');"
+                         "  throw 'hello';"
+                         "  log('after throwing');"
+                         "} catch (e) {"
+                         "  log('caught exception');"
+                         "}",
+                         "before throwing\n"
+                         "caught exception\n");
+    
+    verify_execution_log("try {"
+                         "    try {"
+                         "        log('before throwing');"
+                         "        throw 'hello';"
+                         "        log('after throwing');"
+                         "    } finally {"
+                         "        log('in finally block');"
+                         "    }"
+                         "} catch (e) {"
+                         "   log('exception caught here');"
+                         "}",
+                         "before throwing\n"
+                         "in finally block\n"
+                         "exception caught here\n");
+
     setenv("ENV_VAR_A", "some-value", true);
     verify_execution_b("getenv('ENV_VAR_A') == 'some-value'", true); // bare expr format
     verify_execution_b("return (getenv('ENV_VAR_A') == 'some-value');", true); // statement format
