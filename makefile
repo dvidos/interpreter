@@ -22,6 +22,8 @@ FILES = \
 	src/utils/failable.c \
 	src/utils/file.c \
 	src/utils/listing.c \
+	src/utils/mem.c \
+	src/utils/error.c \
 	\
 	src/entities/operator_type.c \
 	src/entities/expression.c \
@@ -37,11 +39,15 @@ FILES = \
 	src/parser/statement_parser.c \
 	src/parser/statement_parser_tests.c \
 	\
-	src/runtime/execution_outcome.c \
-	src/runtime/expression_execution.c \
-	src/runtime/statement_execution.c \
-	src/runtime/built_in_funcs.c \
-	src/runtime/built_in_funcs_tests.c \
+	src/runtime/framework/object_type.c \
+	src/runtime/framework/object_funcs.c \
+	\
+	src/runtime/execution/execution_outcome.c \
+	src/runtime/execution/expression_execution.c \
+	src/runtime/execution/statement_execution.c \
+	\
+	src/runtime/built_ins/built_in_funcs.c \
+	src/runtime/built_ins/built_in_funcs_tests.c \
 	\
 	src/debugger/debugger.c \
 	src/debugger/breakpoint.c \

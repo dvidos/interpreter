@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <time.h>
 #include "built_in_funcs_tests.h"
-#include "../interpreter/interpreter.h"
-#include "../utils/data_types/_module.h"
-#include "../utils/testing.h"
+#include "../../interpreter/interpreter.h"
+#include "../../utils/data_types/_module.h"
+#include "../../utils/testing.h"
 
 
 static void run_use_case(const char *code, variant *expected, bool verbose) {

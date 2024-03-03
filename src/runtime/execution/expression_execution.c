@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
-#include "../debugger/debugger.h"
-#include "../utils/str.h"
-#include "../utils/str_builder.h"
+#include "../../debugger/debugger.h"
+#include "../../utils/str.h"
+#include "../../utils/str_builder.h"
 #include "execution_outcome.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
-#include "built_in_funcs.h"
+#include "../built_ins/built_in_funcs.h"
 
 // used for pre/post increment/decrement
 static expression *one = NULL;

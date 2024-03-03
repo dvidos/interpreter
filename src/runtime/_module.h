@@ -4,10 +4,11 @@
 
 #include "../utils/containers/_module.h"
 
-#include "built_in_funcs.h"
-#include "statement_execution.h"
+#include "built_ins/built_in_funcs.h"
+#include "built_ins/built_in_funcs_tests.h"
 
-#include "built_in_funcs_tests.h"
-#include "execution_outcome.h"
+#include "execution/statement_execution.h"
+#include "execution/execution_outcome.h"
+
 
 #endif

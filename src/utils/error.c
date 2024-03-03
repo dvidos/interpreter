@@ -5,6 +5,14 @@
 
 static char error_message[256] = {0};
 
+bool is_error() {
+    return error_message[0] != 0;
+}
+
+const char *get_error() {
+    return error_message;
+}
+
 void set_error(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -14,13 +22,5 @@ void set_error(const char *fmt, ...) {
 
 void clear_error() {
     error_message[0] = '\0';
-}
-
-bool is_error() {
-    return error_message[0] != 0;
-}
-
-const char *get_error() {
-    return error_message;
 }
 

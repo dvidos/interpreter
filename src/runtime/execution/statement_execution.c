@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include "../debugger/debugger.h"
-#include "../utils/str_builder.h"
-#include "../utils/data_types/_module.h"
+#include "../../debugger/debugger.h"
+#include "../../utils/str_builder.h"
+#include "../../utils/data_types/_module.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
 
