@@ -1,13 +1,9 @@
 # todo
 
-* implement exceptions in the script language
-
-
-
-* implement the `with() { ... }` statement doing a cleanup.
+* parse `class` with functions and attributes, private is the default mode, 
+`public` opens up visibility to others.
 
 * implement read only execution mode, where the root symbols are never changed.
-
 
 * cpython, inner code, gets the intepreter state and the current thread's state
 (that includes the current stack frame) by calling a function, which refers 
@@ -18,7 +14,6 @@ does not need to contain contexts etc.
 of primitive actions, e.g. "factorial" for the integer variants.
 In that sense we could write: `5.power(2);` or `4.fact();`,
 same as we'd do `[4,1,3,2].sort();`, or `'hello'.print();`.
-
 
 * separate the built in functions into separate files, based on the object they attach to.
 * write tests to prove scope visibility and symbol resolution.
@@ -54,6 +49,7 @@ convert to function pointers, and implement discrete functions for each case.
 This should speed up runtime a ton.
 
 * experiment with idea of declaration & implementation of strongly typed containers through macros, akin to failables...
+* try to see if we can make an edit-compile-run cycle in VSCode by using the intepreter!!
 
 
 ## later
@@ -68,6 +64,7 @@ keeping track of variables and memory, ala Rust.
 
 # done!
 
+* implement exceptions in the script language
 * maybe see if we can make an interactive mode (-1),
 similar to python, where the user writes expressions
 and there is a frame that holds variables and values.

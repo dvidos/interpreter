@@ -77,6 +77,9 @@ static struct token_type_info token_type_infos[] = {
     { T_FINALLY,            "",    "FINALLY" },
     { T_THROW,              "",    "THROW" },
     { T_BREAKPOINT,         "",    "BREAKPOINT" },
+    { T_CLASS,              "",    "CLASS" },
+    { T_PUBLIC,             "",    "PUBLIC" },
+
     
     { T_END,                "",    "END" },
     { T_MAX_VALUE,          "",    "MAX_VALUE" },

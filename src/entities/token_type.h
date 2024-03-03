@@ -71,6 +71,8 @@ typedef enum token_type {
     T_FINALLY,
     T_THROW,
     T_BREAKPOINT,
+    T_CLASS,
+    T_PUBLIC,
 
     T_END, // the last token of the stream
     T_MAX_VALUE // max value for the sizing of the enum

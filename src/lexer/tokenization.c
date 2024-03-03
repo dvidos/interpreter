@@ -73,6 +73,8 @@ static struct reserved_word {
     { "finally",    T_FINALLY },
     { "throw",      T_THROW },
     { "breakpoint", T_BREAKPOINT },
+    { "class",      T_CLASS },
+    { "public",     T_PUBLIC },
 };
 
 static token_type get_reserved_word_token(const char *data) {
