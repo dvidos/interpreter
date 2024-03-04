@@ -33,7 +33,7 @@ static struct type_attrib_definition attributes[] = {
 };
 
 // instance of the type info
-object_type *int_object_type = &(object_type){
+object_type *int_type = &(object_type){
     .name = "int",
     .instance_size = sizeof(int_object),
     .initializer = (initialize_func)initialize,
@@ -43,7 +43,7 @@ object_type *int_object_type = &(object_type){
 };
 
 object *new_int_object(int value) {
-    int_object *o = (int_object *)object_create(int_object_type, NULL, NULL);
+    int_object *o = (int_object *)object_create(int_type, NULL, NULL);
     o->value = value;
     return (object *)o;
 }

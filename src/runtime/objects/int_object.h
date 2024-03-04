@@ -5,8 +5,4 @@
 
 extern object_type *int_type;
 
-object *new_int_object(int value);
-int int_object_as_int(object *obj);
-
-
 #endif
