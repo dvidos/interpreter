@@ -7,9 +7,21 @@
 #include "../../utils/data_types/callable.h"
 
 
+typedef enum variant_enum_type {
+    VT_NULL,
+    VT_BOOL,
+    VT_INT,
+    VT_FLOAT,
+    VT_STR,
+    VT_LIST,
+    VT_DICT,
+    VT_CALLABLE,
+    VT_EXCEPTION,
+} variant_enum_type;
+
 struct variant {
     class *class;
-    variant_type type;
+    variant_enum_type type;
     union {
         bool bool_;
         int int_;
@@ -38,7 +50,6 @@ class *variant_class = &(class){
     .are_equal = (are_equal_func)variants_are_equal,
     .describe = (describe_func)variant_describe
 };
-
 
 variant *new_null_variant() {
     variant *v = malloc(sizeof(variant));
@@ -354,10 +365,6 @@ callable *variant_as_callable(variant *v) {
         default:
             return NULL;
     }
-}
-
-variant_type variant_get_type(variant *v) {
-    return v->type;
 }
 
 bool variants_are_equal(variant *a, variant *b) {

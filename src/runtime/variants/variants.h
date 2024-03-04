@@ -31,8 +31,8 @@ typedef struct object object;
 typedef struct object_type object_type;
 
 
-#include "../../utils/mem.h"
-#include "../../utils/error.h"
+#include "mem.h"
+#include "error.h"
 #include "base_object.h" 
 #include "object_type.h" 
 #include "object_funcs.h"

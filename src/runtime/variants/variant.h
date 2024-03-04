@@ -7,27 +7,6 @@
 typedef struct callable callable;
 
 
-typedef enum variant_type {
-    VT_NULL,
-    VT_BOOL,
-    VT_INT,
-    VT_FLOAT,
-    VT_STR,
-    VT_LIST,
-    VT_DICT,
-    VT_CALLABLE,
-    VT_EXCEPTION,
-
-    VT_ANYTHING, // for (non) filtering function arguments
-    VT_VOID,     // for functions not returning anything
-} variant_type;
-
-
-/* TODO: convert variant to CPython's object structure
-         with a strong type and reference count
-         then make it work with the struct type, instead of the enum.
-         then allow parsing of classes and creation of custom "type"s
-*/
 typedef struct variant variant;
 
 variant *new_null_variant();
@@ -49,7 +28,6 @@ bool variant_is_list(variant *v);
 bool variant_is_dict(variant *v);
 bool variant_is_callable(variant *v);
 bool variant_is_exception(variant *v);
-variant_type variant_get_type(variant *v);
 
 bool variant_as_bool(variant *v);
 int variant_as_int(variant *v);

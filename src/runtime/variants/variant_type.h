@@ -1,5 +1,5 @@
-#ifndef _TYPE_OBJECT_H
-#define _TYPE_OBJECT_H
+#ifndef _TYPE_VARIANT_H
+#define _TYPE_VARIANT_H
 
 #include <stdlib.h> // for NULL
 #include <stddef.h> // for offsetof()
@@ -7,23 +7,23 @@
 
 
 // forward declarations
-typedef struct object object;
-typedef struct object_type object_type;
+typedef struct variant variant;
+typedef struct variant_type variant_type;
 
 // some specific function types, used in types
-typedef void (*initialize_func)(object *obj, object *args, object *named_args);
-typedef void (*destruct_func)(object *obj);
-typedef void (*copy_initializer_func)(object *obj, object *original);
-typedef object *(*return_obj_func)(object *obj);
-typedef object *(*stringifier_func)(object *obj);
-typedef unsigned (*hashing_func)(object *obj);
-typedef int (*compare_func)(object *a, object *b);
-typedef bool (*equals_func)(object *a, object *b);
-typedef object *(*call_handler_func)(object *obj, object *args, object *named_args);
+typedef void (*initialize_func)(variant *obj, variant *args, variant *named_args);
+typedef void (*destruct_func)(variant *obj);
+typedef void (*copy_initializer_func)(variant *obj, variant *original);
+typedef variant *(*return_obj_func)(variant *obj);
+typedef variant *(*stringifier_func)(variant *obj);
+typedef unsigned (*hashing_func)(variant *obj);
+typedef int (*compare_func)(variant *a, variant *b);
+typedef bool (*equals_func)(variant *a, variant *b);
+typedef variant *(*call_handler_func)(variant *obj, variant *args, variant *named_args);
 
-// each object has zero or more methods. 
+// each variant has zero or more methods. 
 // they are defined in an array of this structure
-typedef object *type_method_func(object *self, object *args, object *named_args);
+typedef variant *type_method_func(variant *self, variant *args, variant *named_args);
 enum type_method_flags {
     TPF_DEFAULT = 0,
     TPF_VARARGS = 1,
@@ -36,40 +36,40 @@ typedef struct type_method_definition {
 } type_method_definition;
 
 
-// each object has zero or more attributes. 
+// each variant has zero or more attributes. 
 // they can be used directly, or through getters and setters.
 // they are defined in an array of this structure
-typedef object *type_attrib_getter(object *self, const char *name);
-typedef object *type_attrib_setter(object *self, const char *name, object *value);
+typedef variant *type_attrib_getter(variant *self, const char *name);
+typedef variant *type_attrib_setter(variant *self, const char *name, variant *value);
 enum type_attrib_type {
     TAT_DEFAULT = 0,
     TAT_INT     = 1,
     TAT_BOOL    = 2,
     TAT_CONST_CHAR_PTR = 3,
-    TAT_OBJECT_PTR = 4,
+    TAT_VARIANT_PTR = 4,
     TAT_READ_ONLY = 1024,
 };
 typedef struct type_attrib_definition {
     const char *name;
     type_attrib_getter *getter; // optional, preferred if not null
     type_attrib_setter *setter; // optional, preferred if not null
-    int offset; // offsetof() the attribute in the object structure
+    int offset; // offsetof() the attribute in the variant structure
     enum type_attrib_type tat_flags;
 } type_attrib_definition;
 
 
-// each object is associated with a object_type. 
+// each variant is associated with a variant_type. 
 // that type describes how instances behave, initialize, destruct, etc.
-// the object_type also is associated with a static object_type instance, the type-type!
-struct object_type {
+// the variant_type also is associated with a static variant_type instance, the type-type!
+struct variant_type {
 
-    // base attributes allow this to impersonate a `object` struct.
-    BASE_OBJECT_FIRST_ATTRIBUTES;
+    // base attributes allow this to impersonate a `variant` struct.
+    BASE_VARIANT_FIRST_ATTRIBUTES;
 
     // name of the class, instance_size to allocate, base type
     const char *name;
     int instance_size;
-    struct object_type *base_type;
+    struct variant_type *base_type;
 
     // class wide functions to define behavior of instances
     // e.g. to_string(), to_bool(), hash(), len(), call(), serialize(), iterator() etc
@@ -92,12 +92,12 @@ struct object_type {
 };
 
 
-// this is the type of a type object. an instance of type 'type'.
-extern object_type *type_of_types;
+// this is the type of a type variant. an instance of type 'type'.
+extern variant_type *type_of_types;
 
 // type manipulation functions
-void objects_register_type(object_type *type);
-object_type *objects_get_named_type(const char *name);
+void variants_register_type(variant_type *type);
+variant_type *variants_get_named_type(const char *name);
 
 
 #endif

@@ -1,14 +1,14 @@
 #include <string.h>
-#include "objects.h"
+#include "variants.h"
 
-typedef object *(*box_int_func)(int value);
-typedef object *(*box_bool_func)(bool value);
-typedef object *(*box_const_char_ptr_func)(const char *value);
-typedef int (*unbox_int_func)(object *value);
-typedef bool (*unbox_bool_func)(object *value);
-typedef const char *(*unbox_const_char_ptr_func)(object *value);
+typedef variant *(*box_int_func)(int value);
+typedef variant *(*box_bool_func)(bool value);
+typedef variant *(*box_const_char_ptr_func)(const char *value);
+typedef int (*unbox_int_func)(variant *value);
+typedef bool (*unbox_bool_func)(variant *value);
+typedef const char *(*unbox_const_char_ptr_func)(variant *value);
 
-static struct object_methods {
+static struct variant_methods {
     box_int_func               int_boxer;
     box_bool_func              bool_boxer;
     box_const_char_ptr_func    const_char_ptr_boxer;
@@ -18,8 +18,8 @@ static struct object_methods {
 } methods;
 
 
-object *object_create(object_type *type, object *args, object *named_args) {
-    object *p = malloc(type->instance_size);
+variant *variant_create(variant_type *type, variant *args, variant *named_args) {
+    variant *p = malloc(type->instance_size);
     p->_type = type;
     p->_references_count = 1; // the one we are going to return
     if (type->initializer != NULL) {
@@ -28,11 +28,11 @@ object *object_create(object_type *type, object *args, object *named_args) {
     return p;
 }
 
-object *object_clone(object *obj) {
+variant *variant_clone(variant *obj) {
     if (obj->_type->copy_initializer == NULL)
         return NULL;
     
-    object *clone = malloc(obj->_type->instance_size);
+    variant *clone = malloc(obj->_type->instance_size);
     clone->_type = obj->_type;
     clone->_references_count = 1; // the one we are going to return
 
@@ -40,21 +40,21 @@ object *object_clone(object *obj) {
     return clone;
 }
 
-void object_add_ref(object *obj) {
+void variant_add_ref(variant *obj) {
     obj->_references_count++;
 }
 
-void object_drop_ref(object *obj) {
+void variant_drop_ref(variant *obj) {
     if (obj == NULL)
         return;
-    if (obj->_references_count == OBJECT_STATICALLY_ALLOCATED)
+    if (obj->_references_count == VARIANT_STATICALLY_ALLOCATED)
         return;
     
     obj->_references_count--;
     if (obj->_references_count > 0)
         return;
     
-    // no more references to this object
+    // no more references to this variant
     // we can finalize and free it up.
     if (obj->_type->destructor)
         obj->_type->destructor(obj);
@@ -62,8 +62,8 @@ void object_drop_ref(object *obj) {
     free(obj);
 }
 
-bool object_is(object *obj, object_type *type) {
-    object_type *t = obj->_type;
+bool variant_is(variant *obj, variant_type *type) {
+    variant_type *t = obj->_type;
     int levels = 0; // avoid infinite loops
     while (t != NULL && levels++ < 100) {
         if (t == type)
@@ -73,12 +73,12 @@ bool object_is(object *obj, object_type *type) {
     return false;
 }
 
-bool object_is_exactly(object *obj, object_type *type) {
+bool variant_is_exactly(variant *obj, variant_type *type) {
     return obj->_type == type;
 }
 
-bool object_has_attr(object *obj, const char *name) {
-    object_type *t = obj->_type;
+bool variant_has_attr(variant *obj, const char *name) {
+    variant_type *t = obj->_type;
     if (t->attributes == NULL) return false;
     for (int i = 0; t->attributes[i].name != NULL; i++) {
         if (strcmp(t->attributes[i].name, name) == 0) {
@@ -88,8 +88,8 @@ bool object_has_attr(object *obj, const char *name) {
     return false;
 }
 
-object *object_get_attr(object *obj, const char *name) {
-    object_type *type = obj->_type;
+variant *variant_get_attr(variant *obj, const char *name) {
+    variant_type *type = obj->_type;
     if (type->attributes == NULL) return false;
     for (int i = 0; type->attributes[i].name != NULL; i++) {
         if (strcmp(type->attributes[i].name, name) != 0)
@@ -99,9 +99,9 @@ object *object_get_attr(object *obj, const char *name) {
         if (def->getter != NULL) {
             return def->getter(obj, name);
 
-        } else if (def->tat_flags & TAT_OBJECT_PTR) {
-            object *obj_ptr = (object *)(((char *)obj) + def->offset);
-            object_add_ref(obj_ptr); // the one returned
+        } else if (def->tat_flags & TAT_VARIANT_PTR) {
+            variant *obj_ptr = (variant *)(((char *)obj) + def->offset);
+            variant_add_ref(obj_ptr); // the one returned
             return obj_ptr;
 
         } else if (def->tat_flags & TAT_INT) {
@@ -126,8 +126,8 @@ object *object_get_attr(object *obj, const char *name) {
     return NULL;
 }
 
-object *object_set_attr(object *obj, const char *name, object *value) {
-    object_type *type = obj->_type;
+variant *variant_set_attr(variant *obj, const char *name, variant *value) {
+    variant_type *type = obj->_type;
     if (type->attributes == NULL) return false;
     for (int i = 0; type->attributes[i].name != NULL; i++) {
         if (strcmp(type->attributes[i].name, name) != 0)
@@ -142,9 +142,9 @@ object *object_set_attr(object *obj, const char *name, object *value) {
         if (def->setter != NULL) {
             return def->setter(obj, name, value); // error checking
 
-        } else if (def->tat_flags & TAT_OBJECT_PTR) {
-            object **obj_ptr = (object **)(((char *)obj) + def->offset);
-            object_add_ref(value); // the one stored
+        } else if (def->tat_flags & TAT_VARIANT_PTR) {
+            variant **obj_ptr = (variant **)(((char *)obj) + def->offset);
+            variant_add_ref(value); // the one stored
             *obj_ptr = value;
 
         } else if (def->tat_flags & TAT_INT) {
@@ -168,8 +168,8 @@ object *object_set_attr(object *obj, const char *name, object *value) {
     return NULL;
 }
 
-bool object_has_method(object *obj, const char *name) {
-    object_type *type = obj->_type;
+bool variant_has_method(variant *obj, const char *name) {
+    variant_type *type = obj->_type;
     if (type->methods == NULL) return false;
     for (int i = 0; type->methods[i].name != NULL; i++) {
         if (strcmp(type->methods[i].name, name) == 0) {
@@ -179,8 +179,8 @@ bool object_has_method(object *obj, const char *name) {
     return false;
 }
 
-object *object_call_method(object *obj, const char *name, object *args, object *named_args) {
-    object_type *type = obj->_type;
+variant *variant_call_method(variant *obj, const char *name, variant *args, variant *named_args) {
+    variant_type *type = obj->_type;
     if (type->methods == NULL)
         return false; // notify method not found
     for (int i = 0; type->methods[i].name != NULL; i++) {
@@ -190,17 +190,17 @@ object *object_call_method(object *obj, const char *name, object *args, object *
         }
     }
     
-    //return new_error_object("method '%s' not found in type '%s'", name, type->name);
+    //return new_error_variant("method '%s' not found in type '%s'", name, type->name);
     return NULL;
 }
 
-object *object_to_string(object *obj) {
+variant *variant_to_string(variant *obj) {
     if (obj->_type->stringifier != NULL)
         return obj->_type->stringifier(obj);
     return NULL; // or some default?
 }
 
-bool objects_are_equal(object *a, object *b) {
+bool variants_are_equal(variant *a, variant *b) {
     if (a->_type != b->_type)
         return false;
     if (a->_type->equality_checker != NULL)
@@ -208,7 +208,7 @@ bool objects_are_equal(object *a, object *b) {
     return a == b;
 }
 
-int object_compare(object *a, object *b) {
+int variant_compare(variant *a, variant *b) {
     if (a->_type != b->_type)
         return false;
     if (a->_type->comparer != NULL)
@@ -216,25 +216,25 @@ int object_compare(object *a, object *b) {
     return -1;
 }
 
-unsigned object_hash(object *obj) {
+unsigned variant_hash(variant *obj) {
     if (obj->_type->hasher != NULL)
         return obj->_type->hasher(obj);
     return (unsigned)(long)obj;
 }
 
-object *object_get_iterator(object *obj) { // create & reset iterator to before first
+variant *variant_get_iterator(variant *obj) { // create & reset iterator to before first
     if (obj->_type->iterator_factory != NULL)
         return obj->_type->iterator_factory(obj);
     return NULL;
 }
 
-object *object_iterator_next(object *obj) { // advance and get next, or return error
+variant *variant_iterator_next(variant *obj) { // advance and get next, or return error
     if (obj->_type->iterator_next_implementation != NULL)
         return obj->_type->iterator_next_implementation(obj);
     return NULL;
 }
 
-object *object_call(object *obj, object *args, object *named_args) {
+variant *variant_call(variant *obj, variant *args, variant *named_args) {
     // here is the hard part!
     if (obj->_type->call_handler != NULL)
         return obj->_type->call_handler(obj, args, named_args);
