@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "stack_frame.h"
-#include "../containers/_module.h"
 #include "../str.h"
 
 

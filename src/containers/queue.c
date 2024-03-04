@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../class.h"
-#include "../str_builder.h"
+#include "../utils/class.h"
+#include "../utils/str_builder.h"
 #include "queue.h"
 
 typedef struct queue_entry {

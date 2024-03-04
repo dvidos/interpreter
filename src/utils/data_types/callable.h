@@ -1,11 +1,10 @@
 #ifndef _CALLABLE_H
 #define _CALLABLE_H
 
-#include "variant.h"
 #include "exec_context.h"
+#include "../../runtime/variants/variant.h"
 #include "../../runtime/execution/execution_outcome.h"
-#include "../containers/_module.h"
-#include "../containers/_module.h"
+#include "../../containers/_module.h"
 
 // We want to support both callables being called,
 // with a list of variants as arguments

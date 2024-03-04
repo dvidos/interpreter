@@ -5,9 +5,9 @@
 #include "dict.h"
 #include "queue.h"
 #include "stack.h"
-#include "../testing.h"
+#include "../utils/testing.h"
 
-#include "../data_types/variant.h"
+#include "../runtime/variants/_module.h"
 
 
 

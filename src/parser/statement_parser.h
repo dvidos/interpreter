@@ -1,8 +1,7 @@
 #ifndef _STATEMENT_PARSER_H
 #define _STATEMENT_PARSER_H
 
-#include "../utils/iterator.h"
-#include "../utils/containers/_module.h"
+#include "../containers/_module.h"
 #include "../entities/_module.h"
 
 

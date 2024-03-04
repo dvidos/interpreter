@@ -2,7 +2,7 @@
 #define _INTERPRETER_H
 
 #include "../utils/data_types/_module.h"
-#include "../utils/containers/_module.h"
+#include "../containers/_module.h"
 #include "../runtime/execution/execution_outcome.h"
 
 void initialize_interpreter();

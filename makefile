@@ -3,18 +3,16 @@ FILES = \
 	src/main.c \
 	src/utils/testing.c \
 	\
-	src/utils/data_types/variant.c \
-	src/utils/data_types/variant_tests.c \
 	src/utils/data_types/callable.c \
 	src/utils/data_types/exec_context.c \
 	src/utils/data_types/stack_frame.c \
 	\
-	src/utils/containers/dict.c \
-	src/utils/containers/list.c \
-	src/utils/containers/stack.c \
-	src/utils/containers/queue.c \
-	src/utils/containers/pair.c \
-	src/utils/containers/containers_tests.c \
+	src/containers/dict.c \
+	src/containers/list.c \
+	src/containers/stack.c \
+	src/containers/queue.c \
+	src/containers/pair.c \
+	src/containers/containers_tests.c \
 	\
 	src/utils/class.c \
 	src/utils/str.c \
@@ -39,8 +37,8 @@ FILES = \
 	src/parser/statement_parser.c \
 	src/parser/statement_parser_tests.c \
 	\
-	src/runtime/framework/object_type.c \
-	src/runtime/framework/object_funcs.c \
+	src/runtime/variants/variant.c \
+	src/runtime/variants/variant_tests.c \
 	\
 	src/runtime/execution/execution_outcome.c \
 	src/runtime/execution/expression_execution.c \

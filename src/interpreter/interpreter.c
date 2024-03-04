@@ -4,7 +4,7 @@
 #include "../utils/str.h"
 #include "../utils/testing.h"
 #include "../utils/failable.h"
-#include "../utils/containers/_module.h"
+#include "../containers/_module.h"
 #include "../utils/data_types/_module.h"
 #include "../entities/_module.h"
 #include "../lexer/_module.h"

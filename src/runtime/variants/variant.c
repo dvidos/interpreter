@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "variant.h"
-#include "callable.h"
+#include "../../utils/data_types/callable.h"
 
 
 struct variant {
@@ -403,5 +403,4 @@ const void variant_describe(variant *v, str_builder *sb) {
     str_builder_add(sb, variant_as_str(v));
 }
 
-STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(variant);
 

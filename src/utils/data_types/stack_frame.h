@@ -2,8 +2,8 @@
 #define _STACK_FRAME_H
 
 #include <stdbool.h>
-#include "../containers/_module.h"
-#include "variant.h"
+#include "../../runtime/variants/variant.h"
+#include "../../containers/_module.h"
 #include "stack_frame.h"
 
 typedef struct statement statement;

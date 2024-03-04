@@ -1,9 +1,9 @@
 #ifndef _LIST_H
 #define _LIST_H
 
-#include "../failable.h"
-#include "../iterator.h"
-#include "../class.h"
+#include "../utils/failable.h"
+#include "iterator.h"
+#include "../utils/class.h"
 
 
 typedef struct list list;

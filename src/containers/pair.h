@@ -1,9 +1,9 @@
 #ifndef _PAIR_H
 #define _PAIR_H
 
-#include "../failable.h"
-#include "../iterator.h"
-#include "../class.h"
+#include "../utils/failable.h"
+#include "iterator.h"
+#include "../utils/class.h"
 
 
 typedef struct pair pair;

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "variant.h"
-#include "../testing.h"
+#include "../../utils/testing.h"
 
 
 void variant_self_diagnostics(bool verbose) {

@@ -5,7 +5,7 @@
 // discrete header files conain interface for the files within the module.
 
 #include <stdbool.h>
-#include "../utils/containers/_module.h"
+#include "../containers/_module.h"
 
 // for main / higher level interface
 void initialize_lexer();

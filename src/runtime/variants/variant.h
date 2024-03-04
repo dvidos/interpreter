@@ -2,8 +2,7 @@
 #define _VARIANT_H
 
 #include <stdbool.h>
-#include "../failable.h"
-#include "../containers/_module.h"
+#include "../../containers/_module.h"
 
 typedef struct callable callable;
 
@@ -23,6 +22,12 @@ typedef enum variant_type {
     VT_VOID,     // for functions not returning anything
 } variant_type;
 
+
+/* TODO: convert variant to CPython's object structure
+         with a strong type and reference count
+         then make it work with the struct type, instead of the enum.
+         then allow parsing of classes and creation of custom "type"s
+*/
 typedef struct variant variant;
 
 variant *new_null_variant();
@@ -57,8 +62,6 @@ callable *variant_as_callable(variant *v);
 bool variants_are_equal(variant *a, variant *b);
 const void variant_describe(variant *v, str_builder *sb);
 
-STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(variant);
-#define failed_variant(inner, fmt, ...)  __failed_variant(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 extern class *variant_class;
 
