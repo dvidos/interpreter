@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <string.h>
-
-#include "variants.h"
+#include "variant_type.h"
 
 
 variant_type *type_of_types = &(variant_type){

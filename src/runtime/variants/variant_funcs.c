@@ -1,5 +1,5 @@
 #include <string.h>
-#include "variants.h"
+#include "variant_funcs.h"
 
 typedef variant *(*box_int_func)(int value);
 typedef variant *(*box_bool_func)(bool value);
@@ -117,7 +117,7 @@ variant *variant_get_attr(variant *obj, const char *name) {
             return methods.const_char_ptr_boxer(char_ptr);
 
         } else {
-            set_error("attribute '%s' not supported type '%d'", def->tat_flags);
+            set_error("attribute '%s' not supported type '%d'", name, def->tat_flags);
             return NULL;
         }
     }
@@ -200,7 +200,7 @@ variant *variant_to_string(variant *obj) {
     return NULL; // or some default?
 }
 
-bool variants_are_equal(variant *a, variant *b) {
+bool variants_new_are_equal(variant *a, variant *b) {
     if (a->_type != b->_type)
         return false;
     if (a->_type->equality_checker != NULL)

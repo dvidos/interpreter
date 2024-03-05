@@ -1,7 +1,7 @@
 #ifndef _EXECUTION_OUTCOME_H
 #define _EXECUTION_OUTCOME_H
 
-#include "../variants/variant.h"
+#include "../variants/_module.h"
 
 // any function can instantiate and return an exception
 // so we need an alternative way to signal a "thrown" exception

@@ -2,7 +2,7 @@
 #define _STACK_FRAME_H
 
 #include <stdbool.h>
-#include "../../runtime/variants/variant.h"
+#include "../../runtime/variants/_module.h"
 #include "../../containers/_module.h"
 #include "stack_frame.h"
 

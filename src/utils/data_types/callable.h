@@ -2,7 +2,7 @@
 #define _CALLABLE_H
 
 #include "exec_context.h"
-#include "../../runtime/variants/variant.h"
+#include "../../runtime/variants/_module.h"
 #include "../../runtime/execution/execution_outcome.h"
 #include "../../containers/_module.h"
 

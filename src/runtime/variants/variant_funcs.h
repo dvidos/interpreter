@@ -1,6 +1,10 @@
 #ifndef _VARIANTS_FUNCS_H
 #define _VARIANTS_FUNCS_H
 
+#include "_module.h"
+#include "variant_base.h"
+#include "variant_type.h"
+
 
 // call this to create a new instance
 variant *variant_create(variant_type *type, variant *args, variant *named_args);
@@ -25,7 +29,7 @@ variant *variant_call_method(variant *obj, const char *name, variant *args, vari
 
 // a few utilitiy methods without knowing the variant type
 variant  *variant_to_string(variant *obj);
-bool      variants_are_equal(variant *a, variant *b);
+bool      variants_new_are_equal(variant *a, variant *b);
 int       variant_compare(variant *a, variant *b);
 unsigned  variant_hash(variant *obj);
 variant  *variant_clone(variant *obj);

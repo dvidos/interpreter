@@ -5,8 +5,6 @@
 #include "../../containers/_module.h"
 
 typedef struct callable callable;
-
-
 typedef struct variant variant;
 
 variant *new_null_variant();

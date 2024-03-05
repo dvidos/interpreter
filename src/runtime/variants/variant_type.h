@@ -4,11 +4,7 @@
 #include <stdlib.h> // for NULL
 #include <stddef.h> // for offsetof()
 #include <stdbool.h> // for bool
-
-
-// forward declarations
-typedef struct variant variant;
-typedef struct variant_type variant_type;
+#include "variant_base.h"
 
 // some specific function types, used in types
 typedef void (*initialize_func)(variant *obj, variant *args, variant *named_args);
