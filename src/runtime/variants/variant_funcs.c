@@ -20,6 +20,18 @@ static struct variant_methods {
 } methods;
 
 
+variant *true_instance;
+variant *false_instance;
+variant *void_instance;
+variant *zero_instance;
+variant *one_instance;
+
+
+void initialize_variants() {
+    // we should update all built-in types and set their type to the type_type,
+    // we should initialize the predefined instances: true, false, void, zero, one.
+}
+
 variant *variant_create(variant_type *type, variant *args, variant *named_args) {
     variant *p = malloc(type->instance_size);
     p->_type = type;

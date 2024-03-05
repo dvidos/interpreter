@@ -5,6 +5,17 @@
 #include "variant_base.h"
 #include "variant_type.h"
 
+// predefined reusable read only instances
+extern variant *true_instance;
+extern variant *false_instance;
+extern variant *void_instance;
+extern variant *zero_instance;
+extern variant *one_instance;
+
+void initialize_variants();
+
+
+
 
 // call this to create a new instance
 variant *variant_create(variant_type *type, variant *args, variant *named_args);

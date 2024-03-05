@@ -1,5 +1,12 @@
 # todo
 
+* continue to convert types from `variant_original` to the new types:
+  * float, bool, list, dict etc.
+  * then deprecate the `variant_original` file
+  * then we shall be left with the new object oriented variants!
+
+----------------------
+
 * parse `class` with functions and attributes, private is the default mode, 
 `public` opens up visibility to others.
 

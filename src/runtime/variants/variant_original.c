@@ -5,8 +5,6 @@
 #include <stddef.h>
 #include "variant_original.h"
 #include "../../utils/data_types/callable.h"
-#include "int_variant.h"
-#include "str_variant.h"
 
 typedef enum variant_enum_type {
     VT_NULL,
@@ -67,12 +65,12 @@ variant *new_null_variant() {
     return (variant *)v;
 }
 
-variant *new_bool_variant(bool b) {
-    variant_original *v = (variant_original *)new_null_variant();
-    v->enum_type = VT_BOOL;
-    v->per_type.bool_ = b;
-    return (variant *)v;
-}
+// variant *new_bool_variant(bool b) {
+//     variant_original *v = (variant_original *)new_null_variant();
+//     v->enum_type = VT_BOOL;
+//     v->per_type.bool_ = b;
+//     return (variant *)v;
+// }
 
 // variant *new_int_variant(int i) {
 //     variant_original *v = (variant_original *)new_null_variant();
@@ -143,7 +141,8 @@ bool variant_is_null(variant *v) {
 }
 
 bool variant_is_bool(variant *v) {
-    return ((variant_original *)v)->enum_type == VT_BOOL;
+    return variant_is(v, bool_type);
+    // return ((variant_original *)v)->enum_type == VT_BOOL;
 }
 
 bool variant_is_int(variant *v) {
@@ -182,6 +181,8 @@ bool variant_as_bool(variant *v) {
                strcmp(str_variant_as_str(v), "1") == 0;
     } else if (variant_is(v, int_type)) {
         return int_variant_as_int(v) != 0;
+    } else if (variant_is(v, bool_type)) {
+        return bool_variant_as_bool(v);
     }
 
     variant_original *o = (variant_original *)v;
@@ -215,6 +216,8 @@ int variant_as_int(variant *v) {
         return atoi(str_variant_as_str(v));
     } else if (variant_is(v, int_type)) {
         return int_variant_as_int(v);
+    } else if (variant_is(v, bool_type)) {
+        return bool_variant_as_bool(v) ? 1 : 0;
     }
 
     variant_original *o = (variant_original *)v;
@@ -245,6 +248,8 @@ float variant_as_float(variant *v) {
         return atof(str_variant_as_str(v));
     } else if (variant_is(v, int_type)) {
         return (float)int_variant_as_int(v);
+    } else if (variant_is(v, bool_type)) {
+        return bool_variant_as_bool(v) ? 1.0 : 0.0;
     }
 
     variant_original *o = (variant_original *)v;
@@ -275,6 +280,8 @@ const char *variant_as_str(variant *v) {
     if (variant_is(v, str_type)) {
         return str_variant_as_str(v);
     } else if (variant_is(v, int_type)) {
+        return str_variant_as_str(variant_to_string(v));
+    } else if (variant_is(v, bool_type)) {
         return str_variant_as_str(variant_to_string(v));
     }
 
@@ -422,6 +429,8 @@ bool variants_are_equal(variant *a, variant *b) {
     if (variant_is(a, str_type) && variant_is(b, str_type)) {
         return a->_type->equality_checker(a, b);
     } else if (variant_is(a, int_type) && variant_is(b, int_type)) {
+        return a->_type->equality_checker(a, b);
+    } else if (variant_is(a, bool_type) && variant_is(b, bool_type)) {
         return a->_type->equality_checker(a, b);
     }
 
