@@ -5,7 +5,8 @@
 #include <stddef.h>
 #include "variant_original.h"
 #include "../../utils/data_types/callable.h"
-
+#include "int_variant.h"
+#include "str_variant.h"
 
 typedef enum variant_enum_type {
     VT_NULL,
@@ -73,12 +74,12 @@ variant *new_bool_variant(bool b) {
     return (variant *)v;
 }
 
-variant *new_int_variant(int i) {
-    variant_original *v = (variant_original *)new_null_variant();
-    v->enum_type = VT_INT;
-    v->per_type.int_ = i;
-    return (variant *)v;
-}
+// variant *new_int_variant(int i) {
+//     variant_original *v = (variant_original *)new_null_variant();
+//     v->enum_type = VT_INT;
+//     v->per_type.int_ = i;
+//     return (variant *)v;
+// }
 
 variant *new_float_variant(float f) {
     variant_original *v = (variant_original *)new_null_variant();
@@ -146,7 +147,8 @@ bool variant_is_bool(variant *v) {
 }
 
 bool variant_is_int(variant *v) {
-    return ((variant_original *)v)->enum_type == VT_INT;
+    return variant_is(v, int_type);
+    // return ((variant_original *)v)->enum_type == VT_INT;
 }
 
 bool variant_is_float(variant *v) {
@@ -175,9 +177,11 @@ bool variant_is_exception(variant *v) {
 }
 
 bool variant_as_bool(variant *v) {
-    if (v->_type == str_type) {
+    if (variant_is(v, str_type)) {
         return strcmp(str_variant_as_str(v), "true") == 0 || 
                strcmp(str_variant_as_str(v), "1") == 0;
+    } else if (variant_is(v, int_type)) {
+        return int_variant_as_int(v) != 0;
     }
 
     variant_original *o = (variant_original *)v;
@@ -207,8 +211,10 @@ bool variant_as_bool(variant *v) {
 }
 
 int variant_as_int(variant *v) {
-    if (v->_type == str_type) {
+    if (variant_is(v, str_type)) {
         return atoi(str_variant_as_str(v));
+    } else if (variant_is(v, int_type)) {
+        return int_variant_as_int(v);
     }
 
     variant_original *o = (variant_original *)v;
@@ -235,8 +241,10 @@ int variant_as_int(variant *v) {
 }
 
 float variant_as_float(variant *v) {
-    if (v->_type == str_type) {
+    if (variant_is(v, str_type)) {
         return atof(str_variant_as_str(v));
+    } else if (variant_is(v, int_type)) {
+        return (float)int_variant_as_int(v);
     }
 
     variant_original *o = (variant_original *)v;
@@ -266,6 +274,8 @@ const char *variant_as_str(variant *v) {
     // see if this this the new variants
     if (variant_is(v, str_type)) {
         return str_variant_as_str(v);
+    } else if (variant_is(v, int_type)) {
+        return str_variant_as_str(variant_to_string(v));
     }
 
     // else, keep compatibility with the old variants
@@ -409,7 +419,9 @@ bool variants_are_equal(variant *a, variant *b) {
     if (a == b)
         return true;
 
-    if (a->_type == str_type && b->_type == str_type) {
+    if (variant_is(a, str_type) && variant_is(b, str_type)) {
+        return a->_type->equality_checker(a, b);
+    } else if (variant_is(a, int_type) && variant_is(b, int_type)) {
         return a->_type->equality_checker(a, b);
     }
 
