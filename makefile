@@ -41,6 +41,7 @@ FILES = \
 	src/runtime/variants/variant_tests.c \
 	src/runtime/variants/variant_type.c \
 	src/runtime/variants/variant_funcs.c \
+	src/runtime/variants/str_variant.c \
 	\
 	src/runtime/execution/execution_outcome.c \
 	src/runtime/execution/expression_execution.c \

@@ -15,8 +15,7 @@ void variant_drop_ref(variant *obj);
 
 // type checks
 bool variant_is(variant *obj, variant_type *type);          // type or a subtype of it
-bool variant_is_exactly(variant *obj, variant_type *type);  // type or a subtype of it
-
+bool variant_is_exactly(variant *obj, variant_type *type);
 
 // call these to manipulate properties on an variant
 bool     variant_has_attr(variant *obj, const char *name);

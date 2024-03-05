@@ -65,7 +65,7 @@ struct variant_type {
     // name of the class, instance_size to allocate, base type
     const char *name;
     int instance_size;
-    struct variant_type *base_type;
+    struct variant_type *parent_type;
 
     // class wide functions to define behavior of instances
     // e.g. to_string(), to_bool(), hash(), len(), call(), serialize(), iterator() etc

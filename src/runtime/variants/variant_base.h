@@ -6,7 +6,6 @@ typedef struct variant variant;
 typedef struct variant_type variant_type;
 
 
-
 // all "variant" structures (including the variant_type) 
 // must have these as the first items, to allow uniform treatment
 #define BASE_VARIANT_FIRST_ATTRIBUTES        \

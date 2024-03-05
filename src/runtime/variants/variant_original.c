@@ -87,14 +87,14 @@ variant *new_float_variant(float f) {
     return (variant *)v;
 }
 
-variant *new_str_variant(const char *p) {
-    variant_original *v = (variant_original *)new_null_variant();
-    v->enum_type = VT_STR;
-    v->per_type.s.len = strlen(p);
-    v->per_type.s.ptr = malloc(v->per_type.s.len + 1);
-    strcpy(v->per_type.s.ptr, p);
-    return (variant *)v;
-}
+// variant *new_str_variant(const char *p) {
+//     variant_original *v = (variant_original *)new_null_variant();
+//     v->enum_type = VT_STR;
+//     v->per_type.s.len = strlen(p);
+//     v->per_type.s.ptr = malloc(v->per_type.s.len + 1);
+//     strcpy(v->per_type.s.ptr, p);
+//     return (variant *)v;
+// }
 
 variant *new_list_variant(list *l) {
     variant_original *v = (variant_original *)new_null_variant();
@@ -154,7 +154,8 @@ bool variant_is_float(variant *v) {
 }
 
 bool variant_is_str(variant *v) {
-    return ((variant_original *)v)->enum_type == VT_STR;
+    return variant_is(v, str_type);
+    // return ((variant_original *)v)->enum_type == VT_STR;
 }
 
 bool variant_is_list(variant *v) {
@@ -174,6 +175,11 @@ bool variant_is_exception(variant *v) {
 }
 
 bool variant_as_bool(variant *v) {
+    if (v->_type == str_type) {
+        return strcmp(str_variant_as_str(v), "true") == 0 || 
+               strcmp(str_variant_as_str(v), "1") == 0;
+    }
+
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
         case VT_NULL:
@@ -201,6 +207,10 @@ bool variant_as_bool(variant *v) {
 }
 
 int variant_as_int(variant *v) {
+    if (v->_type == str_type) {
+        return atoi(str_variant_as_str(v));
+    }
+
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
         case VT_NULL:
@@ -225,6 +235,10 @@ int variant_as_int(variant *v) {
 }
 
 float variant_as_float(variant *v) {
+    if (v->_type == str_type) {
+        return atof(str_variant_as_str(v));
+    }
+
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
         case VT_NULL:
@@ -249,6 +263,12 @@ float variant_as_float(variant *v) {
 }
 
 const char *variant_as_str(variant *v) {
+    // see if this this the new variants
+    if (variant_is(v, str_type)) {
+        return str_variant_as_str(v);
+    }
+
+    // else, keep compatibility with the old variants
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
         case VT_NULL:
@@ -388,6 +408,10 @@ bool variants_are_equal(variant *a, variant *b) {
         return false;
     if (a == b)
         return true;
+
+    if (a->_type == str_type && b->_type == str_type) {
+        return a->_type->equality_checker(a, b);
+    }
 
     variant_original *va = (variant_original *)a;
     variant_original *vb = (variant_original *)b;

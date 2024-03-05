@@ -1,5 +1,7 @@
 #include <string.h>
 #include "variant_funcs.h"
+#include "../../utils/error.h"
+
 
 typedef variant *(*box_int_func)(int value);
 typedef variant *(*box_bool_func)(bool value);
@@ -29,6 +31,9 @@ variant *variant_create(variant_type *type, variant *args, variant *named_args) 
 }
 
 variant *variant_clone(variant *obj) {
+    if (obj == NULL)
+        return NULL;
+        
     if (obj->_type->copy_initializer == NULL)
         return NULL;
     
@@ -68,7 +73,7 @@ bool variant_is(variant *obj, variant_type *type) {
     while (t != NULL && levels++ < 100) {
         if (t == type)
             return true;
-        t = t->base_type;
+        t = t->parent_type;
     }
     return false;
 }
@@ -195,12 +200,22 @@ variant *variant_call_method(variant *obj, const char *name, variant *args, vari
 }
 
 variant *variant_to_string(variant *obj) {
+    if (obj == NULL)
+        return NULL; // or maybe "(null)"
+    
     if (obj->_type->stringifier != NULL)
         return obj->_type->stringifier(obj);
     return NULL; // or some default?
 }
 
 bool variants_new_are_equal(variant *a, variant *b) {
+    if (a == b)
+        return true;
+    if (a == NULL && b != NULL)
+        return false;
+    if (a != NULL && b == NULL)
+        return false;
+    
     if (a->_type != b->_type)
         return false;
     if (a->_type->equality_checker != NULL)
@@ -209,6 +224,13 @@ bool variants_new_are_equal(variant *a, variant *b) {
 }
 
 int variant_compare(variant *a, variant *b) {
+    if (a == b)
+        return 0;
+    if (a == NULL && b != NULL)
+        return -1;
+    if (a != NULL && b == NULL)
+        return 1;
+    
     if (a->_type != b->_type)
         return false;
     if (a->_type->comparer != NULL)
@@ -217,6 +239,9 @@ int variant_compare(variant *a, variant *b) {
 }
 
 unsigned variant_hash(variant *obj) {
+    if (obj == NULL)
+        return 0;
+    
     if (obj->_type->hasher != NULL)
         return obj->_type->hasher(obj);
     return (unsigned)(long)obj;
