@@ -41,6 +41,11 @@ object *object_clone(object *obj) {
 }
 
 void object_add_ref(object *obj) {
+    if (obj == NULL)
+        return;
+    if (obj->_references_count == OBJECT_STATICALLY_ALLOCATED)
+        return;
+    
     obj->_references_count++;
 }
 

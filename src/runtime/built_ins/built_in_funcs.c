@@ -34,7 +34,7 @@ static dict *built_in_dict_methods = NULL;
 
 #define RET_STR(val)    ok_outcome(new_str_variant(val))
 #define RET_INT(val)    ok_outcome(new_int_variant(val))
-#define RET_VOID()      ok_outcome(new_null_variant())
+#define RET_VOID()      ok_outcome(void_instance)
 
 #define BUILT_IN_METHOD(target_obj_type, name, function)  \
     dict_set(built_in_ ## target_obj_type ## _methods, \
@@ -167,7 +167,7 @@ static execution_outcome built_in_list_add(list *positional_args, dict *named_ar
     list *l = variant_as_list(this_obj);
     variant *item = list_get(positional_args, 0);
     list_add(l, item);
-    return ok_outcome(new_null_variant());
+    return ok_outcome(void_instance);
 }
 static execution_outcome built_in_list_filter(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = variant_as_list(this_obj);
@@ -212,7 +212,7 @@ static execution_outcome built_in_list_reduce(list *positional_args, dict *named
     variant *accumulator = VARNT_ARG(0);
     callable *func = CALL_ARG(1);
     if (accumulator == NULL)
-        accumulator = new_null_variant();
+        accumulator = void_instance;
     int index = 0;
     for_list(l, it, variant, item) {
         list *func_args = list_of(variant_class, 4,

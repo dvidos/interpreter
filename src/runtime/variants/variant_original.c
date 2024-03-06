@@ -62,13 +62,13 @@ class *variant_class = &(class){
     .describe = (describe_func)variant_describe
 };
 
-variant *new_null_variant() {
-    variant_original *v = malloc(sizeof(variant_original));
-    memset(v, 0, sizeof(variant_original));
-    v->class = variant_class;
-    v->enum_type = VT_NULL;
-    return (variant *)v;
-}
+// variant *new_null_variant() {
+//     variant_original *v = malloc(sizeof(variant_original));
+//     memset(v, 0, sizeof(variant_original));
+//     v->class = variant_class;
+//     v->enum_type = VT_NULL;
+//     return (variant *)v;
+// }
 
 // variant *new_bool_variant(bool b) {
 //     variant_original *v = (variant_original *)new_null_variant();
@@ -101,21 +101,27 @@ variant *new_null_variant() {
 // }
 
 variant *new_list_variant(list *l) {
-    variant_original *v = (variant_original *)new_null_variant();
+    variant_original *v = malloc(sizeof(variant_original));
+    memset(v, 0, sizeof(variant_original));
+    v->class = variant_class;
     v->enum_type = VT_LIST;
     v->per_type.list_ = l;
     return (variant *)v;
 }
 
 variant *new_dict_variant(dict *d) {
-    variant_original *v = (variant_original *)new_null_variant();
+    variant_original *v = malloc(sizeof(variant_original));
+    memset(v, 0, sizeof(variant_original));
+    v->class = variant_class;
     v->enum_type = VT_DICT;
     v->per_type.dict_ = d;
     return (variant *)v;
 }
 
 variant *new_callable_variant(callable *c) {
-    variant_original *v = (variant_original *)new_null_variant();
+    variant_original *v = malloc(sizeof(variant_original));
+    memset(v, 0, sizeof(variant_original));
+    v->class = variant_class;
     v->enum_type = VT_CALLABLE;
     v->per_type.callable_ = c;
     return (variant *)v;
@@ -131,7 +137,9 @@ variant *new_exception_variant(const char *script_filename, int script_line, int
     char *msg = malloc(strlen(buffer) + 1);
     strcpy(msg, buffer);
 
-    variant_original *v = (variant_original *)new_null_variant();
+    variant_original *v = malloc(sizeof(variant_original));
+    memset(v, 0, sizeof(variant_original));
+    v->class = variant_class;
     v->enum_type = VT_EXCEPTION;
     v->per_type.exception.msg = msg;
     v->per_type.exception.script_filename = script_filename;
@@ -142,7 +150,8 @@ variant *new_exception_variant(const char *script_filename, int script_line, int
 }
 
 bool variant_is_null(variant *v) {
-    return ((variant_original *)v)->enum_type == VT_NULL;
+    return variant_is(v, void_type);
+    //return ((variant_original *)v)->enum_type == VT_NULL;
 }
 
 bool variant_is_bool(variant *v) {
@@ -182,7 +191,9 @@ bool variant_is_exception(variant *v) {
 }
 
 bool variant_as_bool(variant *v) {
-    if (variant_is(v, str_type)) {
+    if (variant_is(v, void_type)) {
+        return false;
+    } else if (variant_is(v, str_type)) {
         return strcmp(str_variant_as_str(v), "true") == 0 || 
                strcmp(str_variant_as_str(v), "1") == 0;
     } else if (variant_is(v, int_type)) {
@@ -220,7 +231,9 @@ bool variant_as_bool(variant *v) {
 }
 
 int variant_as_int(variant *v) {
-    if (variant_is(v, str_type)) {
+    if (variant_is(v, void_type)) {
+        return 0;
+    } else if (variant_is(v, str_type)) {
         return atoi(str_variant_as_str(v));
     } else if (variant_is(v, int_type)) {
         return int_variant_as_int(v);
@@ -254,7 +267,9 @@ int variant_as_int(variant *v) {
 }
 
 float variant_as_float(variant *v) {
-    if (variant_is(v, str_type)) {
+    if (variant_is(v, void_type)) {
+        return 0.0;
+    } else if (variant_is(v, str_type)) {
         return atof(str_variant_as_str(v));
     } else if (variant_is(v, int_type)) {
         return (float)int_variant_as_int(v);
@@ -289,7 +304,9 @@ float variant_as_float(variant *v) {
 
 const char *variant_as_str(variant *v) {
     // see if this this the new variants
-    if (variant_is(v, str_type)) {
+    if (variant_is(v, void_type)) {
+        return "(void)";
+    } else if (variant_is(v, str_type)) {
         return str_variant_as_str(v);
     } else if (variant_is(v, int_type)) {
         return str_variant_as_str(variant_to_string(v));
@@ -440,7 +457,9 @@ bool variants_are_equal(variant *a, variant *b) {
     if (a == b)
         return true;
 
-    if (variant_is(a, str_type) && variant_is(b, str_type)) {
+    if (variant_is(a, void_type) && variant_is(b, void_type)) {
+        return true;
+    } else if (variant_is(a, str_type) && variant_is(b, str_type)) {
         return a->_type->equality_checker(a, b);
     } else if (variant_is(a, int_type) && variant_is(b, int_type)) {
         return a->_type->equality_checker(a, b);

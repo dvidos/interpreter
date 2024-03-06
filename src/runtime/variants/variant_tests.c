@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include "variant_original.h"
 #include "../../utils/testing.h"
-
+#include "_internal.h"
 
 void variant_self_diagnostics(bool verbose) {
 
@@ -17,7 +17,7 @@ void variant_self_diagnostics(bool verbose) {
     assert(variant_as_int(v) == 15); // yes, forced conversion
     assert(variant_as_float(v) == 15.0);
 
-    assert(strcmp(variant_as_str(new_null_variant()), "(null)") == 0);
+    assert(strcmp(variant_as_str(void_instance), "(void)") == 0);
     assert(strcmp(variant_as_str(new_str_variant("123")), "123") == 0);
     assert(strcmp(variant_as_str(new_int_variant(123)), "123") == 0);
     assert(strcmp(variant_as_str(new_float_variant(3.14)), "3.140000") == 0);

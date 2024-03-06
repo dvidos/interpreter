@@ -30,12 +30,12 @@ variant *one_instance;
 void initialize_variants() {
     // the following cannot be initialized statically
     type_of_types->_type = type_of_types;
+
     void_type->_type = type_of_types;
     int_type->_type = type_of_types;
     str_type->_type = type_of_types;
     bool_type->_type = type_of_types;
     float_type->_type = type_of_types;
-
 
     void_instance = new_void_variant();
     true_instance = new_bool_variant(true);
@@ -43,6 +43,7 @@ void initialize_variants() {
     zero_instance = new_int_variant(0);
     one_instance = new_int_variant(1);
 
+    void_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     true_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     false_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     zero_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;

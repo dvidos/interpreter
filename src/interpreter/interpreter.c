@@ -21,6 +21,8 @@ void initialize_interpreter() {
     initialize_operator_type_tables();
     initialize_expression_parser();
     initialize_statement_parser();
+
+    initialize_variants();
     initialize_built_in_funcs_table();
     initialize_expression_execution();
 }
