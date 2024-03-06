@@ -28,8 +28,22 @@ variant *one_instance;
 
 
 void initialize_variants() {
-    // we should update all built-in types and set their type to the type_type,
-    // we should initialize the predefined instances: true, false, void, zero, one.
+    // the following cannot be initialized statically
+    int_type->_type = type_of_types;
+    str_type->_type = type_of_types;
+    bool_type->_type = type_of_types;
+    
+
+
+    true_instance = new_bool_variant(true);
+    false_instance = new_bool_variant(false);
+    zero_instance = new_int_variant(0);
+    one_instance = new_int_variant(1);
+
+    true_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
+    false_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
+    zero_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
+    one_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
 }
 
 variant *variant_create(variant_type *type, variant *args, variant *named_args) {

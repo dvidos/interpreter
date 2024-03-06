@@ -1,9 +1,7 @@
 #ifndef _VARIANTS_FUNCS_H
 #define _VARIANTS_FUNCS_H
 
-#include "_module.h"
-#include "variant_base.h"
-#include "variant_type.h"
+#include "_internal.h"
 
 // predefined reusable read only instances
 extern variant *true_instance;

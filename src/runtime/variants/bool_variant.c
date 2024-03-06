@@ -9,7 +9,7 @@ typedef struct bool_instance {
 } bool_instance;
 
 static void initialize(bool_instance *obj, variant *args, variant *named_args) {
-    obj->value = 0;
+    obj->value = false;
 }
 
 static void destruct(bool_instance *obj) {
@@ -36,7 +36,9 @@ static bool are_equal(bool_instance *a, bool_instance *b) {
 }
 
 variant_type *bool_type = &(variant_type){
-    // ._type = type_of_types,
+    ._type = NULL,
+    ._references_count = VARIANT_STATICALLY_ALLOCATED,
+    
     .name = "bool",
     .parent_type = NULL,
     .instance_size = sizeof(bool_instance),

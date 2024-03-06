@@ -4,10 +4,6 @@
 #include <stdbool.h>
 #include "../../containers/_module.h"
 
-#include "int_variant.h"
-#include "str_variant.h"
-#include "bool_variant.h"
-
 typedef struct callable callable;
 typedef struct variant variant;
 

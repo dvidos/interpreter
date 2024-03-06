@@ -67,7 +67,9 @@ static bool are_equal(str_instance *a, str_instance *b) {
 }
 
 variant_type *str_type = &(variant_type){
-    // ._type = type_of_types,
+    ._type = NULL,
+    ._references_count = VARIANT_STATICALLY_ALLOCATED,
+    
     .name = "str",
     .parent_type = NULL,
     .instance_size = sizeof(str_instance),

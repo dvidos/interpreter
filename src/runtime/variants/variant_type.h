@@ -1,10 +1,17 @@
-#ifndef _TYPE_VARIANT_H
-#define _TYPE_VARIANT_H
+#ifndef _VARIANT_TYPE_H
+#define _VARIANT_TYPE_H
 
 #include <stdlib.h> // for NULL
 #include <stddef.h> // for offsetof()
 #include <stdbool.h> // for bool
+
 #include "variant_base.h"
+
+#include "int_variant.h"
+#include "str_variant.h"
+#include "bool_variant.h"
+#include "float_variant.h"
+
 
 // some specific function types, used in types
 typedef void (*initialize_func)(variant *obj, variant *args, variant *named_args);

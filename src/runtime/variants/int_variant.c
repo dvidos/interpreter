@@ -38,7 +38,9 @@ static bool are_equal(int_instance *a, int_instance *b) {
 }
 
 variant_type *int_type = &(variant_type){
-    // ._type = type_of_types,
+    ._type = NULL,
+    ._references_count = VARIANT_STATICALLY_ALLOCATED,
+    
     .name = "int",
     .parent_type = NULL,
     .instance_size = sizeof(int_instance),
