@@ -41,6 +41,8 @@ FILES = \
 	src/runtime/variants/variant_tests.c \
 	src/runtime/variants/variant_type.c \
 	src/runtime/variants/variant_funcs.c \
+	\
+	src/runtime/variants/void_variant.c \
 	src/runtime/variants/str_variant.c \
 	src/runtime/variants/int_variant.c \
 	src/runtime/variants/bool_variant.c \

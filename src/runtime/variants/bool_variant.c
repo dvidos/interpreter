@@ -27,7 +27,7 @@ static unsigned hash(bool_instance *obj) {
     return (unsigned)(obj->value);
 }
 
-static bool compare(bool_instance *a, bool_instance *b) {
+static int compare(bool_instance *a, bool_instance *b) {
     return a->value - b->value;
 }
 

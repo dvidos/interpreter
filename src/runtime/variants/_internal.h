@@ -19,5 +19,11 @@ typedef struct variant_type variant_type;
 #include "variant_original.h"
 
 
+#include "void_variant.h"
+#include "str_variant.h"
+#include "int_variant.h"
+#include "bool_variant.h"
+#include "float_variant.h"
+
 
 #endif

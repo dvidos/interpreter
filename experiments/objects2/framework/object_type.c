@@ -6,6 +6,7 @@
 
 object_type *type_of_types = &(object_type){
     .name = "type",
+    // we should implement various methods, such as to_string() or compare()
 };
 
 // a dictionary of registered types
