@@ -5,7 +5,7 @@
 
 extern variant_type *str_type;
 
-variant *new_str_variant(const char *value);
+variant *new_str_variant(const char *fmt, ...);
 const char *str_variant_as_str(variant *v); // caller does not need to free result
 
 #endif

@@ -1,5 +1,7 @@
 #include "_internal.h"
+#include "../../utils/hash.h"
 #include <string.h>
+#include <stdio.h>
 
 
 typedef struct str_instance {
@@ -44,15 +46,9 @@ static variant *stringify(str_instance *obj) {
 }
 
 static unsigned hash(str_instance *obj) {
-    unsigned long long_value = 0;
-    unsigned char *data_ptr = (unsigned char *)obj->buffer;
-    int data_bytes = obj->length;
-    while (data_bytes-- > 0) {
-        long_value = (long_value << 5) + *data_ptr;
-        long_value = ((long_value & 0xFFFFFFFF00000000) >> 32) ^ (long_value & 0xFFFFFFFF);
-        data_ptr++;
-    }
-    return (unsigned)long_value;
+    if (obj == NULL || obj->buffer == NULL)
+        return 0;
+    return simple_hash(obj->buffer, obj->length);
 }
 
 static int compare(str_instance *a, str_instance *b) {
@@ -83,12 +79,24 @@ variant_type *str_type = &(variant_type){
     .equality_checker = (equals_func)are_equal
 };
 
-variant *new_str_variant(const char *value) {
+variant *new_str_variant(const char *fmt, ...) {
     str_instance *s = (str_instance *)variant_create(str_type, NULL, NULL);
-    if (value != NULL) {
-        ensure_capacity(s, strlen(value) + 1);
-        strcpy(s->buffer, value);
-        s->length = strlen(value);
+    if (fmt == NULL) {
+        ;
+    } else if (strchr(fmt, '%') == NULL) {
+        ensure_capacity(s, strlen(fmt) + 1);
+        strcpy(s->buffer, fmt);
+        s->length = strlen(fmt);
+    } else {
+        char temp[256];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(temp, sizeof(temp), fmt, args);
+        va_end(args);
+
+        ensure_capacity(s, strlen(temp) + 1);
+        strcpy(s->buffer, temp);
+        s->length = strlen(temp);
     }
     return (variant *)s;
 }

@@ -22,6 +22,7 @@ FILES = \
 	src/utils/listing.c \
 	src/utils/mem.c \
 	src/utils/error.c \
+	src/utils/hash.c \
 	\
 	src/entities/operator_type.c \
 	src/entities/expression.c \
@@ -47,6 +48,7 @@ FILES = \
 	src/runtime/variants/int_variant.c \
 	src/runtime/variants/bool_variant.c \
 	src/runtime/variants/float_variant.c \
+	src/runtime/variants/exception_variant.c \
 	\
 	src/runtime/execution/execution_outcome.c \
 	src/runtime/execution/expression_execution.c \

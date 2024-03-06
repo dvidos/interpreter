@@ -127,27 +127,27 @@ variant *new_callable_variant(callable *c) {
     return (variant *)v;
 }
 
-variant *new_exception_variant(const char *script_filename, int script_line, int script_column, variant *inner, const char *fmt, ...) {
-    char buffer[256];
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
+// variant *new_exception_variant(const char *script_filename, int script_line, int script_column, variant *inner, const char *fmt, ...) {
+//     char buffer[256];
+//     va_list args;
+//     va_start(args, fmt);
+//     vsnprintf(buffer, sizeof(buffer), fmt, args);
+//     va_end(args);
 
-    char *msg = malloc(strlen(buffer) + 1);
-    strcpy(msg, buffer);
+//     char *msg = malloc(strlen(buffer) + 1);
+//     strcpy(msg, buffer);
 
-    variant_original *v = malloc(sizeof(variant_original));
-    memset(v, 0, sizeof(variant_original));
-    v->class = variant_class;
-    v->enum_type = VT_EXCEPTION;
-    v->per_type.exception.msg = msg;
-    v->per_type.exception.script_filename = script_filename;
-    v->per_type.exception.script_line = script_line;
-    v->per_type.exception.script_column = script_column;
-    v->per_type.exception.inner = (variant_original *)inner;
-    return (variant *)v;
-}
+//     variant_original *v = malloc(sizeof(variant_original));
+//     memset(v, 0, sizeof(variant_original));
+//     v->class = variant_class;
+//     v->enum_type = VT_EXCEPTION;
+//     v->per_type.exception.msg = msg;
+//     v->per_type.exception.script_filename = script_filename;
+//     v->per_type.exception.script_line = script_line;
+//     v->per_type.exception.script_column = script_column;
+//     v->per_type.exception.inner = (variant_original *)inner;
+//     return (variant *)v;
+// }
 
 bool variant_is_null(variant *v) {
     return variant_is(v, void_type);

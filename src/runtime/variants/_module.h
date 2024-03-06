@@ -13,5 +13,11 @@ typedef struct variant_type variant_type;
 
 void variant_self_diagnostics(bool verbose);
 
+#include "void_variant.h"
+#include "str_variant.h"
+#include "int_variant.h"
+#include "float_variant.h"
+#include "bool_variant.h"
+#include "exception_variant.h"
 
 #endif
