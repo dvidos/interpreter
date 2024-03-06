@@ -25,6 +25,7 @@ variant *true_instance;
 variant *false_instance;
 variant *zero_instance;
 variant *one_instance;
+variant *iteration_finished_exception_instance;
 
 
 void initialize_variants() {
@@ -36,18 +37,21 @@ void initialize_variants() {
     str_type->_type = type_of_types;
     bool_type->_type = type_of_types;
     float_type->_type = type_of_types;
+    exception_type->_type = type_of_types;
 
     void_instance = new_void_variant();
     true_instance = new_bool_variant(true);
     false_instance = new_bool_variant(false);
     zero_instance = new_int_variant(0);
     one_instance = new_int_variant(1);
+    iteration_finished_exception_instance = new_exception_variant(NULL, 0, 0, NULL, "(iteration finished)");
 
     void_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     true_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     false_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     zero_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     one_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
+    iteration_finished_exception_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
 }
 
 variant *variant_create(variant_type *type, variant *args, variant *named_args) {
@@ -231,11 +235,12 @@ variant *variant_call_method(variant *obj, const char *name, variant *args, vari
 
 variant *variant_to_string(variant *obj) {
     if (obj == NULL)
-        return NULL; // or maybe "(null)"
+        return new_str_variant("(null)");
     
-    if (obj->_type->stringifier != NULL)
-        return obj->_type->stringifier(obj);
-    return NULL; // or some default?
+    if (obj->_type->stringifier == NULL)
+        return new_str_variant("(%s @ 0x%p)", obj->_type->name, obj);
+    
+    return obj->_type->stringifier(obj);
 }
 
 bool variants_new_are_equal(variant *a, variant *b) {
@@ -274,6 +279,7 @@ unsigned variant_hash(variant *obj) {
     
     if (obj->_type->hasher != NULL)
         return obj->_type->hasher(obj);
+    
     return (unsigned)(long)obj;
 }
 

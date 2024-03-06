@@ -12,15 +12,15 @@
 #include "float_variant.h"
 
 typedef enum variant_enum_type {
-    VT_NULL,
-    VT_BOOL, 
-    VT_INT,
-    VT_FLOAT,
-    VT_STR,
+    // VT_NULL,
+    // VT_BOOL, 
+    // VT_INT,
+    // VT_FLOAT,
+    // VT_STR,
     VT_LIST,
     VT_DICT,
     VT_CALLABLE,
-    VT_EXCEPTION,
+    // VT_EXCEPTION,
 } variant_enum_type;
 
 typedef struct variant_original variant_original;
@@ -187,7 +187,8 @@ bool variant_is_callable(variant *v) {
 }
 
 bool variant_is_exception(variant *v) {
-    return ((variant_original *)v)->enum_type == VT_EXCEPTION;
+    return variant_is(v, exception_type);
+    //return ((variant_original *)v)->enum_type == VT_EXCEPTION;
 }
 
 bool variant_as_bool(variant *v) {
@@ -206,19 +207,19 @@ bool variant_as_bool(variant *v) {
 
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
-        case VT_NULL:
-            return false;
-        case VT_BOOL:
-            return o->per_type.bool_;
-        case VT_INT:
-            return o->per_type.int_ != 0;
-        case VT_FLOAT:
-            return o->per_type.float_ != 0.0;
-        case VT_STR:
-            return (
-                strcmp(o->per_type.s.ptr, "true") == 0 || 
-                strcmp(o->per_type.s.ptr, "1") == 0
-            );
+        // case VT_NULL:
+        //     return false;
+        // case VT_BOOL:
+        //     return o->per_type.bool_;
+        // case VT_INT:
+        //     return o->per_type.int_ != 0;
+        // case VT_FLOAT:
+        //     return o->per_type.float_ != 0.0;
+        // case VT_STR:
+        //     return (
+        //         strcmp(o->per_type.s.ptr, "true") == 0 || 
+        //         strcmp(o->per_type.s.ptr, "1") == 0
+        //     );
         case VT_LIST:
             return o->per_type.list_ != NULL && list_length(o->per_type.list_) > 0;
         case VT_DICT:
@@ -245,16 +246,16 @@ int variant_as_int(variant *v) {
 
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
-        case VT_NULL:
-            return 0;
-        case VT_BOOL:
-            return o->per_type.bool_ ? 1 : 0;
-        case VT_INT:
-            return o->per_type.int_;
-        case VT_FLOAT:
-            return (int)o->per_type.float_;
-        case VT_STR:
-            return atoi(o->per_type.s.ptr);
+        // case VT_NULL:
+        //     return 0;
+        // case VT_BOOL:
+        //     return o->per_type.bool_ ? 1 : 0;
+        // case VT_INT:
+        //     return o->per_type.int_;
+        // case VT_FLOAT:
+        //     return (int)o->per_type.float_;
+        // case VT_STR:
+        //     return atoi(o->per_type.s.ptr);
         case VT_LIST:
             return o->per_type.list_ == NULL ? 0 : list_length(o->per_type.list_);
         case VT_DICT:
@@ -281,16 +282,16 @@ float variant_as_float(variant *v) {
 
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
-        case VT_NULL:
-            return 0.0;
-        case VT_BOOL:
-            return o->per_type.bool_ ? 1.0 : 0.0;
-        case VT_INT:
-            return (float)o->per_type.int_;
-        case VT_FLOAT:
-            return o->per_type.float_;
-        case VT_STR:
-            return atof(o->per_type.s.ptr);
+        // case VT_NULL:
+        //     return 0.0;
+        // case VT_BOOL:
+        //     return o->per_type.bool_ ? 1.0 : 0.0;
+        // case VT_INT:
+        //     return (float)o->per_type.int_;
+        // case VT_FLOAT:
+        //     return o->per_type.float_;
+        // case VT_STR:
+        //     return atof(o->per_type.s.ptr);
         case VT_LIST:
             return o->per_type.list_ == NULL ? 0.0 : (float)list_length(o->per_type.list_);
         case VT_DICT:
@@ -319,26 +320,26 @@ const char *variant_as_str(variant *v) {
     // else, keep compatibility with the old variants
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
-        case VT_NULL:
-            return "(null)";
-        case VT_BOOL:
-            return o->per_type.bool_ ? "true" : "false";
-        case VT_INT:
-            if (o->str_repr == NULL) {
-                o->str_repr = malloc(64);
-                memset((char *)o->str_repr, 0, 64);
-                snprintf((char *)o->str_repr, 64, "%d", o->per_type.int_);
-            }
-            return o->str_repr;
-        case VT_FLOAT:
-            if (o->str_repr == NULL) {
-                o->str_repr = malloc(64);
-                memset((char *)o->str_repr, 0, 64);
-                snprintf((char *)o->str_repr, 64, "%f", o->per_type.float_);
-            }
-            return o->str_repr;
-        case VT_STR:
-            return o->per_type.s.ptr;
+        // case VT_NULL:
+        //     return "(null)";
+        // case VT_BOOL:
+        //     return o->per_type.bool_ ? "true" : "false";
+        // case VT_INT:
+        //     if (o->str_repr == NULL) {
+        //         o->str_repr = malloc(64);
+        //         memset((char *)o->str_repr, 0, 64);
+        //         snprintf((char *)o->str_repr, 64, "%d", o->per_type.int_);
+        //     }
+        //     return o->str_repr;
+        // case VT_FLOAT:
+        //     if (o->str_repr == NULL) {
+        //         o->str_repr = malloc(64);
+        //         memset((char *)o->str_repr, 0, 64);
+        //         snprintf((char *)o->str_repr, 64, "%f", o->per_type.float_);
+        //     }
+        //     return o->str_repr;
+        // case VT_STR:
+        //     return o->per_type.s.ptr;
         case VT_LIST:
             if (o->str_repr == NULL) {
                 if (o->per_type.list_ != NULL) {
@@ -361,23 +362,23 @@ const char *variant_as_str(variant *v) {
             return o->str_repr;
         case VT_CALLABLE:
             return callable_name(o->per_type.callable_);
-        case VT_EXCEPTION:
-            if (o->str_repr == NULL) {
-                str_builder *sb = new_str_builder();
-                str_builder_addf(sb, "%s, at %s:%d:%d",
-                    o->per_type.exception.msg,
-                    o->per_type.exception.script_filename,
-                    o->per_type.exception.script_line,
-                    o->per_type.exception.script_column);
-                if (o->per_type.exception.inner != NULL)
-                    str_builder_addf(sb, "\n\t%s", variant_as_str((variant *)o->per_type.exception.inner));
-                o->str_repr = malloc(strlen(str_builder_charptr(sb)) + 1);
-                strcpy((char *)o->str_repr, str_builder_charptr(sb));
-                str_builder_free(sb);
-            }
-            return o->str_repr;
+        // case VT_EXCEPTION:
+        //     if (o->str_repr == NULL) {
+        //         str_builder *sb = new_str_builder();
+        //         str_builder_addf(sb, "%s, at %s:%d:%d",
+        //             o->per_type.exception.msg,
+        //             o->per_type.exception.script_filename,
+        //             o->per_type.exception.script_line,
+        //             o->per_type.exception.script_column);
+        //         if (o->per_type.exception.inner != NULL)
+        //             str_builder_addf(sb, "\n\t%s", variant_as_str((variant *)o->per_type.exception.inner));
+        //         o->str_repr = malloc(strlen(str_builder_charptr(sb)) + 1);
+        //         strcpy((char *)o->str_repr, str_builder_charptr(sb));
+        //         str_builder_free(sb);
+        //     }
+        //     return o->str_repr;
 
-            return o->per_type.exception.msg;
+        //     return o->per_type.exception.msg;
         default:
             return NULL;
     }
@@ -386,16 +387,16 @@ const char *variant_as_str(variant *v) {
 list *variant_as_list(variant *v) {
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
-        case VT_NULL:
-            return NULL;
-        case VT_BOOL:
-            return list_of(variant_class, 1, v);
-        case VT_INT:
-            return list_of(variant_class, 1, v);
-        case VT_FLOAT:
-            return list_of(variant_class, 1, v);
-        case VT_STR:
-            return list_of(variant_class, 1, v);
+        // case VT_NULL:
+        //     return NULL;
+        // case VT_BOOL:
+        //     return list_of(variant_class, 1, v);
+        // case VT_INT:
+        //     return list_of(variant_class, 1, v);
+        // case VT_FLOAT:
+        //     return list_of(variant_class, 1, v);
+        // case VT_STR:
+        //     return list_of(variant_class, 1, v);
         case VT_LIST:
             return o->per_type.list_;
         case VT_DICT:
@@ -410,16 +411,16 @@ list *variant_as_list(variant *v) {
 dict *variant_as_dict(variant *v) {
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
-        case VT_NULL:
-            return NULL;
-        case VT_BOOL:
-            return new_dict(variant_class);
-        case VT_INT:
-            return new_dict(variant_class);
-        case VT_FLOAT:
-            return new_dict(variant_class);
-        case VT_STR:
-            return new_dict(variant_class);
+        // case VT_NULL:
+        //     return NULL;
+        // case VT_BOOL:
+        //     return new_dict(variant_class);
+        // case VT_INT:
+        //     return new_dict(variant_class);
+        // case VT_FLOAT:
+        //     return new_dict(variant_class);
+        // case VT_STR:
+        //     return new_dict(variant_class);
         case VT_LIST:
             return new_dict(variant_class);
         case VT_DICT:
@@ -434,11 +435,11 @@ dict *variant_as_dict(variant *v) {
 callable *variant_as_callable(variant *v) {
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
-        case VT_NULL:
-        case VT_BOOL:
-        case VT_INT:
-        case VT_FLOAT:
-        case VT_STR:
+        // case VT_NULL:
+        // case VT_BOOL:
+        // case VT_INT:
+        // case VT_FLOAT:
+        // case VT_STR:
         case VT_LIST:
         case VT_DICT:
             return NULL;
@@ -477,26 +478,26 @@ bool variants_are_equal(variant *a, variant *b) {
         return false;
     
     switch (va->enum_type) {
-        case VT_NULL:
-            return true;
-        case VT_BOOL:
-            return va->per_type.bool_ == vb->per_type.bool_;
-        case VT_INT:
-            return va->per_type.int_ == vb->per_type.int_;
-        case VT_FLOAT:
-            return va->per_type.float_ == vb->per_type.float_;
-        case VT_STR:
-            if (va->per_type.s.len != vb->per_type.s.len)
-                return false;
-            return memcmp(va->per_type.s.ptr, vb->per_type.s.ptr, va->per_type.s.len) == 0;
+        // case VT_NULL:
+        //     return true;
+        // case VT_BOOL:
+        //     return va->per_type.bool_ == vb->per_type.bool_;
+        // case VT_INT:
+        //     return va->per_type.int_ == vb->per_type.int_;
+        // case VT_FLOAT:
+        //     return va->per_type.float_ == vb->per_type.float_;
+        // case VT_STR:
+        //     if (va->per_type.s.len != vb->per_type.s.len)
+        //         return false;
+        //     return memcmp(va->per_type.s.ptr, vb->per_type.s.ptr, va->per_type.s.len) == 0;
         case VT_LIST:
             return lists_are_equal(va->per_type.list_, vb->per_type.list_);
         case VT_DICT:
             return dicts_are_equal(va->per_type.dict_, vb->per_type.dict_);
         case VT_CALLABLE:
             return callables_are_equal(va->per_type.callable_, vb->per_type.callable_);
-        case VT_EXCEPTION:
-            return strcmp(va->per_type.exception.msg, vb->per_type.exception.msg) == 0;
+        // case VT_EXCEPTION:
+        //     return strcmp(va->per_type.exception.msg, vb->per_type.exception.msg) == 0;
     }
 
     // we shouldn't get here...

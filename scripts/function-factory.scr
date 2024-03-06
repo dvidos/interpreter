@@ -7,4 +7,7 @@ function function_factory(b) {
     return function(c) { return a + b + c; }
 }
 f = function_factory(2);
-six = f(3)
+six = f(3);
+
+log("six is ", six);
+

@@ -9,6 +9,7 @@ extern variant *false_instance;
 extern variant *void_instance;
 extern variant *zero_instance;
 extern variant *one_instance;
+extern variant *iteration_finished_exception_instance;
 
 void initialize_variants();
 
