@@ -10,7 +10,8 @@ typedef struct list_instance {
 } list_instance;
 
 static void initialize(list_instance *obj, variant *args, variant *named_args) {
-    obj->list = new_list(variants_types);
+    // this list shall contain variants
+    obj->list = new_list(variant_item_info);
 }
 
 static void destruct(list_instance *obj) {
@@ -21,12 +22,23 @@ static void destruct(list_instance *obj) {
     list_free(obj->list);
 }
 
-static void copy_initialize(list_instance *obj, list_instance *original) {
-    // we need to duplicate the list, but should we clone the items?
-}
-
 static variant *stringify(list_instance *obj) {
-    // how about separators? ", " or "\n" ???
+    variant *separator = new_str_variant(", ");
+    variant *result = new_str_variant("");
+
+    bool first = true;
+    for_list(obj->list, it, variant, item) {
+        if (!first)
+            str_variant_append(result, separator);
+
+        variant *item_str = variant_to_string(item);
+        str_variant_append(result, item_str);
+        variant_drop_ref(item_str);
+        first = false;
+    }
+
+    variant_drop_ref(separator);
+    return result;
 }
 
 static unsigned hash(list_instance *obj) {
@@ -34,11 +46,11 @@ static unsigned hash(list_instance *obj) {
 }
 
 static int compare(list_instance *a, list_instance *b) {
-    // ...
+    
 }
 
 static bool are_equal(list_instance *a, list_instance *b) {
-    // ...
+    return lists_are_equal(a->list, b->list);
 }
 
 variant_type *list_type = &(variant_type){
@@ -51,7 +63,6 @@ variant_type *list_type = &(variant_type){
 
     .initializer = (initialize_func)initialize,
     .destructor = (destruct_func)destruct,
-    .copy_initializer = (copy_initializer_func)copy_initialize,
     .stringifier = (stringifier_func)stringify,
     .hasher = (hashing_func)hash,
     .comparer = (compare_func)compare,
@@ -59,8 +70,18 @@ variant_type *list_type = &(variant_type){
 };
 
 variant *new_list_variant() {
-    list_instance *l = (list_instance *)variant_create(list_type, NULL, NULL);
-    // ...
+    return (variant *)variant_create(list_type, NULL, NULL);
+}
+
+variant *new_list_variant_of(int argc, ...) {
+    list_instance *l = (list_instance *)new_list_variant();
+    va_list args;
+    va_start(args, argc);
+    while (argc-- > 0) {
+        variant *item = va_arg(args, variant *);
+        list_add(l->list, item);
+    }
+    va_end(args);
     return (variant *)l;
 }
 
@@ -68,4 +89,13 @@ list *list_variant_as_list(variant *v) {
     if (!variant_is(v, list_type))
         return NULL;
     return ((list_instance *)v)->list;
+}
+
+void list_variant_append(variant *v, variant *item) {
+    if (!variant_is(v, list_type))
+        return;
+    list_instance *li = (list_instance *)v;
+
+    list_add(li->list, item);
+    variant_inc_ref(item);
 }

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include "../utils/mem.h"
 #include "../utils/item_info.h"
 #include "../utils/str_builder.h"
 #include "list.h"
@@ -221,8 +222,18 @@ static void list_describe_default(list *l, str_builder *sb) {
     list_describe(l, ", ", sb);
 }
 
+void list_free(list *l) {
+    list_entry *e = l->head;
+    list_entry *next;
+    while (e != NULL) {
+        next = e->next;
+        free(e);
+        e = next;
+    }
+    free(l);
+}
 
-item_info *list_class = &(item_info){
+item_info *list_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "list",
     .are_equal = (items_equal_func)lists_are_equal,

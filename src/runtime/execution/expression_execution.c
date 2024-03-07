@@ -113,17 +113,17 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
 
         case ET_LIST_DATA:
             list *expressions_list = e->per_type.list_;
-            list *values_list = new_list(variant_class);
+            variant *values_list = new_list_variant();
             for_list(expressions_list, list_iter, expression, list_exp) {
                 ex = execute_expression(list_exp, ctx);
                 if (ex.exception_thrown || ex.failed) return ex;
-                list_add(values_list, ex.result);
+                list_variant_append(values_list, ex.result);
             }
-            return ok_outcome(new_list_variant(values_list));
+            return ok_outcome(values_list);
 
         case ET_DICT_DATA:
             dict *expressions_dict = e->per_type.dict_;
-            dict *values_dict = new_dict(variant_class);
+            dict *values_dict = new_dict(variant_item_info);
             iterator *keys_it = dict_keys_iterator(expressions_dict);
             for_iterator(keys_it, str, key) {
                 ex = execute_expression(dict_get(expressions_dict, key), ctx);

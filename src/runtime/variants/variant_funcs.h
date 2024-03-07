@@ -20,7 +20,7 @@ void initialize_variants();
 variant *variant_create(variant_type *type, variant *args, variant *named_args);
 
 // references count. if refs down to zero, variant is destroyed too.
-void variant_add_ref(variant *obj);
+void variant_inc_ref(variant *obj);
 void variant_drop_ref(variant *obj);
 
 // type checks

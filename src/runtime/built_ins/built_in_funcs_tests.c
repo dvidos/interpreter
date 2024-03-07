@@ -9,7 +9,7 @@
 
 
 static void run_use_case(const char *code, variant *expected, bool verbose) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, verbose, false, false);
     if (ex.failed)
         assertion_failed(ex.failure_message, code);
@@ -23,20 +23,20 @@ void built_in_self_diagnostics(bool verbose) {
 
     run_use_case(
         "[1,2,3,4].filter(function(item, idx, arr){return item % 2 == 0;})", 
-        new_list_variant(list_of(variant_class, 2,
+        new_list_variant_of(2,
             new_int_variant(2),
             new_int_variant(4)
-        )),
+        ),
         verbose
     );
 
     run_use_case(
         "[1,2,3].map(function(item, idx, arr){return item * 2;})", 
-        new_list_variant(list_of(variant_class, 3,
+        new_list_variant_of(3,
             new_int_variant(2),
             new_int_variant(4),
             new_int_variant(6)
-        )),
+        ),
         verbose
     );
 

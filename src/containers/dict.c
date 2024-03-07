@@ -22,7 +22,7 @@ typedef struct dict {
 
 dict *new_dict(item_info *item_info) {
     dict *d = malloc(sizeof(dict));
-    d->item_info = dict_class;
+    d->item_info = dict_item_info;
     d->capacity = 32;
     d->count = 0;
     d->entries_array = malloc(sizeof(dict_entry *) * d->capacity);
@@ -202,7 +202,7 @@ iterator *dict_keys_iterator(dict *d) {
 }
 
 list *dict_get_keys(dict *d) {
-    list *keys = new_list(str_class);
+    list *keys = new_list(str_item_info);
     iterator *it = dict_keys_iterator(d);
     for_iterator(it, str, key)
         list_add(keys, (void *)key); // we lose 'const' here
@@ -276,7 +276,7 @@ static const void dict_describe_default(dict *d, str_builder *sb) {
 }
 
 
-item_info *dict_class = &(item_info) {
+item_info *dict_item_info = &(item_info) {
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "dict",
     .are_equal = (items_equal_func)dicts_are_equal,

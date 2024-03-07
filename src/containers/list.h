@@ -7,7 +7,7 @@
 
 
 typedef struct list list;
-extern item_info *list_class;
+extern item_info *list_item_info;
 
 list *new_list(item_info *item_info);
 list *list_of(item_info *item_info, int items, ...);
@@ -26,6 +26,7 @@ iterator *list_iterator(list *l);
 bool lists_are_equal(list *a, list *b);
 const void list_describe(list *l, const char *separator, str_builder *sb);
 
+void list_free(list *l);
 
 #define for_list(list_var, iter_var, item_type, item_var)  \
     iterator *iter_var = list_iterator(list_var); \

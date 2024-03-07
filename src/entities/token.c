@@ -5,7 +5,7 @@
 #include "../utils/str_builder.h"
 
 
-item_info *token_class = &(item_info){
+item_info *token_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "token",
     .are_equal = (items_equal_func)tokens_are_equal,
@@ -15,7 +15,7 @@ item_info *token_class = &(item_info){
 
 token *new_token(token_type type, const char *filename, int line_no, int column_no) {
     token *t = malloc(sizeof(token));
-    t->class = token_class;
+    t->class = token_item_info;
     t->type = type;
     t->data = NULL;
     t->filename = filename;
@@ -26,7 +26,7 @@ token *new_token(token_type type, const char *filename, int line_no, int column_
 
 token *new_data_token(token_type type, const char *data, const char *filename, int line_no, int column_no) {
     token *t = malloc(sizeof(token));
-    t->class = token_class;
+    t->class = token_item_info;
     t->type = type;
     t->data = data;
     t->filename = filename;

@@ -13,7 +13,7 @@ struct callable {
 
 callable *new_callable(const char *name, callable_handler *handler, void *callable_data) {
     callable *c = malloc(sizeof(callable));
-    c->class = callable_class;
+    c->class = callable_item_info;
     c->name = name;
     c->handler = handler;
     c->callable_data = callable_data;
@@ -48,7 +48,7 @@ execution_outcome callable_call(callable *c, list *positional_args, dict *named_
     return c->handler(positional_args, named_args, c->callable_data, this_obj, ctx);
 }
 
-item_info *callable_class = &(item_info){
+item_info *callable_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "callable",
     .are_equal = (items_equal_func)callables_are_equal,

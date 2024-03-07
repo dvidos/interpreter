@@ -14,7 +14,7 @@
 static void test_list() {
     str_builder *sb = new_str_builder();
 
-    list *l = new_list(variant_class);
+    list *l = new_list(variant_item_info);
     assert(list_empty(l));
     assert(list_length(l) == 0);
     list_add(l, new_str_variant("a"));
@@ -52,7 +52,7 @@ static void test_dict() {
 static void test_stack() {
     str_builder *sb = new_str_builder();
 
-    stack *s = new_stack(variant_class);
+    stack *s = new_stack(variant_item_info);
     assert(stack_empty(s));
     assert(stack_length(s) == 0);
     stack_push(s, new_str_variant("a"));
@@ -76,7 +76,7 @@ static void test_stack() {
 static void test_queue() {
     str_builder *sb = new_str_builder();
 
-    queue *q = new_queue(variant_class);
+    queue *q = new_queue(variant_item_info);
     assert(queue_empty(q));
     assert(queue_length(q) == 0);
     queue_put(q, new_str_variant("a"));

@@ -79,7 +79,7 @@ variant *variant_clone(variant *obj) {
     return clone;
 }
 
-void variant_add_ref(variant *obj) {
+void variant_inc_ref(variant *obj) {
     obj->_references_count++;
 }
 
@@ -140,7 +140,7 @@ variant *variant_get_attr(variant *obj, const char *name) {
 
         } else if (def->tat_flags & TAT_VARIANT_PTR) {
             variant *obj_ptr = (variant *)(((char *)obj) + def->offset);
-            variant_add_ref(obj_ptr); // the one returned
+            variant_inc_ref(obj_ptr); // the one returned
             return obj_ptr;
 
         } else if (def->tat_flags & TAT_INT) {
@@ -183,7 +183,7 @@ variant *variant_set_attr(variant *obj, const char *name, variant *value) {
 
         } else if (def->tat_flags & TAT_VARIANT_PTR) {
             variant **obj_ptr = (variant **)(((char *)obj) + def->offset);
-            variant_add_ref(value); // the one stored
+            variant_inc_ref(value); // the one stored
             *obj_ptr = value;
 
         } else if (def->tat_flags & TAT_INT) {

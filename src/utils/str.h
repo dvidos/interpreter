@@ -7,7 +7,7 @@
 
 typedef const char str;
 
-extern item_info *str_class;
+extern item_info *str_item_info;
 
 bool strs_are_equal(str *a, str *b);
 const void str_describe(str *s, str_builder *sb);

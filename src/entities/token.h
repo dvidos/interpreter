@@ -8,7 +8,7 @@
 
 
 typedef struct token token;
-extern item_info *token_class;
+extern item_info *token_item_info;
 
 struct token {
     item_info *class;

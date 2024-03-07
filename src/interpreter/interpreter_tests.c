@@ -12,7 +12,7 @@
 
 
 static void verify_execution_failed(char *code) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (!ex.failed)
         assertion_failed("Evaluation did not fail as expected", code);
@@ -21,7 +21,7 @@ static void verify_execution_failed(char *code) {
 }
 
 static void verify_execution_exceptioned(char *code) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (!ex.exception_thrown)
         assertion_failed("Evaluation did not throw exception as expected", code);
@@ -30,7 +30,7 @@ static void verify_execution_exceptioned(char *code) {
 }
 
 static void verify_execution_null(char *code) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
         assertion_failed(ex.failure_message, code);
@@ -43,7 +43,7 @@ static void verify_execution_null(char *code) {
 }
 
 static void verify_execution_b(char *code, bool expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
         assertion_failed(ex.failure_message, code);
@@ -54,7 +54,7 @@ static void verify_execution_b(char *code, bool expected_result) {
 }
 
 static void verify_execution_bb(char *code, bool a, bool expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     dict_set(values, "a", new_bool_variant(a));
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
@@ -66,7 +66,7 @@ static void verify_execution_bb(char *code, bool a, bool expected_result) {
 }
 
 static void verify_execution_bbb(char *code, bool a, bool b, bool expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     dict_set(values, "a", new_bool_variant(a));
     dict_set(values, "b", new_bool_variant(b));
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
@@ -79,7 +79,7 @@ static void verify_execution_bbb(char *code, bool a, bool b, bool expected_resul
 }
 
 static void verify_execution_i(char *code, int expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
         assertion_failed(ex.failure_message, code);
@@ -90,7 +90,7 @@ static void verify_execution_i(char *code, int expected_result) {
 }
 
 static void verify_execution_ii(char *code, int a, int expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     dict_set(values, "a", new_int_variant(a));
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
@@ -102,7 +102,7 @@ static void verify_execution_ii(char *code, int a, int expected_result) {
 }
 
 static void verify_execution_iii(char *code, int a, int b, int expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     dict_set(values, "a", new_int_variant(a));
     dict_set(values, "b", new_int_variant(b));
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
@@ -115,7 +115,7 @@ static void verify_execution_iii(char *code, int a, int b, int expected_result) 
 }
 
 static void verify_execution_ib(char *code, int a, bool expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     dict_set(values, "a", new_int_variant(a));
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
@@ -127,7 +127,7 @@ static void verify_execution_ib(char *code, int a, bool expected_result) {
 }
 
 static void verify_execution_s(char *code, char *expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
         assertion_failed(ex.failure_message, code);
@@ -138,7 +138,7 @@ static void verify_execution_s(char *code, char *expected_result) {
 }
 
 static void verify_execution_ss(char *code, char *a, char *expected_result) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     dict_set(values, "a", new_str_variant(a));
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
@@ -150,7 +150,7 @@ static void verify_execution_ss(char *code, char *a, char *expected_result) {
 }
 
 static void verify_execution_log(char *code, char *expected_log) {
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
         assertion_failed(ex.failure_message, code);

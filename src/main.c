@@ -109,7 +109,7 @@ void show_help() {
 void execute_code(const char *code, const char *filename) {
     printf("Executing %s...\n", filename);
 
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, filename, values, options.verbose, options.enable_debugger, true);
     if (ex.failed) {
         printf("Execution failed: %s\n", ex.failure_message);

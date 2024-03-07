@@ -10,7 +10,7 @@ typedef struct statement statement;
 typedef struct expression expression;
 
 typedef struct stack_frame stack_frame;
-extern item_info *stack_frame_class;
+extern item_info *stack_frame_item_info;
 
 struct stack_frame {
     item_info *class;
@@ -32,7 +32,7 @@ failable stack_frame_unregister_symbol(stack_frame *f, const char *name);
 const void stack_frame_describe(stack_frame *f, str_builder *sb);
 bool stack_frames_are_equal(stack_frame *a, stack_frame *b);
 
-extern item_info *stack_frame_class;
+extern item_info *stack_frame_item_info;
 
 
 

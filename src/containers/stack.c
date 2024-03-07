@@ -19,7 +19,7 @@ typedef struct stack {
 
 stack *new_stack(item_info *item_info) {
     stack *s = malloc(sizeof(stack));
-    s->item_info = stack_class;
+    s->item_info = stack_item_info;
     s->length = 0;
     s->head = NULL;
     s->item_info = item_info;
@@ -121,7 +121,7 @@ static void stack_describe_default(stack *s, const char *separator, str_builder 
     stack_describe(s, ", ", sb);
 }
 
-item_info *stack_class = &(item_info){
+item_info *stack_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "stack",
     .describe = (describe_item_func)stack_describe_default,

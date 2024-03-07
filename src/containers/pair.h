@@ -19,6 +19,6 @@ const void pair_describe(pair *p, const char *separator, str_builder *sb);
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(pair);
 #define failed_pair(inner, fmt, ...)  __failed_pair(inner, __func__, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
-extern item_info *pair_class;
+extern item_info *pair_item_info;
 
 #endif

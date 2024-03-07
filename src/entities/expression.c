@@ -6,7 +6,7 @@
 #include "../utils/str_builder.h"
 #include "expression.h"
 
-item_info *expression_class = &(item_info){
+item_info *expression_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "expression",
     .are_equal = (items_equal_func)expressions_are_equal,
@@ -17,7 +17,7 @@ item_info *expression_class = &(item_info){
 static expression *new_expression(expression_type type, token *token, operator_type op) {
     expression *e = malloc(sizeof(expression));
     memset(e, 0, sizeof(expression));
-    e->class = expression_class;
+    e->class = expression_item_info;
     e->type = type;
     e->token = token;
     e->op = op;

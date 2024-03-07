@@ -22,9 +22,9 @@ exec_context *new_exec_context(const char *script_name, listing *code_listing, l
     c->verbose = verbose;
     c->debugger.enabled = enable_debugger;
     c->debugger.enter_at_next_instruction = start_with_debugger; // debug first line
-    c->debugger.breakpoints = new_list(breakpoint_class);
-    c->stack_frames = new_stack(stack_frame_class);
-    c->built_in_symbols = new_dict(variant_class);
+    c->debugger.breakpoints = new_list(breakpoint_item_info);
+    c->stack_frames = new_stack(stack_frame_item_info);
+    c->built_in_symbols = new_dict(variant_item_info);
     c->global_values = global_values;
     return c;
 }

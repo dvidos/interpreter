@@ -38,7 +38,7 @@ static void execute_command(const char *code, dict *values, bool verbose, bool e
 
 void interactive_shell(bool verbose, bool enable_debugger) {
     char buffer[128];
-    dict *values = new_dict(variant_class);
+    dict *values = new_dict(variant_item_info);
 
     printf("Interactive shell. Enter 'q' to quit.\n");
     while (true) {

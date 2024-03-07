@@ -46,7 +46,7 @@ void statement_parser_self_diagnostics(bool verbose) {
     run_use_case("if (a) b;", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(statement_class, 1, 
+            list_of(statement_item_info, 1, 
                 new_expression_statement(new_identifier_expression("b", NULL))),
             false,
             NULL,
@@ -57,7 +57,7 @@ void statement_parser_self_diagnostics(bool verbose) {
     run_use_case("if (a) return a;", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(statement_class, 1, 
+            list_of(statement_item_info, 1, 
                 new_return_statement(new_identifier_expression("a", NULL), NULL)
             ),
             false,
@@ -69,7 +69,7 @@ void statement_parser_self_diagnostics(bool verbose) {
     run_use_case("if (a) { b; c; }", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(statement_class, 2,
+            list_of(statement_item_info, 2,
                 new_expression_statement(new_identifier_expression("b", NULL)),
                 new_expression_statement(new_identifier_expression("c", NULL))),
             false,
@@ -81,9 +81,9 @@ void statement_parser_self_diagnostics(bool verbose) {
     run_use_case("if (a) b; else c;", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(statement_class, 1, new_expression_statement(new_identifier_expression("b", NULL))),
+            list_of(statement_item_info, 1, new_expression_statement(new_identifier_expression("b", NULL))),
             true,
-            list_of(statement_class, 1, new_expression_statement(new_identifier_expression("c", NULL))),
+            list_of(statement_item_info, 1, new_expression_statement(new_identifier_expression("c", NULL))),
             NULL
         ), 
     verbose);
@@ -91,12 +91,12 @@ void statement_parser_self_diagnostics(bool verbose) {
     run_use_case("if (a) { b; c; } else { d; e; }", false, 
         new_if_statement(
             new_identifier_expression("a", NULL),
-            list_of(statement_class, 2, 
+            list_of(statement_item_info, 2, 
                 new_expression_statement(new_identifier_expression("b", NULL)),
                 new_expression_statement(new_identifier_expression("c", NULL))
             ),
             true,
-            list_of(statement_class, 2, 
+            list_of(statement_item_info, 2, 
                 new_expression_statement(new_identifier_expression("d", NULL)), 
                 new_expression_statement(new_identifier_expression("e", NULL))
             ),
@@ -107,7 +107,7 @@ void statement_parser_self_diagnostics(bool verbose) {
     run_use_case("while (a) b;", false, 
         new_while_statement(
             new_identifier_expression("a", NULL),
-            list_of(statement_class, 1, new_expression_statement(new_identifier_expression("b", NULL))),
+            list_of(statement_item_info, 1, new_expression_statement(new_identifier_expression("b", NULL))),
             NULL
         ), 
     verbose);
@@ -115,7 +115,7 @@ void statement_parser_self_diagnostics(bool verbose) {
     run_use_case("while (a) { b; c; }", false, 
         new_while_statement(
             new_identifier_expression("a", NULL),
-            list_of(statement_class, 2, 
+            list_of(statement_item_info, 2, 
                 new_expression_statement(new_identifier_expression("b", NULL)), 
                 new_expression_statement(new_identifier_expression("c", NULL))
             ),
@@ -126,7 +126,7 @@ void statement_parser_self_diagnostics(bool verbose) {
     run_use_case("while (a) { break; continue; }", false, 
         new_while_statement(
             new_identifier_expression("a", NULL),
-            list_of(statement_class, 2, 
+            list_of(statement_item_info, 2, 
                 new_break_statement(NULL), 
                 new_continue_statement(NULL)
             ),
@@ -139,7 +139,7 @@ void statement_parser_self_diagnostics(bool verbose) {
             new_identifier_expression("a", NULL),
             new_identifier_expression("b", NULL),
             new_identifier_expression("c", NULL),
-            list_of(statement_class, 1, new_expression_statement(new_identifier_expression("d", NULL))),
+            list_of(statement_item_info, 1, new_expression_statement(new_identifier_expression("d", NULL))),
             NULL
         ), 
     verbose);
@@ -149,7 +149,7 @@ void statement_parser_self_diagnostics(bool verbose) {
             new_identifier_expression("a", NULL),
             new_identifier_expression("b", NULL),
             new_identifier_expression("c", NULL),
-            list_of(statement_class, 2, 
+            list_of(statement_item_info, 2, 
                 new_expression_statement(new_identifier_expression("d", NULL)),
                 new_expression_statement(new_identifier_expression("e", NULL))
             ),

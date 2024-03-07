@@ -17,7 +17,7 @@ typedef enum variant_enum_type {
     // VT_INT,
     // VT_FLOAT,
     // VT_STR,
-    VT_LIST,
+    // VT_LIST,
     VT_DICT,
     VT_CALLABLE,
     // VT_EXCEPTION,
@@ -55,7 +55,7 @@ struct variant_original {
 bool variants_are_equal(variant *a, variant *b);
 const void variant_describe(variant *v, str_builder *sb);
 
-item_info *variant_class = &(item_info){
+item_info *variant_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "variant",
     .are_equal = (items_equal_func)variants_are_equal,
@@ -65,7 +65,7 @@ item_info *variant_class = &(item_info){
 // variant *new_null_variant() {
 //     variant_original *v = malloc(sizeof(variant_original));
 //     memset(v, 0, sizeof(variant_original));
-//     v->class = variant_class;
+//     v->class = variant_item_info;
 //     v->enum_type = VT_NULL;
 //     return (variant *)v;
 // }
@@ -100,19 +100,19 @@ item_info *variant_class = &(item_info){
 //     return (variant *)v;
 // }
 
-variant *new_list_variant(list *l) {
-    variant_original *v = malloc(sizeof(variant_original));
-    memset(v, 0, sizeof(variant_original));
-    v->class = variant_class;
-    v->enum_type = VT_LIST;
-    v->per_type.list_ = l;
-    return (variant *)v;
-}
+// variant *new_list_variant(list *l) {
+//     variant_original *v = malloc(sizeof(variant_original));
+//     memset(v, 0, sizeof(variant_original));
+//     v->class = variant_item_info;
+//     v->enum_type = VT_LIST;
+//     v->per_type.list_ = l;
+//     return (variant *)v;
+// }
 
 variant *new_dict_variant(dict *d) {
     variant_original *v = malloc(sizeof(variant_original));
     memset(v, 0, sizeof(variant_original));
-    v->class = variant_class;
+    v->class = variant_item_info;
     v->enum_type = VT_DICT;
     v->per_type.dict_ = d;
     return (variant *)v;
@@ -121,7 +121,7 @@ variant *new_dict_variant(dict *d) {
 variant *new_callable_variant(callable *c) {
     variant_original *v = malloc(sizeof(variant_original));
     memset(v, 0, sizeof(variant_original));
-    v->class = variant_class;
+    v->class = variant_item_info;
     v->enum_type = VT_CALLABLE;
     v->per_type.callable_ = c;
     return (variant *)v;
@@ -139,7 +139,7 @@ variant *new_callable_variant(callable *c) {
 
 //     variant_original *v = malloc(sizeof(variant_original));
 //     memset(v, 0, sizeof(variant_original));
-//     v->class = variant_class;
+//     v->class = variant_item_info;
 //     v->enum_type = VT_EXCEPTION;
 //     v->per_type.exception.msg = msg;
 //     v->per_type.exception.script_filename = script_filename;
@@ -175,7 +175,8 @@ bool variant_is_str(variant *v) {
 }
 
 bool variant_is_list(variant *v) {
-    return ((variant_original *)v)->enum_type == VT_LIST;
+    return variant_is(v, list_type);
+    // return ((variant_original *)v)->enum_type == VT_LIST;
 }
 
 bool variant_is_dict(variant *v) {
@@ -203,6 +204,8 @@ bool variant_as_bool(variant *v) {
         return bool_variant_as_bool(v);
     } else if (variant_is(v, float_type)) {
         return float_variant_as_float(v) != 0.0;
+    } else if (variant_is(v, list_type)) {
+        return !list_empty(list_variant_as_list(v));
     }
 
     variant_original *o = (variant_original *)v;
@@ -220,8 +223,8 @@ bool variant_as_bool(variant *v) {
         //         strcmp(o->per_type.s.ptr, "true") == 0 || 
         //         strcmp(o->per_type.s.ptr, "1") == 0
         //     );
-        case VT_LIST:
-            return o->per_type.list_ != NULL && list_length(o->per_type.list_) > 0;
+        // case VT_LIST:
+        //     return o->per_type.list_ != NULL && list_length(o->per_type.list_) > 0;
         case VT_DICT:
             return o->per_type.dict_ != NULL && dict_count(o->per_type.dict_) > 0;
         case VT_CALLABLE:
@@ -242,6 +245,8 @@ int variant_as_int(variant *v) {
         return bool_variant_as_bool(v) ? 1 : 0;
     } else if (variant_is(v, float_type)) {
         return (int)float_variant_as_float(v);
+    } else if (variant_is(v, list_type)) {
+        return list_length(list_variant_as_list(v));
     }
 
     variant_original *o = (variant_original *)v;
@@ -256,8 +261,8 @@ int variant_as_int(variant *v) {
         //     return (int)o->per_type.float_;
         // case VT_STR:
         //     return atoi(o->per_type.s.ptr);
-        case VT_LIST:
-            return o->per_type.list_ == NULL ? 0 : list_length(o->per_type.list_);
+        // case VT_LIST:
+        //     return o->per_type.list_ == NULL ? 0 : list_length(o->per_type.list_);
         case VT_DICT:
             return o->per_type.list_ == NULL ? 0 : dict_count(o->per_type.dict_);
         case VT_CALLABLE:
@@ -278,6 +283,8 @@ float variant_as_float(variant *v) {
         return bool_variant_as_bool(v) ? 1.0 : 0.0;
     } else if (variant_is(v, float_type)) {
         return float_variant_as_float(v);
+    } else if (variant_is(v, list_type)) {
+        return list_length(list_variant_as_list(v));
     }
 
     variant_original *o = (variant_original *)v;
@@ -292,8 +299,8 @@ float variant_as_float(variant *v) {
         //     return o->per_type.float_;
         // case VT_STR:
         //     return atof(o->per_type.s.ptr);
-        case VT_LIST:
-            return o->per_type.list_ == NULL ? 0.0 : (float)list_length(o->per_type.list_);
+        // case VT_LIST:
+        //     return o->per_type.list_ == NULL ? 0.0 : (float)list_length(o->per_type.list_);
         case VT_DICT:
             return o->per_type.list_ == NULL ? 0.0 : (float)dict_count(o->per_type.dict_);
         case VT_CALLABLE:
@@ -304,7 +311,8 @@ float variant_as_float(variant *v) {
 }
 
 const char *variant_as_str(variant *v) {
-    // see if this this the new variants
+    // we should not return the char here, we should return the str_variant,
+    // so that caller can drop the reference, when they are done.
     if (variant_is(v, void_type)) {
         return "(void)";
     } else if (variant_is(v, str_type)) {
@@ -314,6 +322,8 @@ const char *variant_as_str(variant *v) {
     } else if (variant_is(v, bool_type)) {
         return str_variant_as_str(variant_to_string(v));
     } else if (variant_is(v, float_type)) {
+        return str_variant_as_str(variant_to_string(v));
+    } else if (variant_is(v, list_type)) {
         return str_variant_as_str(variant_to_string(v));
     }
 
@@ -340,16 +350,16 @@ const char *variant_as_str(variant *v) {
         //     return o->str_repr;
         // case VT_STR:
         //     return o->per_type.s.ptr;
-        case VT_LIST:
-            if (o->str_repr == NULL) {
-                if (o->per_type.list_ != NULL) {
-                    str_builder *sb = new_str_builder();
-                    list_describe(o->per_type.list_, ", ", sb);
-                    o->str_repr = strdup(str_builder_charptr(sb));
-                    str_builder_free(sb);
-                }
-            }
-            return o->str_repr;
+        // case VT_LIST:
+        //     if (o->str_repr == NULL) {
+        //         if (o->per_type.list_ != NULL) {
+        //             str_builder *sb = new_str_builder();
+        //             list_describe(o->per_type.list_, ", ", sb);
+        //             o->str_repr = strdup(str_builder_charptr(sb));
+        //             str_builder_free(sb);
+        //         }
+        //     }
+        //     return o->str_repr;
         case VT_DICT:
             if (o->str_repr == NULL) {
                 if (o->per_type.dict_ != NULL) {
@@ -385,20 +395,24 @@ const char *variant_as_str(variant *v) {
 }
 
 list *variant_as_list(variant *v) {
+    if (variant_is(v, list_type)) {
+        return list_variant_as_list(v);
+    }
+
     variant_original *o = (variant_original *)v;
     switch (o->enum_type) {
         // case VT_NULL:
         //     return NULL;
         // case VT_BOOL:
-        //     return list_of(variant_class, 1, v);
+        //     return list_of(variant_item_info, 1, v);
         // case VT_INT:
-        //     return list_of(variant_class, 1, v);
+        //     return list_of(variant_item_info, 1, v);
         // case VT_FLOAT:
-        //     return list_of(variant_class, 1, v);
+        //     return list_of(variant_item_info, 1, v);
         // case VT_STR:
-        //     return list_of(variant_class, 1, v);
-        case VT_LIST:
-            return o->per_type.list_;
+        //     return list_of(variant_item_info, 1, v);
+        // case VT_LIST:
+        //     return o->per_type.list_;
         case VT_DICT:
             return dict_get_values(o->per_type.dict_);
         case VT_CALLABLE:
@@ -414,15 +428,15 @@ dict *variant_as_dict(variant *v) {
         // case VT_NULL:
         //     return NULL;
         // case VT_BOOL:
-        //     return new_dict(variant_class);
+        //     return new_dict(variant_item_info);
         // case VT_INT:
-        //     return new_dict(variant_class);
+        //     return new_dict(variant_item_info);
         // case VT_FLOAT:
-        //     return new_dict(variant_class);
+        //     return new_dict(variant_item_info);
         // case VT_STR:
-        //     return new_dict(variant_class);
-        case VT_LIST:
-            return new_dict(variant_class);
+        //     return new_dict(variant_item_info);
+        // case VT_LIST:
+        //     return new_dict(variant_item_info);
         case VT_DICT:
             return o->per_type.dict_;
         case VT_CALLABLE:
@@ -440,7 +454,7 @@ callable *variant_as_callable(variant *v) {
         // case VT_INT:
         // case VT_FLOAT:
         // case VT_STR:
-        case VT_LIST:
+        // case VT_LIST:
         case VT_DICT:
             return NULL;
         case VT_CALLABLE:
@@ -468,6 +482,8 @@ bool variants_are_equal(variant *a, variant *b) {
         return a->_type->equality_checker(a, b);
     } else if (variant_is(a, float_type) && variant_is(b, float_type)) {
         return a->_type->equality_checker(a, b);
+    } else if (variant_is(a, list_type) && variant_is(b, list_type)) {
+        return a->_type->equality_checker(a, b);
     }
 
     variant_original *va = (variant_original *)a;
@@ -490,8 +506,8 @@ bool variants_are_equal(variant *a, variant *b) {
         //     if (va->per_type.s.len != vb->per_type.s.len)
         //         return false;
         //     return memcmp(va->per_type.s.ptr, vb->per_type.s.ptr, va->per_type.s.len) == 0;
-        case VT_LIST:
-            return lists_are_equal(va->per_type.list_, vb->per_type.list_);
+        // case VT_LIST:
+        //     return lists_are_equal(va->per_type.list_, vb->per_type.list_);
         case VT_DICT:
             return dicts_are_equal(va->per_type.dict_, vb->per_type.dict_);
         case VT_CALLABLE:

@@ -5,7 +5,7 @@
 
 
 typedef struct breakpoint breakpoint;
-extern item_info *breakpoint_class;
+extern item_info *breakpoint_item_info;
 
 struct breakpoint {
     item_info *class;

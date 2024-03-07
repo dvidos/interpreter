@@ -101,6 +101,18 @@ variant *new_str_variant(const char *fmt, ...) {
     return (variant *)s;
 }
 
+void str_variant_append(variant *v, variant *str) {
+    if (!variant_is(v, str_type))
+        return;
+    str_instance *vi = (str_instance *)vi;
+
+    str_instance *stringified = (str_instance *)variant_to_string(str);
+    ensure_capacity(vi, vi->length + stringified->length + 1);
+    strcpy(vi->buffer + vi->length, stringified->buffer);
+    vi->length += stringified->length;
+    variant_drop_ref((variant *)stringified);
+}
+
 const char *str_variant_as_str(variant *v) {
     if (!variant_is(v, str_type))
         return NULL;

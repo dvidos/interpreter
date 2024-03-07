@@ -19,7 +19,7 @@ typedef struct queue {
 
 queue *new_queue(item_info *item_info) {
     queue *q = malloc(sizeof(queue));
-    q->item_info = queue_class;
+    q->item_info = queue_item_info;
     q->length = 0;
     q->entrance = NULL;
     q->exit = NULL;
@@ -133,7 +133,7 @@ void queue_describe_default(queue *q, str_builder *sb) {
     queue_describe(q, ", ", sb);
 }
 
-item_info *queue_class = &(item_info) {
+item_info *queue_item_info = &(item_info) {
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "queue",
     .describe = (describe_item_func)queue_describe_default,

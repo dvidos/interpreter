@@ -5,7 +5,7 @@
 #include "iterator.h"
 
 typedef struct queue queue;
-extern item_info *queue_class;
+extern item_info *queue_item_info;
 
 queue *new_queue(item_info *item_info);
 

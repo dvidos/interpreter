@@ -7,7 +7,7 @@
 
 
 typedef struct statement statement;
-extern item_info *statement_class;
+extern item_info *statement_item_info;
 struct statement {
     item_info *class;
     statement_type type;

@@ -170,12 +170,12 @@ static execution_outcome built_in_list_add(list *positional_args, dict *named_ar
     return ok_outcome(void_instance);
 }
 static execution_outcome built_in_list_filter(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    list *l = variant_as_list(this_obj);
-    list *result = new_list(list_contained_item(l));
+    list *input_list = variant_as_list(this_obj);
+    variant *result_list = new_list_variant();
     callable *func = CALL_ARG(0);
     int index = 0;
-    for_list(l, it, variant, item) {
-        list *func_args = list_of(variant_class, 3,
+    for_list(input_list, it, variant, item) {
+        list *func_args = list_of(variant_item_info, 3,
             item, new_int_variant(index), this_obj);
         execution_outcome call = callable_call(func, func_args, NULL, NULL, ctx);
 
@@ -186,36 +186,36 @@ static execution_outcome built_in_list_filter(list *positional_args, dict *named
         }
         bool passed = variant_as_bool(call.result);
         if (passed)
-            list_add(result, item);
+            list_variant_append(result_list, item);
         index++;
     }
-    return ok_outcome(new_list_variant(result));
+    return ok_outcome(result_list);
 }
 static execution_outcome built_in_list_map(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    list *l = variant_as_list(this_obj);
-    list *result = new_list(list_contained_item(l));
+    list *input_list = variant_as_list(this_obj);
+    variant *result_list = new_list_variant();
     callable *func = CALL_ARG(0);
     int index = 0;
-    for_list(l, it, variant, item) {
-        list *func_args = list_of(variant_class, 3,
+    for_list(input_list, it, variant, item) {
+        list *func_args = list_of(variant_item_info, 3,
             item, new_int_variant(index), this_obj);
         execution_outcome call = callable_call(func, func_args, NULL, NULL, ctx);
         if (call.exception_thrown || call.failed) return call;
 
-        list_add(result, call.result);
+        list_variant_append(result_list, call.result);
         index++;
     }
-    return ok_outcome(new_list_variant(result));
+    return ok_outcome(result_list);
 }
 static execution_outcome built_in_list_reduce(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    list *l = variant_as_list(this_obj);
+    list *input_list = variant_as_list(this_obj);
     variant *accumulator = VARNT_ARG(0);
     callable *func = CALL_ARG(1);
     if (accumulator == NULL)
         accumulator = void_instance;
     int index = 0;
-    for_list(l, it, variant, item) {
-        list *func_args = list_of(variant_class, 4,
+    for_list(input_list, it, variant, item) {
+        list *func_args = list_of(variant_item_info, 4,
             accumulator, item, new_int_variant(index), this_obj);
         execution_outcome new_accum = callable_call(func, func_args, NULL, NULL, ctx);
         if (new_accum.exception_thrown || new_accum.failed) return new_accum;
@@ -235,17 +235,23 @@ static execution_outcome built_in_dict_length(list *positional_args, dict *named
 }
 static execution_outcome built_in_dict_keys(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = variant_as_dict(this_obj);
-    list *result = new_list(str_class);
-    for_dict(d, it, str, key)
-        list_add(result, (void *)key); // we lose const here
-    return ok_outcome(new_list_variant(result));
+    variant *result = new_list_variant();
+    for_dict(d, it, str, key) {
+        variant *item = new_str_variant("%s", key);
+        list_variant_append(result, item);
+        variant_drop_ref(item);
+    }
+    return ok_outcome(result);
 }
 static execution_outcome built_in_dict_values(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = variant_as_dict(this_obj);
-    list *result = new_list(str_class);
-    for_dict(d, it, str, key)
-        list_add(result, dict_get(d, key));
-    return ok_outcome(new_list_variant(result));
+    variant *result = new_list_variant();
+    for_dict(d, it, str, key) {
+        variant *item = dict_get(d, key);
+        list_variant_append(result, item);
+        variant_drop_ref(item);
+    }
+    return ok_outcome(result);
 }
 
 
@@ -256,8 +262,8 @@ static inline void add_callable(callable *c) {
 }
 
 void initialize_built_in_funcs_table() {
-    built_in_funcs_list = new_list(callable_class);
-    built_in_funcs_dict = new_dict(callable_class);
+    built_in_funcs_list = new_list(callable_item_info);
+    built_in_funcs_dict = new_dict(callable_item_info);
 
     add_callable(built_in_substr_callable());
     add_callable(built_in_strpos_callable());
@@ -271,9 +277,9 @@ void initialize_built_in_funcs_table() {
     add_callable(built_in_str_callable());
     add_callable(built_in_int_callable());
 
-    built_in_str_methods = new_dict(callable_class);
-    built_in_list_methods = new_dict(callable_class);
-    built_in_dict_methods = new_dict(callable_class);
+    built_in_str_methods = new_dict(callable_item_info);
+    built_in_list_methods = new_dict(callable_item_info);
+    built_in_dict_methods = new_dict(callable_item_info);
 
     BUILT_IN_METHOD(list, add, built_in_list_add);
     BUILT_IN_METHOD(list, empty, built_in_list_empty);

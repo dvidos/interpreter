@@ -8,7 +8,7 @@
 #include "list.h"
 
 typedef struct dict dict;
-extern item_info *dict_class;
+extern item_info *dict_item_info;
 
 dict *new_dict(item_info *item_info);
 dict *dict_of(item_info *item_info, int pairs_count, ...);

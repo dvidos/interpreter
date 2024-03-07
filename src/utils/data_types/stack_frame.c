@@ -5,11 +5,11 @@
 
 stack_frame *new_stack_frame(const char *func_name, statement *func_stmt, expression *func_expr) {
     stack_frame *f = malloc(sizeof(stack_frame));
-    f->class = stack_frame_class;
+    f->class = stack_frame_item_info;
     f->func_name = func_name;
     f->func_stmt = func_stmt;
     f->func_expr = func_expr;
-    f->symbols = new_dict(variant_class);
+    f->symbols = new_dict(variant_item_info);
     return f;
 }
 
@@ -80,7 +80,7 @@ bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {
     return true;
 }
 
-item_info *stack_frame_class = &(item_info) {
+item_info *stack_frame_item_info = &(item_info) {
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "stack_frame",
     .describe = (describe_item_func)stack_frame_describe,

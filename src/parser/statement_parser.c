@@ -157,7 +157,7 @@ static failable_statement parse_function_statement() {
     if (accept(T_IDENTIFIER))
         name = accepted()->data;
     
-    list *arg_names = new_list(str_class);
+    list *arg_names = new_list(str_item_info);
     if (!accept(T_LPAREN))
         return failed_statement(NULL, "Was expecting arguments list after function");
     while (!accept(T_RPAREN)) {
@@ -264,7 +264,7 @@ failable_list parse_statements(iterator *tokens, statement_parsing_mode mode) {
     // - single statement without brackets, e.g. after an "if"
     // - many statements with a block, e.g. a function body
 
-    list *statements = new_list(statement_class);
+    list *statements = new_list(statement_item_info);
     bool is_block = false;
     bool done = false;
     

@@ -8,7 +8,7 @@
 
 static statement *new_statement(statement_type type, token *token) {
     statement *s = malloc(sizeof(statement));
-    s->class = expression_class;
+    s->class = expression_item_info;
     s->type = type;
     s->token = token;
     return s;
@@ -213,7 +213,7 @@ bool statements_are_equal(statement *a, statement *b) {
     return true;
 }
 
-item_info *statement_class = &(item_info){
+item_info *statement_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "statement",
     .describe = (describe_item_func)statement_describe,

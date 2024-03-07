@@ -15,7 +15,7 @@ typedef struct pair {
 
 pair *new_pair(item_info *left_item_info, void *left, item_info *right_item_info, void *right) {
     pair *p = malloc(sizeof(pair));
-    p->item_info = pair_class;
+    p->item_info = pair_item_info;
     p->left_item_info = left_item_info;
     p->right_item_info = right_item_info;
     p->left = left;
@@ -89,7 +89,7 @@ const void default_pair_describe(pair *p, str_builder *sb) {
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(pair);
 
-item_info *pair_class = &(item_info){
+item_info *pair_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "pair",
     .are_equal = (items_equal_func)pairs_are_equal,
