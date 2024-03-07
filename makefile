@@ -14,7 +14,7 @@ FILES = \
 	src/containers/pair.c \
 	src/containers/containers_tests.c \
 	\
-	src/utils/class.c \
+	src/utils/item_info.c \
 	src/utils/str.c \
 	src/utils/str_builder.c \
 	src/utils/failable.c \

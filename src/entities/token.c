@@ -5,11 +5,11 @@
 #include "../utils/str_builder.h"
 
 
-class *token_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *token_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "token",
-    .are_equal = (are_equal_func)tokens_are_equal,
-    .describe = (describe_func)token_describe,
+    .are_equal = (items_equal_func)tokens_are_equal,
+    .describe = (describe_item_func)token_describe,
     .hash = NULL
 };
 

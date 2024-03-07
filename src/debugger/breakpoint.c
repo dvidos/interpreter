@@ -3,8 +3,8 @@
 #include "breakpoint.h"
 
 
-class *breakpoint_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *breakpoint_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "breakpoint",
     .are_equal = NULL,
     .describe = NULL,

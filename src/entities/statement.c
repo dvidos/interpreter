@@ -213,11 +213,11 @@ bool statements_are_equal(statement *a, statement *b) {
     return true;
 }
 
-class *statement_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *statement_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "statement",
-    .describe = (describe_func)statement_describe,
-    .are_equal = (are_equal_func)statements_are_equal
+    .describe = (describe_item_func)statement_describe,
+    .are_equal = (items_equal_func)statements_are_equal
 };
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(statement);

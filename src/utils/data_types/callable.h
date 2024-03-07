@@ -28,6 +28,6 @@ execution_outcome callable_call(callable *c, list *positional_args, dict *named_
 bool callables_are_equal(callable *a, callable *b);
 const void callable_describe(callable *c, str_builder *sb);
 
-extern class *callable_class;
+extern item_info *callable_class;
 
 #endif

@@ -80,11 +80,11 @@ bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {
     return true;
 }
 
-class *stack_frame_class = &(class) {
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *stack_frame_class = &(item_info) {
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "stack_frame",
-    .describe = (describe_func)stack_frame_describe,
-    .are_equal = (are_equal_func)stack_frames_are_equal
+    .describe = (describe_item_func)stack_frame_describe,
+    .are_equal = (items_equal_func)stack_frames_are_equal
 };
 
 

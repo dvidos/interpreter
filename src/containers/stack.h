@@ -5,9 +5,9 @@
 #include "iterator.h"
 
 typedef struct stack stack;
-extern class *stack_class;
+extern item_info *stack_class;
 
-stack *new_stack(class *item_class);
+stack *new_stack(item_info *item_info);
 
 int   stack_length(stack *s);
 bool  stack_empty(stack *s);

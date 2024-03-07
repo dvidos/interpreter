@@ -1,24 +1,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/class.h"
 #include "../utils/str_builder.h"
 #include "pair.h"
 
 typedef struct pair {
-    class *class;
-    class *left_item_class;
-    class *right_item_class;
+    item_info *item_info;
+    item_info *left_item_info;
+    item_info *right_item_info;
     void *left;
     void *right;
 } pair;
 
 
-pair *new_pair(class *left_item_class, void *left, class *right_item_class, void *right) {
+pair *new_pair(item_info *left_item_info, void *left, item_info *right_item_info, void *right) {
     pair *p = malloc(sizeof(pair));
-    p->class = pair_class;
-    p->left_item_class = left_item_class;
-    p->right_item_class = right_item_class;
+    p->item_info = pair_class;
+    p->left_item_info = left_item_info;
+    p->right_item_info = right_item_info;
     p->left = left;
     p->right= right;
     return p;
@@ -40,22 +39,22 @@ bool pairs_are_equal(pair *a, pair *b) {
     if (a == b)
         return true;
     
-    if (!classes_are_equal(a->left_item_class, b->left_item_class))
+    if (!item_infos_are_equal(a->left_item_info, b->left_item_info))
         return false;
-    if (!classes_are_equal(a->right_item_class, b->right_item_class))
+    if (!item_infos_are_equal(a->right_item_info, b->right_item_info))
         return false;
 
     bool equal;
 
-    if (a->left_item_class != NULL && a->left_item_class->are_equal != NULL)
-        equal = a->left_item_class->are_equal(a->left, b->left);
+    if (a->left_item_info != NULL && a->left_item_info->are_equal != NULL)
+        equal = a->left_item_info->are_equal(a->left, b->left);
     else
         equal = a->left == b->left;
     if (!equal)
         return false;
     
-    if (a->right_item_class != NULL && a->right_item_class->are_equal != NULL)
-        equal = a->right_item_class->are_equal(a->right, b->right);
+    if (a->right_item_info != NULL && a->right_item_info->are_equal != NULL)
+        equal = a->right_item_info->are_equal(a->right, b->right);
     else
         equal = a->right == b->right;
     if (!equal)
@@ -67,8 +66,8 @@ bool pairs_are_equal(pair *a, pair *b) {
 const void pair_describe(pair *p, const char *separator, str_builder *sb) {
     if (p->left == NULL)
         str_builder_add(sb, "(null)");
-    else if (p->left_item_class != NULL && p->left_item_class->describe != NULL)
-        p->left_item_class->describe(p->left, sb);
+    else if (p->left_item_info != NULL && p->left_item_info->describe != NULL)
+        p->left_item_info->describe(p->left, sb);
     else
         str_builder_addf(sb, "@0x%p", p->left);
 
@@ -76,8 +75,8 @@ const void pair_describe(pair *p, const char *separator, str_builder *sb) {
 
     if (p->right == NULL)
         str_builder_add(sb, "(null)");
-    else if (p->right_item_class != NULL && p->right_item_class->describe != NULL)
-        p->right_item_class->describe(p->right, sb);
+    else if (p->right_item_info != NULL && p->right_item_info->describe != NULL)
+        p->right_item_info->describe(p->right, sb);
     else
         str_builder_addf(sb, "@0x%p", p->right);
 }
@@ -90,10 +89,10 @@ const void default_pair_describe(pair *p, str_builder *sb) {
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(pair);
 
-class *pair_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *pair_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "pair",
-    .are_equal = (are_equal_func)pairs_are_equal,
-    .describe = (describe_func)default_pair_describe,
+    .are_equal = (items_equal_func)pairs_are_equal,
+    .describe = (describe_item_func)default_pair_describe,
     .hash      = NULL
 };

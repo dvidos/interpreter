@@ -6,11 +6,11 @@
 #include "../utils/str_builder.h"
 #include "expression.h"
 
-class *expression_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *expression_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "expression",
-    .are_equal = (are_equal_func)expressions_are_equal,
-    .describe = (describe_func)expression_describe,
+    .are_equal = (items_equal_func)expressions_are_equal,
+    .describe = (describe_item_func)expression_describe,
     .hash      = NULL
 };
 

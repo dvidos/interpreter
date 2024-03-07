@@ -3,15 +3,15 @@
 
 #include "../utils/failable.h"
 #include "iterator.h"
-#include "../utils/class.h"
+#include "../utils/item_info.h"
 
 
 typedef struct list list;
-extern class *list_class;
+extern item_info *list_class;
 
-list *new_list(class *item_class);
-list *list_of(class *item_class, int items, ...);
-class *list_contained_item(list *l);
+list *new_list(item_info *item_info);
+list *list_of(item_info *item_info, int items, ...);
+item_info *list_contained_item(list *l);
 
 bool list_empty(list *l);
 int   list_length(list *l);

@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
-#include "class.h"
+#include "item_info.h"
 
 
-bool classes_are_equal(class *a, class *b) {
+bool item_infos_are_equal(item_info *a, item_info *b) {
     if (a == NULL && b == NULL) return true;
     if (a == NULL && b != NULL) return false;
     if (a != NULL && b == NULL) return false;

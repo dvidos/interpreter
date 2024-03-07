@@ -14,26 +14,25 @@ typedef struct dict_entry {
 } dict_entry;
 
 typedef struct dict {
-    class *class;
+    item_info *item_info;
     dict_entry **entries_array;
     int capacity;
     int count;
-    class *item_class;
 } dict;
 
-dict *new_dict(class *item_class) {
+dict *new_dict(item_info *item_info) {
     dict *d = malloc(sizeof(dict));
-    d->class = dict_class;
+    d->item_info = dict_class;
     d->capacity = 32;
     d->count = 0;
     d->entries_array = malloc(sizeof(dict_entry *) * d->capacity);
     memset(d->entries_array, 0, d->capacity * sizeof(dict_entry *));
-    d->item_class = item_class;
+    d->item_info = item_info;
     return d;
 }
 
-dict *dict_of(class *item_class, int pairs_count, ...) {
-    dict *d = new_dict(item_class);
+dict *dict_of(item_info *item_info, int pairs_count, ...) {
+    dict *d = new_dict(item_info);
     va_list args;
     va_start(args, pairs_count);
     while (pairs_count-- > 0) {
@@ -211,7 +210,7 @@ list *dict_get_keys(dict *d) {
 }
 
 list *dict_get_values(dict *d) {
-    list *values = new_list(d->item_class);
+    list *values = new_list(d->item_info);
     iterator *it = dict_keys_iterator(d);
     for_iterator(it, str, key)
         list_add(values, dict_get(d, key));
@@ -226,7 +225,7 @@ bool dicts_are_equal(dict *a, dict *b) {
     if (a == b)
         return true;
     
-    if (!classes_are_equal(a->item_class, b->item_class))
+    if (!item_infos_are_equal(a->item_info, b->item_info))
         return false;
     if (a->count != b->count)
         return false;
@@ -242,8 +241,8 @@ bool dicts_are_equal(dict *a, dict *b) {
         void *value_a = dict_get(a, key_a);
         void *value_b = dict_get(b, key_b);
         bool values_equal;
-        if (a->item_class != NULL && a->item_class->are_equal != NULL)
-            values_equal = a->item_class->are_equal(value_a, value_b);
+        if (a->item_info != NULL && a->item_info->are_equal != NULL)
+            values_equal = a->item_info->are_equal(value_a, value_b);
         else
             values_equal = value_a == value_b;
         if (!values_equal)
@@ -265,8 +264,8 @@ const void dict_describe(dict *d, const char *key_value_separator, const char *e
 
         str_builder_addf(sb, "%s%s", key, key_value_separator);
         void *value = dict_get(d, key);
-        if (d->item_class != NULL && d->item_class->describe != NULL)
-            d->item_class->describe(value, sb);
+        if (d->item_info != NULL && d->item_info->describe != NULL)
+            d->item_info->describe(value, sb);
         else
             str_builder_addf(sb, "@0x%p", value);
     }
@@ -277,11 +276,11 @@ static const void dict_describe_default(dict *d, str_builder *sb) {
 }
 
 
-class *dict_class = &(class) {
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *dict_class = &(item_info) {
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "dict",
-    .are_equal = (are_equal_func)dicts_are_equal,
-    .describe = (describe_func)dict_describe_default
+    .are_equal = (items_equal_func)dicts_are_equal,
+    .describe = (describe_item_func)dict_describe_default
 };
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(dict);

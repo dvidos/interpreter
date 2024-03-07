@@ -28,7 +28,7 @@ typedef struct variant_original variant_original;
 struct variant_original {
     BASE_VARIANT_FIRST_ATTRIBUTES;
     // then these:
-    class *class;
+    item_info *class;
     variant_enum_type enum_type;
     union {
         bool bool_;
@@ -55,11 +55,11 @@ struct variant_original {
 bool variants_are_equal(variant *a, variant *b);
 const void variant_describe(variant *v, str_builder *sb);
 
-class *variant_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *variant_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "variant",
-    .are_equal = (are_equal_func)variants_are_equal,
-    .describe = (describe_func)variant_describe
+    .are_equal = (items_equal_func)variants_are_equal,
+    .describe = (describe_item_func)variant_describe
 };
 
 // variant *new_null_variant() {

@@ -17,7 +17,7 @@ General support objects
 * `dict` - a hash map of items, accessed by name
 * `stack` - a stack of items, with push, peek & pop operations
 * `queue` - a queue of items, with put, peek & get operations
-* `item_class` - item information for containers. Facilitates comparison and debugging
+* `item_info` - item information for containers. Facilitates comparison and debugging
 * `str_builder` - an expandable zero-terminated string buffer
 
 ## memory 

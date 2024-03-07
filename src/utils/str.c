@@ -5,14 +5,14 @@
 
 
 
-class *str_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *str_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "str",
-    .are_equal = (are_equal_func)strs_are_equal,
-    .describe = (describe_func)str_describe
+    .are_equal = (items_equal_func)strs_are_equal,
+    .describe = (describe_item_func)str_describe
 };
 
-extern class *str_class;
+extern item_info *str_class;
 
 bool strs_are_equal(str *a, str *b) {
     return strcmp(a, b) == 0;

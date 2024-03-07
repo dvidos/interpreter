@@ -4,7 +4,7 @@
 #include "callable.h"
 
 struct callable {
-    class *class;
+    item_info *class;
     const char *name;
     const char *description;
     callable_handler *handler;
@@ -48,10 +48,10 @@ execution_outcome callable_call(callable *c, list *positional_args, dict *named_
     return c->handler(positional_args, named_args, c->callable_data, this_obj, ctx);
 }
 
-class *callable_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *callable_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "callable",
-    .are_equal = (are_equal_func)callables_are_equal,
-    .describe = (describe_func)callable_describe
+    .are_equal = (items_equal_func)callables_are_equal,
+    .describe = (describe_item_func)callable_describe
 };
 

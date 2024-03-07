@@ -130,9 +130,9 @@ bool operator_types_are_equal(operator_type a, operator_type b) {
     return a == b;
 }
 
-class *operator_type_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *operator_type_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "operator_type",
-    .are_equal = (are_equal_func)operator_types_are_equal,
-    .describe = (describe_func)operator_type_describe
+    .are_equal = (items_equal_func)operator_types_are_equal,
+    .describe = (describe_item_func)operator_type_describe
 };

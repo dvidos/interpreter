@@ -39,7 +39,7 @@ bool variants_are_equal(variant *a, variant *b);
 const void variant_describe(variant *v, str_builder *sb);
 
 
-extern class *variant_class;
+extern item_info *variant_class;
 
 
 

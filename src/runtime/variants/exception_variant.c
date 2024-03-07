@@ -96,10 +96,16 @@ variant *new_exception_variant(const char *filename, int line, int column, varia
     e->message = malloc(strlen(temp) + 1);
     strcpy(e->message, temp);
 
-    e->file = malloc(strlen(filename) + 1);
-    strcpy(e->file, filename);
-    e->line = line;
-    e->column = column;
+    if (filename == NULL) {
+        e->file = NULL;
+        e->line = 0;
+        e->column = 0;
+    } else {
+        e->file = malloc(strlen(filename) + 1);
+        strcpy(e->file, filename);
+        e->line = line;
+        e->column = column;
+    }
     e->inner = variant_clone(inner);
     
     return (variant *)e;

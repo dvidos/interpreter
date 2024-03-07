@@ -1,14 +1,14 @@
 #ifndef _BREAKPOINT_H
 #define _BREAKPOINT_H
 
-#include "../utils/class.h"
+#include "../utils/item_info.h"
 
 
 typedef struct breakpoint breakpoint;
-extern class *breakpoint_class;
+extern item_info *breakpoint_class;
 
 struct breakpoint {
-    class *class;
+    item_info *class;
     const char *filename;
     int line_no;
 };

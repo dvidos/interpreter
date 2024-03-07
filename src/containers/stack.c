@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/class.h"
+#include "../utils/item_info.h"
 #include "../utils/str_builder.h"
 #include "stack.h"
 
@@ -11,19 +11,18 @@ typedef struct stack_entry {
 } stack_entry;
 
 typedef struct stack {
-    class *class;
     int length;
     stack_entry *head;
-    class *item_class;
+    item_info *item_info;
 } stack;
 
 
-stack *new_stack(class *item_class) {
+stack *new_stack(item_info *item_info) {
     stack *s = malloc(sizeof(stack));
-    s->class = stack_class;
+    s->item_info = stack_class;
     s->length = 0;
     s->head = NULL;
-    s->item_class = item_class;
+    s->item_info = item_info;
     return s;
 }
 
@@ -109,8 +108,8 @@ void stack_describe(stack *s, const char *separator, str_builder *sb) {
         if (e != s->head)
             str_builder_add(sb, separator);
         
-        if (s->item_class != NULL && s->item_class->describe != NULL)
-            s->item_class->describe(e->item, sb);
+        if (s->item_info != NULL && s->item_info->describe != NULL)
+            s->item_info->describe(e->item, sb);
         else
             str_builder_addf(sb, "@0x%p", e->item);
         
@@ -122,9 +121,9 @@ static void stack_describe_default(stack *s, const char *separator, str_builder 
     stack_describe(s, ", ", sb);
 }
 
-class *stack_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *stack_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "stack",
-    .describe = (describe_func)stack_describe_default,
+    .describe = (describe_item_func)stack_describe_default,
     .are_equal = NULL
 };

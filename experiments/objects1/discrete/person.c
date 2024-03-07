@@ -23,7 +23,7 @@ struct_info *person_struct = &(struct_info){
     .struct_name = "person",
     .enclosed = NULL,
     ._struct_info_magic_number = STRUCT_INFO_MAGIC_NUMBER,
-    .describe = (describe_func)person_describe,
+    .describe = (describe_item_func)person_describe,
     .hash = (hash_instance_func)person_hash,
 };
 

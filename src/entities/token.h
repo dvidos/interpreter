@@ -8,10 +8,10 @@
 
 
 typedef struct token token;
-extern class *token_class;
+extern item_info *token_class;
 
 struct token {
-    class *class;
+    item_info *class;
     token_type type;
     const char *data; // e.g. identifier or number
     const char *filename;

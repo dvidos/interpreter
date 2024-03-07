@@ -1,10 +1,3 @@
-/*
-    To define new object:
-    - must instantiate the class
-
-
-*/
-
 #include <stdlib.h>
 #include <stddef.h>
 #include "objects.h"

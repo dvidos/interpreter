@@ -4,14 +4,14 @@
 #include <stdbool.h>
 #include "../utils/failable.h"
 #include "iterator.h"
-#include "../utils/class.h"
+#include "../utils/item_info.h"
 #include "list.h"
 
 typedef struct dict dict;
-extern class *dict_class;
+extern item_info *dict_class;
 
-dict *new_dict(class *item_class);
-dict *dict_of(class *item_class, int pairs_count, ...);
+dict *new_dict(item_info *item_info);
+dict *dict_of(item_info *item_info, int pairs_count, ...);
 
 void  dict_set(dict *d, const char *key, void *item);
 bool  dict_has(dict *d, const char *key);

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/class.h"
+#include "../utils/item_info.h"
 #include "../utils/str_builder.h"
 #include "list.h"
 
@@ -14,21 +14,21 @@ typedef struct list {
     int length;
     list_entry *head;
     list_entry *tail;
-    class *item_class;
+    item_info *item_info;
 } list;
 
 
-list *new_list(class *item_class) {
+list *new_list(item_info *item_info) {
     list *l = malloc(sizeof(list));
     l->length = 0;
     l->head = NULL;
     l->tail = NULL;
-    l->item_class = item_class;
+    l->item_info = item_info;
     return l;
 }
 
-list *list_of(class *item_class, int items_count, ...) {
-    list *l = new_list(item_class);
+list *list_of(item_info *item_info, int items_count, ...) {
+    list *l = new_list(item_info);
     va_list args;
     va_start(args, items_count);
     while (items_count-- > 0)
@@ -37,8 +37,8 @@ list *list_of(class *item_class, int items_count, ...) {
     return l;
 }
 
-class *list_contained_item(list *l) {
-    return l->item_class;
+item_info *list_contained_item(list *l) {
+    return l->item_info;
 }
 
 bool list_empty(list *l) {
@@ -178,7 +178,7 @@ bool lists_are_equal(list *a, list *b) {
     if (a == b)
         return true;
     
-    if (!classes_are_equal(a->item_class, b->item_class))
+    if (!item_infos_are_equal(a->item_info, b->item_info))
         return false;
     if (a->length != b->length)
         return false;
@@ -188,8 +188,8 @@ bool lists_are_equal(list *a, list *b) {
     struct list_entry *entry_b = b->head;
     while (entry_a != NULL && entry_b != NULL) {
         bool equal;
-        if (a->item_class != NULL && a->item_class->are_equal != NULL)
-            equal = a->item_class->are_equal(entry_a->item, entry_b->item);
+        if (a->item_info != NULL && a->item_info->are_equal != NULL)
+            equal = a->item_info->are_equal(entry_a->item, entry_b->item);
         else
             equal = entry_a->item == entry_b->item;
         
@@ -208,8 +208,8 @@ void list_describe(list *l, const char *separator, str_builder *sb) {
         if (e != l->head)
             str_builder_add(sb, separator);
         
-        if (l->item_class != NULL && l->item_class->describe != NULL)
-            l->item_class->describe(e->item, sb);
+        if (l->item_info != NULL && l->item_info->describe != NULL)
+            l->item_info->describe(e->item, sb);
         else
             str_builder_addf(sb, "@0x%p", e->item);
         
@@ -222,11 +222,11 @@ static void list_describe_default(list *l, str_builder *sb) {
 }
 
 
-class *list_class = &(class){
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *list_class = &(item_info){
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "list",
-    .are_equal = (are_equal_func)lists_are_equal,
-    .describe = (describe_func)list_describe_default,
+    .are_equal = (items_equal_func)lists_are_equal,
+    .describe = (describe_item_func)list_describe_default,
 };
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(list);

@@ -29,7 +29,7 @@ struct_info *student_struct = &(struct_info){
     .struct_name = "student",
     // .enclosed = person_struct, (we cannot initialize to another compile-time pointer)
     ._struct_info_magic_number = STRUCT_INFO_MAGIC_NUMBER,
-    .describe = (describe_func)student_describe,
+    .describe = (describe_item_func)student_describe,
     .hash = (hash_instance_func)student_hash
 };
 

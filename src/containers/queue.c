@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/class.h"
+#include "../utils/item_info.h"
 #include "../utils/str_builder.h"
 #include "queue.h"
 
@@ -11,20 +11,19 @@ typedef struct queue_entry {
 } queue_entry;
 
 typedef struct queue {
-    class *class;
     int length;
     queue_entry *entrance;
     queue_entry *exit;
-    class *item_class;
+    item_info *item_info;
 } queue;
 
-queue *new_queue(class *item_class) {
+queue *new_queue(item_info *item_info) {
     queue *q = malloc(sizeof(queue));
-    q->class = queue_class;
+    q->item_info = queue_class;
     q->length = 0;
     q->entrance = NULL;
     q->exit = NULL;
-    q->item_class = item_class;
+    q->item_info = item_info;
     return q;
 }
 
@@ -121,8 +120,8 @@ void queue_describe(queue *q, const char *separator, str_builder *sb) {
         if (e != q->exit)
             str_builder_add(sb, separator);
         
-        if (q->item_class != NULL && q->item_class->describe != NULL)
-            q->item_class->describe(e->item, sb);
+        if (q->item_info != NULL && q->item_info->describe != NULL)
+            q->item_info->describe(e->item, sb);
         else
             str_builder_addf(sb, "@0x%p", e->item);
         
@@ -134,9 +133,9 @@ void queue_describe_default(queue *q, str_builder *sb) {
     queue_describe(q, ", ", sb);
 }
 
-class *queue_class = &(class) {
-    .classdef_magic = CLASSDEF_MAGIC,
+item_info *queue_class = &(item_info) {
+    .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "queue",
-    .describe = (describe_func)queue_describe_default,
+    .describe = (describe_item_func)queue_describe_default,
     .are_equal = NULL,
 };
