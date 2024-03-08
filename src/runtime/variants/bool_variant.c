@@ -59,7 +59,7 @@ variant *new_bool_variant(bool value) {
 }
 
 bool bool_variant_as_bool(variant *v) {
-    if (!variant_is(v, bool_type))
+    if (!variant_instance_of(v, bool_type))
         return 0;
     return ((bool_instance *)v)->value;
 }

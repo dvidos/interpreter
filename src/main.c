@@ -111,16 +111,14 @@ void execute_code(const char *code, const char *filename) {
         printf("Execution failed: %s\n", ex.failure_message);
 
     } else if (ex.exception_thrown) {
-        str_builder *sb = new_str_builder();
-        variant_describe(ex.exception, sb);
-        printf("Unhandled exception: %s\n", str_builder_charptr(sb));
-        str_builder_free(sb);
+        variant *s = variant_to_string(ex.exception);
+        printf("Unhandled exception: %s\n", str_variant_as_str(s));
+        variant_drop_ref(s);
         
     } else {
-        str_builder *sb = new_str_builder();
-        variant_describe(ex.result, sb);
-        printf("Execution successful, result is %s\n", str_builder_charptr(sb));
-        str_builder_free(sb);
+        variant *s = variant_to_string(ex.result);
+        printf("Execution successful, result is %s\n", str_variant_as_str(s));
+        variant_drop_ref(s);
     }
 }
 

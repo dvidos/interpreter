@@ -24,7 +24,7 @@ void variant_inc_ref(variant *obj);
 void variant_drop_ref(variant *obj);
 
 // type checks
-bool variant_is(variant *obj, variant_type *type);          // type or a subtype of it
+bool variant_instance_of(variant *obj, variant_type *type);          // type or a subtype of it
 bool variant_is_exactly(variant *obj, variant_type *type);
 
 // call these to manipulate properties on an variant
@@ -38,7 +38,7 @@ variant *variant_call_method(variant *obj, const char *name, variant *args, vari
 
 // a few utilitiy methods without knowing the variant type
 variant  *variant_to_string(variant *obj);
-bool      variants_new_are_equal(variant *a, variant *b);
+bool      variants_are_equal(variant *a, variant *b);
 int       variant_compare(variant *a, variant *b);
 unsigned  variant_hash(variant *obj);
 variant  *variant_clone(variant *obj);

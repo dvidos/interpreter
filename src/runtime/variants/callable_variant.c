@@ -58,7 +58,7 @@ variant *new_callable_variant(callable *c) {
 }
 
 callable *callable_variant_as_callable(variant *v) {
-    if (!variant_is(v, callable_type))
+    if (!variant_instance_of(v, callable_type))
         return NULL;
     return ((callable_instance *)v)->callable;
 }

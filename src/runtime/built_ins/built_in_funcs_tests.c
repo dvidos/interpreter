@@ -14,7 +14,7 @@ static void run_use_case(const char *code, variant *expected, bool verbose) {
     if (ex.failed)
         assertion_failed(ex.failure_message, code);
     else if (ex.exception_thrown)
-        assertion_failed(variant_as_str(ex.exception), code);
+        assertion_failed(deprecated_variant_as_const_char(ex.exception), code);
     else
         assert_variants_are_equal(ex.result, expected, code);
 }

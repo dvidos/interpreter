@@ -189,14 +189,14 @@ static execution_outcome modify_and_store(expression *lvalue, enum modify_and_st
     retrieval = retrieve_value(lvalue, ctx, NULL);
     if (retrieval.exception_thrown || retrieval.failed) return retrieval;
     variant *original = retrieval.result;
-    if (!variant_is(original, int_type))
+    if (!variant_instance_of(original, int_type))
         return failed_outcome("modify_and_store() should be called for integers only");
     original_int = int_variant_as_int(original);
 
     retrieval = retrieve_value(rvalue, ctx, NULL);
     if (retrieval.exception_thrown || retrieval.failed) return retrieval;
     variant *operand = retrieval.result;
-    if (!variant_is(operand, int_type))
+    if (!variant_instance_of(operand, int_type))
         return failed_outcome("modify_and_store() should be called for integers only");
     operand_int = int_variant_as_int(operand);
 
@@ -243,14 +243,14 @@ static execution_outcome store_value(expression *lvalue, exec_context *ctx, vari
             expression *op1 = lvalue->per_type.operation.operand1;
             execution_outcome op1_exec = execute_expression(op1, ctx);
             if (op1_exec.exception_thrown || op1_exec.failed) return op1_exec;
-            if (!variant_is(op1_exec.result, list_type))
+            if (!variant_instance_of(op1_exec.result, list_type))
                 return exception_outcome(new_exception_variant(op1->token->filename, op1->token->line_no, op1->token->column_no, NULL,
                     "array subscripts apply only to lists"));
 
             expression *op2 = lvalue->per_type.operation.operand2;
             execution_outcome op2_exec = execute_expression(op2, ctx);
             if (op2_exec.exception_thrown || op2_exec.failed) return op2_exec;
-            if (!variant_is(op2_exec.result, int_type))
+            if (!variant_instance_of(op2_exec.result, int_type))
                 return exception_outcome(new_exception_variant(op2->token->filename, op2->token->line_no, op2->token->column_no, NULL,
                     "only integer expression can be used as list indices"));
 
@@ -263,7 +263,7 @@ static execution_outcome store_value(expression *lvalue, exec_context *ctx, vari
             expression *op1 = lvalue->per_type.operation.operand1;
             execution_outcome op1_exec = execute_expression(op1, ctx);
             if (op1_exec.exception_thrown || op1_exec.failed) return op1_exec;
-            if (!variant_is(op1_exec.result, dict_type))
+            if (!variant_instance_of(op1_exec.result, dict_type))
                 return exception_outcome(new_exception_variant(op1->token->filename, op1->token->line_no, op1->token->column_no, NULL,
                     "identifier member storage works only with dictionaries"));
 
@@ -292,7 +292,7 @@ static execution_outcome store_value(expression *lvalue, exec_context *ctx, vari
 
 static execution_outcome calculate_comparison(expression *op_expr, enum comparison cmp, variant *v1, variant *v2) {
 
-    if (variant_is(v1, int_type) && variant_is(v2, int_type)) {
+    if (variant_instance_of(v1, int_type) && variant_instance_of(v2, int_type)) {
         int i1 = int_variant_as_int(v1);
         int i2 = int_variant_as_int(v2);
         switch (cmp) {
@@ -303,7 +303,7 @@ static execution_outcome calculate_comparison(expression *op_expr, enum comparis
             case COMP_EQ: return ok_outcome(new_bool_variant(i1 == i2));
             case COMP_NE: return ok_outcome(new_bool_variant(i1 != i2));
         }
-    } else if (variant_is(v1, float_type) && variant_is(v2, float_type)) {
+    } else if (variant_instance_of(v1, float_type) && variant_instance_of(v2, float_type)) {
         float f1 = float_variant_as_float(v1);
         float f2 = float_variant_as_float(v2);
         switch (cmp) {
@@ -314,7 +314,7 @@ static execution_outcome calculate_comparison(expression *op_expr, enum comparis
             case COMP_EQ: return ok_outcome(new_bool_variant(f1 == f2));
             case COMP_NE: return ok_outcome(new_bool_variant(f1 != f2));
         }
-    } else if (variant_is(v1, str_type) && variant_is(v2, str_type)) {
+    } else if (variant_instance_of(v1, str_type) && variant_instance_of(v2, str_type)) {
         int c = variant_compare(v1, v2);
         switch (cmp) {
             case COMP_GT: return ok_outcome(new_bool_variant(c >  0));
@@ -324,14 +324,14 @@ static execution_outcome calculate_comparison(expression *op_expr, enum comparis
             case COMP_EQ: return ok_outcome(new_bool_variant(c == 0));
             case COMP_NE: return ok_outcome(new_bool_variant(c != 0));
         }
-    } else if (variant_is(v1, bool_type) && variant_is(v2, bool_type)) {
+    } else if (variant_instance_of(v1, bool_type) && variant_instance_of(v2, bool_type)) {
         bool b1 = bool_variant_as_bool(v1);
         bool b2 = bool_variant_as_bool(v2);
         switch (cmp) {
             case COMP_EQ: return ok_outcome(new_bool_variant(b1 == b2));
             case COMP_NE: return ok_outcome(new_bool_variant(b1 != b2));
         }
-    } else if (variant_is(v1, list_type) && variant_is(v2, list_type)) {
+    } else if (variant_instance_of(v1, list_type) && variant_instance_of(v2, list_type)) {
         list *l1 = list_variant_as_list(v1);
         list *l2 = list_variant_as_list(v2);
         bool eq = lists_are_equal(l1, l2);
@@ -341,20 +341,21 @@ static execution_outcome calculate_comparison(expression *op_expr, enum comparis
         }
     }
 
-    str_builder *sb = new_str_builder();
-    str_builder_add(sb, "cannot compare given operands: ");
-    variant_describe(v1, sb);
-    str_builder_add(sb, ", ");
-    variant_describe(v2, sb);
-    return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
-        "%s", str_builder_charptr(sb)));
+    variant *s1 = variant_to_string(v1);
+    variant *s2 = variant_to_string(v2);
+    variant *exception = new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
+        "cannot compare given operands: %s, %s",
+        str_variant_as_str(s1), str_variant_as_str(s2));
+    variant_drop_ref(s1);
+    variant_drop_ref(s2);
+    return exception_outcome(exception);
 }
 
 static execution_outcome retrieve_element(expression *list_exp, expression *index_exp, exec_context *ctx) {
 
     execution_outcome ex = execute_expression(list_exp, ctx);
     if (ex.exception_thrown || ex.failed) return ex;
-    if (!variant_is(ex.result, list_type)) 
+    if (!variant_instance_of(ex.result, list_type)) 
         return exception_outcome(new_exception_variant(
             list_exp->token->filename, list_exp->token->line_no, list_exp->token->column_no, NULL,
             "ARRAY_SUBSCRIPT requires a list as left operand"
@@ -364,7 +365,7 @@ static execution_outcome retrieve_element(expression *list_exp, expression *inde
     ex = execute_expression(index_exp, ctx);
     if (ex.exception_thrown || ex.failed) return ex;
     variant *subscript = ex.result;
-    if (!variant_is(subscript, int_type))
+    if (!variant_instance_of(subscript, int_type))
         return exception_outcome(new_exception_variant(
             index_exp->token->filename, index_exp->token->line_no, index_exp->token->column_no, NULL,
             "ARRAY_SUBSCRIPT requires an integer as right operand"
@@ -397,7 +398,7 @@ static execution_outcome retrieve_member(expression *obj_exp, expression *mbr_ex
     const char *member = mbr_exp->per_type.terminal_data;
     
     dict *d = NULL;
-    if (variant_is(object, dict_type)) {
+    if (variant_instance_of(object, dict_type)) {
         // find member in normal members, fallback to built-it methods
         d = dict_variant_as_dict(object);
         if (dict_has(d, member))
@@ -407,12 +408,12 @@ static execution_outcome retrieve_member(expression *obj_exp, expression *mbr_ex
         if (dict_has(d, member))
             return ok_outcome(dict_get(d, member));
 
-    } else if (variant_is(object, list_type)) {
+    } else if (variant_instance_of(object, list_type)) {
         d = get_built_in_list_methods_dictionary();
         if (dict_has(d, member))
             return ok_outcome(dict_get(d, member));
         
-    } else if (variant_is(object, str_type)) {
+    } else if (variant_instance_of(object, str_type)) {
         d = get_built_in_str_methods_dictionary();
         if (dict_has(d, member))
             return ok_outcome(dict_get(d, member));
@@ -436,7 +437,7 @@ static execution_outcome make_function_call(expression *target_exp, expression *
             target_exp->token->filename, target_exp->token->line_no, target_exp->token->column_no, NULL,
             "could not resolve call target"
         ));
-    if (!variant_is(target, callable_type))
+    if (!variant_instance_of(target, callable_type))
         return exception_outcome(new_exception_variant(
             target_exp->token->filename, target_exp->token->line_no, target_exp->token->column_no, NULL,
             "call target is not callable"
@@ -453,7 +454,7 @@ static execution_outcome make_function_call(expression *target_exp, expression *
 static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx) {
     switch (op_expr->op) {
         case OP_POSITIVE_NUM:
-            if (variant_is(value, int_type) || variant_is(value, float_type))
+            if (variant_instance_of(value, int_type) || variant_instance_of(value, float_type))
                 return ok_outcome(value);
             return exception_outcome(new_exception_variant(
                 op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
@@ -461,9 +462,9 @@ static execution_outcome calculate_unary_expression(expression *op_expr, variant
             ));
 
         case OP_NEGATIVE_NUM:
-            if (variant_is(value, int_type))
+            if (variant_instance_of(value, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(value) * -1));
-            if (variant_is(value, float_type))
+            if (variant_instance_of(value, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(value) * -1));
             return exception_outcome(new_exception_variant(
                 op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
@@ -472,7 +473,7 @@ static execution_outcome calculate_unary_expression(expression *op_expr, variant
 
         case OP_LOGICAL_NOT:
             // let's avoid implicit conversion to bool for now.
-            if (variant_is(value, bool_type))
+            if (variant_instance_of(value, bool_type))
                 return ok_outcome(new_bool_variant(!bool_variant_as_bool(value)));
             return exception_outcome(new_exception_variant(
                 op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
@@ -480,7 +481,7 @@ static execution_outcome calculate_unary_expression(expression *op_expr, variant
             ));
 
         case OP_BITWISE_NOT:
-            if (variant_is(value, int_type))
+            if (variant_instance_of(value, int_type))
                 return ok_outcome(new_int_variant(~int_variant_as_int(value)));
             return exception_outcome(new_exception_variant(
                 op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
@@ -495,14 +496,14 @@ static execution_outcome calculate_unary_expression(expression *op_expr, variant
 static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx) {
     switch (op_expr->op) {
         case OP_MULTIPLY:
-            if (variant_is(v1, int_type) && variant_is(v2, int_type))
+            if (variant_instance_of(v1, int_type) && variant_instance_of(v2, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) * int_variant_as_int(v2)));
-            if (variant_is(v1, float_type) && variant_is(v2, float_type))
+            if (variant_instance_of(v1, float_type) && variant_instance_of(v2, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) * float_variant_as_float(v2)));
-            if (variant_is(v1, str_type) && variant_is(v2, int_type)) {
+            if (variant_instance_of(v1, str_type) && variant_instance_of(v2, int_type)) {
                 str_builder *tmp = new_str_builder();
                 for (int i = 0; i < int_variant_as_int(v2); i++)
-                    str_builder_add(tmp, variant_as_str(v1));
+                    str_builder_add(tmp, deprecated_variant_as_const_char(v1));
                 return ok_outcome(new_str_variant(str_builder_charptr(tmp)));
             }
             return exception_outcome(new_exception_variant(
@@ -511,7 +512,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             ));
 
         case OP_DIVIDE:
-            if (variant_is(v1, int_type)) {
+            if (variant_instance_of(v1, int_type)) {
                 int denominator = int_variant_as_int(v2);
                 if (denominator == 0)
                     return exception_outcome(new_exception_variant(
@@ -520,7 +521,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
                     ));
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) / denominator));
             }
-            if (variant_is(v1, float_type)) {
+            if (variant_instance_of(v1, float_type)) {
                 // in floats, the result is "infinity"
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) / float_variant_as_float(v2)));
             }
@@ -530,7 +531,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             ));
 
         case OP_MODULO:
-            if (variant_is(v1, int_type))
+            if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) % int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant(
                 op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
@@ -538,14 +539,14 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             ));
 
         case OP_ADD:
-            if (variant_is(v1, int_type) && variant_is(v2, int_type))
+            if (variant_instance_of(v1, int_type) && variant_instance_of(v2, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) + int_variant_as_int(v2)));
-            if (variant_is(v1, float_type) && variant_is(v2, float_type))
+            if (variant_instance_of(v1, float_type) && variant_instance_of(v2, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) + float_variant_as_float(v2)));
-            if (variant_is(v1, str_type)) {
+            if (variant_instance_of(v1, str_type)) {
                 str_builder *sb = new_str_builder();
-                str_builder_add(sb, variant_as_str(v1));
-                str_builder_add(sb, variant_as_str(v2));
+                str_builder_add(sb, deprecated_variant_as_const_char(v1));
+                str_builder_add(sb, deprecated_variant_as_const_char(v2));
                 variant *v = new_str_variant(strdup(str_builder_charptr(sb)));
                 str_builder_free(sb);
                 return ok_outcome(v);
@@ -557,9 +558,9 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             ));
 
         case OP_SUBTRACT:
-            if (variant_is(v1, int_type))
+            if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) - int_variant_as_int(v2)));
-            if (variant_is(v1, float_type))
+            if (variant_instance_of(v1, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) - float_variant_as_float(v2)));
             return exception_outcome(new_exception_variant(
                 op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
@@ -567,7 +568,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             ));
 
         case OP_LSHIFT:
-            if (variant_is(v1, int_type))
+            if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) << int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant(
                 op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
@@ -575,7 +576,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             ));
 
         case OP_RSHIFT:
-            if (variant_is(v1, int_type))
+            if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) >> int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant(
                 op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
@@ -590,43 +591,43 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
         case OP_NOT_EQUAL:      return calculate_comparison(op_expr, COMP_NE, v1, v2);
 
         case OP_BITWISE_AND:
-            if (variant_is(v1, int_type))
+            if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) & int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
                 "bitwise operations only supported in int types"));
 
         case OP_BITWISE_XOR:
-            if (variant_is(v1, int_type))
+            if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) ^ int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
                 "bitwise operations only supported in int types"));
 
         case OP_BITWISE_OR:
-            if (variant_is(v1, int_type))
+            if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) | int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
                 "bitwise operations only supported in int types"));
 
         case OP_LOGICAL_AND:
             // we could do shorthand here...
-            if (variant_is(v1, bool_type) && variant_is(v2, bool_type))
+            if (variant_instance_of(v1, bool_type) && variant_instance_of(v2, bool_type))
                 return ok_outcome(new_bool_variant(bool_variant_as_bool(v1) && bool_variant_as_bool(v2)));
             return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
                 "logical operations only supported in bool types"));
             
         case OP_LOGICAL_OR:
             // we could do shorthand here...
-            if (variant_is(v1, bool_type) && variant_is(v2, bool_type))
+            if (variant_instance_of(v1, bool_type) && variant_instance_of(v2, bool_type))
                 return ok_outcome(new_bool_variant(bool_variant_as_bool(v1) || bool_variant_as_bool(v2)));
             return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
                 "logical operations only supported in bool types"));
 
         case OP_SHORT_IF:
-            if (!variant_is(v1, bool_type))
+            if (!variant_instance_of(v1, bool_type))
                 return exception_outcome(new_exception_variant(op_expr->token->filename, op_expr->token->line_no, op_expr->token->column_no, NULL,
                     "shorthand-if operator_type requires boolean condition"));
             bool passed = bool_variant_as_bool(v1);
-            if (!variant_is(v2, list_type))
+            if (!variant_instance_of(v2, list_type))
                 return failed_outcome("shorthand-if operator_type was expecting a list of 2 arguments, maybe parsing has a bug?");
             list *values_pair = list_variant_as_list(v2);
             if (list_length(values_pair) != 2)

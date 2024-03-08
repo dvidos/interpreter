@@ -92,7 +92,9 @@ BUILT_IN_CALLABLE(log) {
 
     str_builder_clear(log_line_builder);
     for (int i = 0; i < args_count; i++) {
-        variant_describe(list_get(positional_args, i), log_line_builder);
+        variant *s = variant_to_string(list_get(positional_args, i));
+        str_builder_add(log_line_builder, str_variant_as_str(s));
+        variant_drop_ref(s);
         if (i < args_count - 1)
             str_builder_addc(log_line_builder, ' ');
     }
@@ -123,7 +125,9 @@ BUILT_IN_CALLABLE(output) {
     int args_count = list_length(positional_args);
     str_builder *sb = new_str_builder();
     for (int i = 0; i < args_count; i++) {
-        variant_describe(list_get(positional_args, i), sb);
+        variant *s = variant_to_string(list_get(positional_args, i));
+        str_builder_add(sb, str_variant_as_str(s));
+        variant_drop_ref(s);
         if (i < args_count - 1)
             str_builder_addc(sb, ' ');
     }
@@ -180,7 +184,7 @@ static execution_outcome built_in_list_filter(list *positional_args, dict *named
         execution_outcome call = callable_call(func, func_args, NULL, NULL, ctx);
 
         if (call.exception_thrown || call.failed) return call;
-        if (!variant_is(call.result, bool_type)) {
+        if (!variant_instance_of(call.result, bool_type)) {
             return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
                 "filter requires a function returning boolean"));
         }

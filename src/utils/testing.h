@@ -96,12 +96,8 @@ bool testing_outcome();
         __testing_passed(); \
     } else { \
         __testing_failed("Variants are not equal", extra, __FILE__, __LINE__);  \
-        str_builder *sb_e = new_str_builder();  \
-        str_builder *sb_a = new_str_builder();  \
-        variant_describe(expected, sb_e);  \
-        variant_describe(actual, sb_a);  \
-        printf("    Expected: %s\n", str_builder_charptr(sb_e));  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb_a));  \
+        printf("    Expected: %s\n", str_variant_as_str(variant_to_string(expected)));  \
+        printf("    Actual  : %s\n", str_variant_as_str(variant_to_string(actual)));  \
     }
 
 #define assert_tokens_are_equal(actual, expected, extra) \
@@ -145,36 +141,30 @@ bool testing_outcome();
 
 
 #define assert_variant_has_bool_value(var, expected_value, extra) \
-    if (!variant_is(var, bool_type)) { \
+    if (!variant_instance_of(var, bool_type)) { \
         __testing_failed("Variant is not a bool", extra, __FILE__, __LINE__); \
     } else if (bool_variant_as_bool(var) != expected_value) { \
         __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__); \
-        str_builder *sb = new_str_builder();  \
-        variant_describe(var, sb);  \
         printf("    Expected: %s\n", expected_value ? "true" : "false");  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb));  \
+        printf("    Actual  : %s\n", bool_variant_as_bool(var) ? "true" : "false");  \
     }
 
 #define assert_variant_has_int_value(var, expected_value, extra) \
-    if (!variant_is(var, int_type)) { \
+    if (!variant_instance_of(var, int_type)) { \
         __testing_failed("Variant is not an int", extra, __FILE__, __LINE__); \
     } else if (int_variant_as_int(var) != expected_value) { \
         __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__); \
-        str_builder *sb = new_str_builder();  \
-        variant_describe(var, sb);  \
         printf("    Expected: %d\n", expected_value);  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb));  \
+        printf("    Actual  : %d\n", int_variant_as_int(var));  \
     }
 
 #define assert_variant_has_str_value(var, expected_value, extra) \
-    if (!variant_is(var, str_type)) {  \
+    if (!variant_instance_of(var, str_type)) {  \
         __testing_failed("Variant is not a string", extra, __FILE__, __LINE__);  \
-    } else if (strcmp(variant_as_str(var), expected_value) != 0) {  \
+    } else if (strcmp(deprecated_variant_as_const_char(var), expected_value) != 0) {  \
         __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__);  \
-        str_builder *sb = new_str_builder();  \
-        variant_describe(var, sb);  \
         printf("    Expected: %s\n", expected_value);  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb));  \
+        printf("    Actual  : %s\n", str_variant_as_str(var));  \
     }
 
 

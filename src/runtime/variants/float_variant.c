@@ -62,7 +62,7 @@ variant *new_float_variant(float value) {
 }
 
 float float_variant_as_float(variant *v) {
-    if (!variant_is(v, float_type))
+    if (!variant_instance_of(v, float_type))
         return 0;
     return ((float_instance *)v)->value;
 }

@@ -110,7 +110,7 @@ void variant_drop_ref(variant *obj) {
     free(obj);
 }
 
-bool variant_is(variant *obj, variant_type *type) {
+bool variant_instance_of(variant *obj, variant_type *type) {
     if (obj == NULL || obj->_type == NULL)
         return false;
     variant_type *t = obj->_type;
@@ -256,7 +256,7 @@ variant *variant_to_string(variant *obj) {
     return obj->_type->stringifier(obj);
 }
 
-bool variants_new_are_equal(variant *a, variant *b) {
+bool variants_are_equal(variant *a, variant *b) {
     if (a == b)
         return true;
     if (a == NULL && b != NULL)

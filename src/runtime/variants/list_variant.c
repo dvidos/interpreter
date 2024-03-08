@@ -86,13 +86,13 @@ variant *new_list_variant_of(int argc, ...) {
 }
 
 list *list_variant_as_list(variant *v) {
-    if (!variant_is(v, list_type))
+    if (!variant_instance_of(v, list_type))
         return NULL;
     return ((list_instance *)v)->list;
 }
 
 void list_variant_append(variant *v, variant *item) {
-    if (!variant_is(v, list_type))
+    if (!variant_instance_of(v, list_type))
         return;
     list_instance *li = (list_instance *)v;
 

@@ -61,7 +61,7 @@ variant *new_int_variant(int value) {
 }
 
 int int_variant_as_int(variant *v) {
-    if (!variant_is(v, int_type))
+    if (!variant_instance_of(v, int_type))
         return 0;
     return ((int_instance *)v)->value;
 }

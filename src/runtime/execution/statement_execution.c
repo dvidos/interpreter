@@ -26,7 +26,7 @@ execution_outcome execute_statements(list *statements, exec_context *ctx) {
 static execution_outcome check_condition(expression *condition, exec_context *ctx) {
     execution_outcome ex = execute_expression(condition, ctx);
     if (ex.exception_thrown || ex.failed) return ex;
-    if (!variant_is(ex.result, bool_type))
+    if (!variant_instance_of(ex.result, bool_type))
         return exception_outcome(new_exception_variant(condition->token->filename, condition->token->line_no, condition->token->column_no, NULL,
             "condition expressions must yield boolean result"));
     
@@ -162,7 +162,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
         if (stmt->per_type.throw.exception != NULL) {
             ex = execute_expression(stmt->per_type.throw.exception, ctx);
             if (ex.exception_thrown || ex.failed) return ex;
-            msg = variant_as_str(ex.result);
+            msg = deprecated_variant_as_const_char(ex.result);
         }
         return exception_outcome(new_exception_variant(
             stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL, msg));

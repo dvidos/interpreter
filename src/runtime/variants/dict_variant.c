@@ -94,17 +94,17 @@ variant *new_dict_variant_of(int entries_count, ...) {
 }
 
 dict *dict_variant_as_dict(variant *v) {
-    if (!variant_is(v, dict_type))
+    if (!variant_instance_of(v, dict_type))
         return NULL;
     return ((dict_instance *)v)->dict;
 }
 
 void dict_variant_set(variant *v, variant *key, variant *item) {
-    if (!variant_is(v, dict_type))
+    if (!variant_instance_of(v, dict_type))
         return;
     dict_instance *obj = (dict_instance *)v;
 
-    if (!variant_is(key, str_type))
+    if (!variant_instance_of(key, str_type))
         return; // exception?
 
     dict_set(obj->dict, str_variant_as_str(key), item);

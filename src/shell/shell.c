@@ -24,15 +24,13 @@ static void execute_command(const char *code, dict *values, bool verbose, bool e
         printf("Evaluation failed: %s\n", ex.failure_message);
 
     } else if (ex.exception_thrown) {
-        str_builder *sb = new_str_builder();
-        variant_describe(ex.exception, sb);
-        printf("Uncaught exception: %s\n", str_builder_charptr(sb));
-        str_builder_free(sb);
+        variant *s = variant_to_string(ex.exception);
+        printf("Uncaught exception: %s\n", str_variant_as_str(s));
+        variant_drop_ref(s);
     } else {
-        str_builder *sb = new_str_builder();
-        variant_describe(ex.result, sb);
-        printf("%s\n", str_builder_charptr(sb));
-        str_builder_free(sb);
+        variant *s = variant_to_string(ex.result);
+        printf("%s\n", str_variant_as_str(s));
+        variant_drop_ref(s);
     }
 }
 

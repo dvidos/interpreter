@@ -208,16 +208,14 @@ static void print_expression(statement *curr_stmt, expression *curr_expr, exec_c
         printf("Evaluation failed: %s\n", ex.failure_message);
 
     } else if (ex.exception_thrown) {
-        str_builder *sb = new_str_builder();
-        variant_describe(ex.exception, sb);
-        printf("Uncaught exception: %s\n", str_builder_charptr(sb));
-        str_builder_free(sb);
+        variant *s = variant_to_string(ex.exception);
+        printf("Uncaught exception: %s\n", str_variant_as_str(s));
+        variant_drop_ref(s);
 
     } else {
-        str_builder *sb = new_str_builder();
-        variant_describe(ex.result, sb);
-        printf("%s\n", str_builder_charptr(sb));
-        str_builder_free(sb);
+        variant *s = variant_to_string(ex.result);
+        printf("%s\n", str_variant_as_str(s));
+        variant_drop_ref(s);
     }
 }
 
@@ -246,10 +244,13 @@ static void show_values_of_symbols_of(dict *symbols) {
         variant *v = dict_get(symbols, name);
         if (v == NULL)
             str_builder_add(sb, "(null)");
-        else if (variant_is(v, callable_type))
+        else if (variant_instance_of(v, callable_type))
             str_builder_add(sb, "(callable)");
-        else
-            variant_describe(v, sb);
+        else {
+            variant *s = variant_to_string(v);
+            str_builder_add(sb, str_variant_as_str(s));
+            variant_drop_ref(s);
+        }
         printf("   %s: %s\n", name, str_builder_charptr(sb));
     }
     str_builder_free(sb);
