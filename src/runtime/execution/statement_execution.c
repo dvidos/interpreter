@@ -26,7 +26,7 @@ execution_outcome execute_statements(list *statements, exec_context *ctx) {
 static execution_outcome check_condition(expression *condition, exec_context *ctx) {
     execution_outcome ex = execute_expression(condition, ctx);
     if (ex.exception_thrown || ex.failed) return ex;
-    if (!variant_is_bool(ex.result))
+    if (!variant_is(ex.result, bool_type))
         return exception_outcome(new_exception_variant(condition->token->filename, condition->token->line_no, condition->token->column_no, NULL,
             "condition expressions must yield boolean result"));
     
@@ -50,7 +50,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
         ex = check_condition(stmt->per_type.if_.condition, ctx);
         if (ex.exception_thrown || ex.failed)
             return ex;
-        bool passed = variant_as_bool(ex.result);
+        bool passed = bool_variant_as_bool(ex.result);
 
         if (passed) {
             ex = execute_statements_with_flow(stmt->per_type.if_.body_statements, ctx, should_break, should_continue, should_return);
@@ -203,7 +203,7 @@ static execution_outcome execute_statements_in_loop(expression *pre_condition, l
     while (true) {
         ex = check_condition(pre_condition, ctx);
         if (ex.exception_thrown || ex.failed) return ex;
-        if (!variant_as_bool(ex.result))
+        if (!bool_variant_as_bool(ex.result))
             break;
 
         bool should_break = false;

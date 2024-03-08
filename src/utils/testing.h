@@ -145,9 +145,9 @@ bool testing_outcome();
 
 
 #define assert_variant_has_bool_value(var, expected_value, extra) \
-    if (!variant_is_bool(var)) { \
+    if (!variant_is(var, bool_type)) { \
         __testing_failed("Variant is not a bool", extra, __FILE__, __LINE__); \
-    } else if (variant_as_bool(var) != expected_value) { \
+    } else if (bool_variant_as_bool(var) != expected_value) { \
         __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__); \
         str_builder *sb = new_str_builder();  \
         variant_describe(var, sb);  \
@@ -156,9 +156,9 @@ bool testing_outcome();
     }
 
 #define assert_variant_has_int_value(var, expected_value, extra) \
-    if (!variant_is_int(var)) { \
+    if (!variant_is(var, int_type)) { \
         __testing_failed("Variant is not an int", extra, __FILE__, __LINE__); \
-    } else if (variant_as_int(var) != expected_value) { \
+    } else if (int_variant_as_int(var) != expected_value) { \
         __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__); \
         str_builder *sb = new_str_builder();  \
         variant_describe(var, sb);  \
@@ -167,7 +167,7 @@ bool testing_outcome();
     }
 
 #define assert_variant_has_str_value(var, expected_value, extra) \
-    if (!variant_is_str(var)) {  \
+    if (!variant_is(var, str_type)) {  \
         __testing_failed("Variant is not a string", extra, __FILE__, __LINE__);  \
     } else if (strcmp(variant_as_str(var), expected_value) != 0) {  \
         __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__);  \

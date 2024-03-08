@@ -289,12 +289,12 @@ is not the same as the encapsulated type:
 
 ```c
 bool variant_as_bool(variant *v);
-int variant_as_int(variant *v);
-float variant_as_float(variant *v);
+int int_variant_as_int(variant *v);
+float float_variant_as_float(variant *v);
 const char *variant_as_str(variant *v);
-list *variant_as_list(variant *v);
-dict *variant_as_dict(variant *v);
-callable *variant_as_callable(variant *v);
+list *list_variant_as_list(variant *v);
+dict *dict_variant_as_dict(variant *v);
+callable *callable_variant_as_callable(variant *v);
 ```
 
 ## String working

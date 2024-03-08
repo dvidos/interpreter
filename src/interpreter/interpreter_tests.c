@@ -29,14 +29,14 @@ static void verify_execution_exceptioned(char *code) {
         assertion_passed();
 }
 
-static void verify_execution_null(char *code) {
+static void verify_execution_void(char *code) {
     dict *values = new_dict(variant_item_info);
     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
     if (ex.failed)
         assertion_failed(ex.failure_message, code);
     else if (ex.exception_thrown)
         assertion_failed("exception thrown", code);
-    else if (!variant_is_null(ex.result))
+    else if (ex.result != void_instance)
         assertion_failed("Result is not null", code);
     else
         assertion_passed();
@@ -163,9 +163,9 @@ static void verify_execution_log(char *code, char *expected_log) {
 void interpreter_self_diagnostics() {
 
     // can of worms, if "null" keyword should be supported!
-    // verify_execution_null(NULL);
-    // verify_execution_null("");
-    // verify_execution_null("null"); 
+    // verify_execution_void(NULL);
+    // verify_execution_void("");
+    // verify_execution_void("null"); 
 
     verify_execution_b("false", false);
     verify_execution_b("true", true);

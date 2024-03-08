@@ -246,7 +246,7 @@ static void show_values_of_symbols_of(dict *symbols) {
         variant *v = dict_get(symbols, name);
         if (v == NULL)
             str_builder_add(sb, "(null)");
-        else if (variant_is_callable(v))
+        else if (variant_is(v, callable_type))
             str_builder_add(sb, "(callable)");
         else
             variant_describe(v, sb);
