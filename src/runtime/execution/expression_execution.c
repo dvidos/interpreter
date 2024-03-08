@@ -503,7 +503,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             if (variant_instance_of(v1, str_type) && variant_instance_of(v2, int_type)) {
                 str_builder *tmp = new_str_builder();
                 for (int i = 0; i < int_variant_as_int(v2); i++)
-                    str_builder_add(tmp, deprecated_variant_as_const_char(v1));
+                    str_builder_add(tmp, str_variant_as_str(v1));
                 return ok_outcome(new_str_variant(str_builder_charptr(tmp)));
             }
             return exception_outcome(new_exception_variant(
@@ -543,10 +543,10 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) + int_variant_as_int(v2)));
             if (variant_instance_of(v1, float_type) && variant_instance_of(v2, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) + float_variant_as_float(v2)));
-            if (variant_instance_of(v1, str_type)) {
+            if (variant_instance_of(v1, str_type) && variant_instance_of(v2, str_type)) {
                 str_builder *sb = new_str_builder();
-                str_builder_add(sb, deprecated_variant_as_const_char(v1));
-                str_builder_add(sb, deprecated_variant_as_const_char(v2));
+                str_builder_add(sb, str_variant_as_str(v1));
+                str_builder_add(sb, str_variant_as_str(v2));
                 variant *v = new_str_variant(strdup(str_builder_charptr(sb)));
                 str_builder_free(sb);
                 return ok_outcome(v);

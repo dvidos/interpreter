@@ -22,7 +22,7 @@ static void test_list() {
     list_add(l, new_str_variant("c"));
     assert(!list_empty(l));
     assert(list_length(l) == 3);
-    assert(strcmp(deprecated_variant_as_const_char(list_get(l, 2)), "c") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(list_get(l, 2))), "c") == 0);
 
     str_builder_clear(sb);
     list_describe(l, "|", sb);
@@ -60,15 +60,15 @@ static void test_stack() {
     stack_push(s, new_str_variant("c"));
     assert(!stack_empty(s));
     assert(stack_length(s) == 3);
-    assert(strcmp(deprecated_variant_as_const_char(stack_peek(s)), "c") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(stack_peek(s))), "c") == 0);
 
     str_builder_clear(sb);
     stack_describe(s, "|", sb);
     assert(strcmp(str_builder_charptr(sb), "c|b|a") == 0);
     
-    assert(strcmp(deprecated_variant_as_const_char(stack_pop(s)), "c") == 0);
-    assert(strcmp(deprecated_variant_as_const_char(stack_pop(s)), "b") == 0);
-    assert(strcmp(deprecated_variant_as_const_char(stack_pop(s)), "a") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(s))), "c") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(s))), "b") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(s))), "a") == 0);
     assert(stack_empty(s));
     assert(stack_length(s) == 0);
 }
@@ -89,9 +89,9 @@ static void test_queue() {
     queue_describe(q, "|", sb);
     assert(strcmp(str_builder_charptr(sb), "a|b|c") == 0);
     
-    assert(strcmp(deprecated_variant_as_const_char(queue_get(q)), "a") == 0);
-    assert(strcmp(deprecated_variant_as_const_char(queue_get(q)), "b") == 0);
-    assert(strcmp(deprecated_variant_as_const_char(queue_get(q)), "c") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(queue_get(q))), "a") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(queue_get(q))), "b") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(queue_get(q))), "c") == 0);
     assert(queue_empty(q));
     assert(queue_length(q) == 0);
 }

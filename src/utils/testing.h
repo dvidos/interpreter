@@ -161,7 +161,7 @@ bool testing_outcome();
 #define assert_variant_has_str_value(var, expected_value, extra) \
     if (!variant_instance_of(var, str_type)) {  \
         __testing_failed("Variant is not a string", extra, __FILE__, __LINE__);  \
-    } else if (strcmp(deprecated_variant_as_const_char(var), expected_value) != 0) {  \
+    } else if (strcmp(str_variant_as_str(var), expected_value) != 0) {  \
         __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__);  \
         printf("    Expected: %s\n", expected_value);  \
         printf("    Actual  : %s\n", str_variant_as_str(var));  \

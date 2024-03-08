@@ -157,15 +157,21 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
         return try_catch_outcome;
 
     } else if (s_type == ST_THROW) {
-        // calculate thrown value, just a string for now
-        const char *msg = "";
-        if (stmt->per_type.throw.exception != NULL) {
+        variant *str_result;
+        if (stmt->per_type.throw.exception == NULL) {
+            str_result = new_str_variant("");
+        } else {
             ex = execute_expression(stmt->per_type.throw.exception, ctx);
             if (ex.exception_thrown || ex.failed) return ex;
-            msg = deprecated_variant_as_const_char(ex.result);
+            str_result = variant_to_string(ex.result);
         }
-        return exception_outcome(new_exception_variant(
-            stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL, msg));
+        variant *exception = new_exception_variant(
+            stmt->token->filename, stmt->token->line_no, stmt->token->column_no, 
+            NULL, 
+            str_variant_as_str(str_result));
+        variant_drop_ref(str_result);
+        
+        return exception_outcome(exception);
         
     } else if (s_type == ST_BREAKPOINT) {
         // ignored in execution, bebugger entry is checked before executing a row.

@@ -9,7 +9,7 @@ typedef struct variant_type variant_type;
 #include "variant_base.h" 
 #include "variant_type.h" 
 #include "variant_funcs.h"
-#include "variant_original.h"
+#include "variant_item_info.h"
 
 void variant_self_diagnostics(bool verbose);
 

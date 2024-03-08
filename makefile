@@ -38,10 +38,10 @@ FILES = \
 	src/parser/statement_parser.c \
 	src/parser/statement_parser_tests.c \
 	\
-	src/runtime/variants/variant_original.c \
-	src/runtime/variants/variant_tests.c \
 	src/runtime/variants/variant_type.c \
 	src/runtime/variants/variant_funcs.c \
+	src/runtime/variants/variant_item_info.c \
+	src/runtime/variants/variant_tests.c \
 	\
 	src/runtime/variants/void_variant.c \
 	src/runtime/variants/str_variant.c \
