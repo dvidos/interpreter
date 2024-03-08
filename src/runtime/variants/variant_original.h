@@ -13,9 +13,9 @@ typedef struct variant variant;
 // variant *new_float_variant(float f);
 // variant *new_str_variant(const char *fmt, ...);
 // variant *new_list_variant(list *l);
-variant *new_dict_variant(dict *d);
-variant *new_callable_variant(callable *c);
-//variant *new_exception_variant(const char *script_filename, int script_line, int script_column, variant *inner, const char *fmt, ...);
+// variant *new_dict_variant(dict *d);
+// variant *new_callable_variant(callable *c);
+// variant *new_exception_variant(const char *script_filename, int script_line, int script_column, variant *inner, const char *fmt, ...);
 
 bool variant_is_null(variant *v);
 bool variant_is_bool(variant *v);

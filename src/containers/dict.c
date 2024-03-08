@@ -55,7 +55,7 @@ static unsigned hash(const char *str) {
 
 void dict_set(dict *d, const char *key, void *item) {
     dict_entry *entry = malloc(sizeof(dict_entry));
-    entry->key = key;
+    entry->key = key; // we really should strdup() this...
     entry->item = item;
     entry->next = NULL;
 
@@ -274,6 +274,21 @@ const void dict_describe(dict *d, const char *key_value_separator, const char *e
 static const void dict_describe_default(dict *d, str_builder *sb) {
     dict_describe(d, ": ", ", ", sb);
 }
+
+void dict_free(dict *d) {
+    for (int i = 0; i < d->capacity; i++) {
+        dict_entry *e = d->entries_array[i];
+        dict_entry *next;
+        while (e != NULL) {
+            next = e->next;
+            free(e);
+            e = next;
+        }
+    }
+    free(d->entries_array);
+    free(d);
+}
+
 
 
 item_info *dict_item_info = &(item_info) {

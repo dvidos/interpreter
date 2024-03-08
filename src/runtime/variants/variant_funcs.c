@@ -55,6 +55,9 @@ void initialize_variants() {
 }
 
 variant *variant_create(variant_type *type, variant *args, variant *named_args) {
+    if (type == NULL)
+        return NULL;
+    
     variant *p = malloc(type->instance_size);
     p->_type = type;
     p->_references_count = 1; // the one we are going to return
@@ -80,10 +83,16 @@ variant *variant_clone(variant *obj) {
 }
 
 void variant_inc_ref(variant *obj) {
+    if (obj == NULL || obj->_type == NULL)
+        return;
+    if (obj->_references_count == VARIANT_STATICALLY_ALLOCATED)
+        return;
+    
     obj->_references_count++;
 }
 
 void variant_drop_ref(variant *obj) {
+//    if (obj == NULL || obj->_type == NULL)
     if (obj == NULL)
         return;
     if (obj->_references_count == VARIANT_STATICALLY_ALLOCATED)
@@ -102,6 +111,8 @@ void variant_drop_ref(variant *obj) {
 }
 
 bool variant_is(variant *obj, variant_type *type) {
+    if (obj == NULL || obj->_type == NULL)
+        return false;
     variant_type *t = obj->_type;
     int levels = 0; // avoid infinite loops
     while (t != NULL && levels++ < 100) {
@@ -113,6 +124,8 @@ bool variant_is(variant *obj, variant_type *type) {
 }
 
 bool variant_is_exactly(variant *obj, variant_type *type) {
+    if (obj == NULL || obj->_type == NULL)
+        return false;
     return obj->_type == type;
 }
 

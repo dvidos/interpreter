@@ -23,10 +23,6 @@
     - parser of expressions with precedence, into an abstract syntax tree
     - evaluation of the syntax tree, to find the result
 
-    We would love to include function calls in the expression parser,
-    something like "if(left(a, 1) == '0', 'number', 'letter')"
-    Maybe the code body, arguments and returned value can become a function.
-
     interpret_and_execute("a + b * 2", {a=1, b=2})
 */
 

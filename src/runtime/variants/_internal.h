@@ -26,6 +26,8 @@ typedef struct variant_type variant_type;
 #include "float_variant.h"
 #include "exception_variant.h"
 #include "list_variant.h"
+#include "dict_variant.h"
+#include "callable_variant.h"
 
 
 #endif

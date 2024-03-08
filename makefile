@@ -50,6 +50,8 @@ FILES = \
 	src/runtime/variants/float_variant.c \
 	src/runtime/variants/exception_variant.c \
 	src/runtime/variants/list_variant.c \
+	src/runtime/variants/dict_variant.c \
+	src/runtime/variants/callable_variant.c \
 	\
 	src/runtime/execution/execution_outcome.c \
 	src/runtime/execution/expression_execution.c \
