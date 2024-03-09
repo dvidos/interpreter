@@ -55,7 +55,9 @@ static unsigned hash(const char *str) {
 
 void dict_set(dict *d, const char *key, void *item) {
     dict_entry *entry = malloc(sizeof(dict_entry));
-    entry->key = key; // we really should strdup() this...
+    char *p = malloc(strlen(key) + 1);
+    strcpy(p, key);
+    entry->key = p;
     entry->item = item;
     entry->next = NULL;
 
@@ -281,6 +283,7 @@ void dict_free(dict *d) {
         dict_entry *next;
         while (e != NULL) {
             next = e->next;
+            free((void *)e->key);
             free(e);
             e = next;
         }
