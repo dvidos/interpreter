@@ -10,8 +10,8 @@ typedef struct execution_outcome {
     variant *result;
 
     // exception thrown because of the script (e.g. division by zero)
-    bool exception_thrown; // TODO: rename to "threw_exception"
-    variant *exception;
+    bool excepted;
+    variant *exception_thrown;
 
     // failure due to our code (e.g. out of memory)
     bool failed;

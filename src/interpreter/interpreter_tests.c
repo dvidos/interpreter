@@ -37,7 +37,7 @@ static void __verify_execution(const char *file, int line, char *code, variant *
     }
     
     if (expect_outcome == EXP_EXCEPTION) {
-        if (ex.exception_thrown) assertion_passed();
+        if (ex.excepted) assertion_passed();
         else __testing_failed("Evaluation did not throw exception as expected", code, file, line);
         return;
     }
@@ -49,8 +49,8 @@ static void __verify_execution(const char *file, int line, char *code, variant *
         __testing_failed(str_builder_charptr(sb), code, file, line);
         return;
     }
-    if (ex.exception_thrown) {
-        str_builder_addf(sb, "Uncaught exception: %s", str_variant_as_str(variant_to_string(ex.exception)));
+    if (ex.excepted) {
+        str_builder_addf(sb, "Uncaught exception: %s", str_variant_as_str(variant_to_string(ex.exception_thrown)));
         __testing_failed(str_builder_charptr(sb), code, file, line);
         return;
     }

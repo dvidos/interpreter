@@ -25,7 +25,7 @@ execution_outcome execute_statements(list *statements, exec_context *ctx) {
 
 static execution_outcome check_condition(expression *condition, exec_context *ctx) {
     execution_outcome ex = execute_expression(condition, ctx);
-    if (ex.exception_thrown || ex.failed) return ex;
+    if (ex.excepted || ex.failed) return ex;
     if (!variant_instance_of(ex.result, bool_type))
         return exception_outcome(new_exception_variant(condition->token->filename, condition->token->line_no, condition->token->column_no, NULL,
             "condition expressions must yield boolean result"));
@@ -48,7 +48,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
 
     if (s_type == ST_IF) {
         ex = check_condition(stmt->per_type.if_.condition, ctx);
-        if (ex.exception_thrown || ex.failed)
+        if (ex.excepted || ex.failed)
             return ex;
         bool passed = bool_variant_as_bool(ex.result);
 
@@ -59,7 +59,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
         } else {
             ex = ok_outcome(ex.result);
         }
-        if (ex.exception_thrown || ex.failed)
+        if (ex.excepted || ex.failed)
             return ex;
         return_value = ex.result;
         
@@ -71,13 +71,13 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
             ctx,
             should_return
         );
-        if (ex.exception_thrown || ex.failed)
+        if (ex.excepted || ex.failed)
             return ex;
         return_value = ex.result;
 
     } else if (s_type == ST_FOR_LOOP) {
         ex = execute_expression(stmt->per_type.for_.init, ctx);
-        if (ex.exception_thrown || ex.failed)
+        if (ex.excepted || ex.failed)
             return ex;
         ex = execute_statements_in_loop(
             stmt->per_type.for_.condition,
@@ -86,13 +86,13 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
             ctx,
             should_return
         );
-        if (ex.exception_thrown || ex.failed)
+        if (ex.excepted || ex.failed)
             return ex;
         return_value = ex.result;
 
     } else if (s_type == ST_EXPRESSION) {
         ex = execute_expression(stmt->per_type.expr.expr, ctx);
-        if (ex.exception_thrown || ex.failed)
+        if (ex.excepted || ex.failed)
             return ex;
         return_value = ex.result;
 
@@ -107,7 +107,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
     } else if (s_type == ST_RETURN) {
         if (stmt->per_type.return_.value != NULL) {
             ex = execute_expression(stmt->per_type.return_.value, ctx);
-            if (ex.exception_thrown || ex.failed)
+            if (ex.excepted || ex.failed)
                 return ex;
             return_value = ex.result;
         } else {
@@ -133,8 +133,8 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
         // save this for later, we may run a "finally" block
         execution_outcome try_catch_outcome = ex;
 
-        if (ex.exception_thrown && stmt->per_type.try_catch.catch_statements != NULL) {
-            variant *exception = ex.exception;
+        if (ex.excepted && stmt->per_type.try_catch.catch_statements != NULL) {
+            variant *exception = ex.exception_thrown;
 
             if (stmt->per_type.try_catch.exception_identifier != NULL)
                 exec_context_register_symbol(ctx, stmt->per_type.try_catch.exception_identifier, exception);
@@ -151,7 +151,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
         // finally will run in any case, but will not influence the result.
         if (stmt->per_type.try_catch.finally_statements != NULL) {
             ex = execute_statements_with_flow(stmt->per_type.try_catch.finally_statements, ctx, should_break, should_continue, should_return);    
-            if (ex.exception_thrown || ex.failed) return ex;
+            if (ex.excepted || ex.failed) return ex;
         }
         
         return try_catch_outcome;
@@ -162,7 +162,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
             str_result = new_str_variant("");
         } else {
             ex = execute_expression(stmt->per_type.throw.exception, ctx);
-            if (ex.exception_thrown || ex.failed) return ex;
+            if (ex.excepted || ex.failed) return ex;
             str_result = variant_to_string(ex.result);
         }
         variant *exception = new_exception_variant(
@@ -193,7 +193,7 @@ static execution_outcome execute_statements_with_flow(list *statements, exec_con
 
     for_list(statements, it, statement, stmt) {
         execution_outcome ex = execute_single_statement(stmt, ctx, should_break, should_continue, should_return);
-        if (ex.exception_thrown || ex.failed) return ex;
+        if (ex.excepted || ex.failed) return ex;
         return_value = ex.result;
         if (*should_break || *should_continue || *should_return)
             break;
@@ -208,7 +208,7 @@ static execution_outcome execute_statements_in_loop(expression *pre_condition, l
 
     while (true) {
         ex = check_condition(pre_condition, ctx);
-        if (ex.exception_thrown || ex.failed) return ex;
+        if (ex.excepted || ex.failed) return ex;
         if (!bool_variant_as_bool(ex.result))
             break;
 
@@ -216,7 +216,7 @@ static execution_outcome execute_statements_in_loop(expression *pre_condition, l
         bool should_continue = false;
     
         ex = execute_statements_with_flow(statements, ctx, &should_break, &should_continue, should_return);
-        if (ex.exception_thrown || ex.failed) return ex;
+        if (ex.excepted || ex.failed) return ex;
 
         // "continue" in "for" statements allows the "next" operation to run
         if (should_break) break;
@@ -224,7 +224,7 @@ static execution_outcome execute_statements_in_loop(expression *pre_condition, l
 
         if (next != NULL) {
             ex = execute_expression(next, ctx);
-            if (ex.exception_thrown || ex.failed) return ex;
+            if (ex.excepted || ex.failed) return ex;
         }
     }
 

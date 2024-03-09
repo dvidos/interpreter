@@ -13,8 +13,8 @@ static void run_use_case(const char *code, variant *expected, bool verbose) {
     execution_outcome ex = interpret_and_execute(code, "test", values, verbose, false, false);
     if (ex.failed)
         assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed(str_variant_as_str(variant_to_string(ex.exception)), code);
+    else if (ex.excepted)
+        assertion_failed(str_variant_as_str(variant_to_string(ex.exception_thrown)), code);
     else
         assert_variants_are_equal(ex.result, expected, code);
 }

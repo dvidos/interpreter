@@ -23,8 +23,8 @@ static void execute_command(const char *code, dict *values, bool verbose, bool e
     if (ex.failed) {
         printf("Evaluation failed: %s\n", ex.failure_message);
 
-    } else if (ex.exception_thrown) {
-        variant *s = variant_to_string(ex.exception);
+    } else if (ex.excepted) {
+        variant *s = variant_to_string(ex.exception_thrown);
         printf("Uncaught exception: %s\n", str_variant_as_str(s));
         variant_drop_ref(s);
     } else {

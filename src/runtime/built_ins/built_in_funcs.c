@@ -178,7 +178,7 @@ static execution_outcome built_in_list_filter(list *positional_args, dict *named
             item, new_int_variant(index), this_obj);
         execution_outcome call = callable_call(func, func_args, NULL, NULL, ctx);
 
-        if (call.exception_thrown || call.failed) return call;
+        if (call.excepted || call.failed) return call;
         if (!variant_instance_of(call.result, bool_type)) {
             return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
                 "filter requires a function returning boolean"));
@@ -199,7 +199,7 @@ static execution_outcome built_in_list_map(list *positional_args, dict *named_ar
         list *func_args = list_of(variant_item_info, 3,
             item, new_int_variant(index), this_obj);
         execution_outcome call = callable_call(func, func_args, NULL, NULL, ctx);
-        if (call.exception_thrown || call.failed) return call;
+        if (call.excepted || call.failed) return call;
 
         list_variant_append(result_list, call.result);
         index++;
@@ -217,7 +217,7 @@ static execution_outcome built_in_list_reduce(list *positional_args, dict *named
         list *func_args = list_of(variant_item_info, 4,
             accumulator, item, new_int_variant(index), this_obj);
         execution_outcome new_accum = callable_call(func, func_args, NULL, NULL, ctx);
-        if (new_accum.exception_thrown || new_accum.failed) return new_accum;
+        if (new_accum.excepted || new_accum.failed) return new_accum;
         accumulator = new_accum.result;
         index++;
     }

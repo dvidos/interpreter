@@ -117,7 +117,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
             variant *values_list = new_list_variant();
             for_list(expressions_list, list_iter, expression, list_exp) {
                 ex = execute_expression(list_exp, ctx);
-                if (ex.exception_thrown || ex.failed) return ex;
+                if (ex.excepted || ex.failed) return ex;
                 variant *item = ex.result;
                 list_variant_append(values_list, item);
                 variant_drop_ref(item);
@@ -130,7 +130,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
             iterator *keys_it = dict_keys_iterator(expressions_dict);
             for_iterator(keys_it, str, key) {
                 ex = execute_expression(dict_get(expressions_dict, key), ctx);
-                if (ex.exception_thrown || ex.failed) return ex;
+                if (ex.excepted || ex.failed) return ex;
                 variant *vkey = new_str_variant(key);
                 variant *vitem = ex.result;
                 dict_variant_set(values_dict, vkey, vitem);
@@ -142,7 +142,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
         case ET_UNARY_OP:
             operand1 = e->per_type.operation.operand1;
             ex = execute_expression(operand1, ctx);
-            if (ex.exception_thrown || ex.failed) return ex;
+            if (ex.excepted || ex.failed) return ex;
             return calculate_unary_expression(e, ex.result, ctx);
 
         case ET_BINARY_OP:
@@ -158,10 +158,10 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
                 return make_function_call(operand1, operand2, ctx);
             } else {
                 ex = execute_expression(operand1, ctx);
-                if (ex.exception_thrown || ex.failed) return ex;
+                if (ex.excepted || ex.failed) return ex;
                 variant *v1 = ex.result;
                 ex = execute_expression(operand2, ctx);
-                if (ex.exception_thrown || ex.failed) return ex;
+                if (ex.excepted || ex.failed) return ex;
                 variant *v2 = ex.result;
                 return calculate_binary_expression(e, v1, v2, ctx);
             }
@@ -337,11 +337,11 @@ static execution_outcome calculate_comparison(expression *op_expr, enum comparis
 static execution_outcome store_element(expression *container_expr, expression *element_expr, variant *value, exec_context *ctx) {
 
     execution_outcome ex = execute_expression(container_expr, ctx);
-    if (ex.exception_thrown || ex.failed) return ex;
+    if (ex.excepted || ex.failed) return ex;
     variant *container = ex.result;
 
     ex = execute_expression(element_expr, ctx);
-    if (ex.exception_thrown || ex.failed) return ex;
+    if (ex.excepted || ex.failed) return ex;
     variant *element = ex.result;
 
     if (variant_instance_of(container, list_type)) {  // access by integer index
@@ -382,11 +382,11 @@ static execution_outcome store_element(expression *container_expr, expression *e
 static execution_outcome retrieve_element(expression *container_expr, expression *element_expr, exec_context *ctx) {
 
     execution_outcome ex = execute_expression(container_expr, ctx);
-    if (ex.exception_thrown || ex.failed) return ex;
+    if (ex.excepted || ex.failed) return ex;
     variant *container = ex.result;
 
     ex = execute_expression(element_expr, ctx);
-    if (ex.exception_thrown || ex.failed) return ex;
+    if (ex.excepted || ex.failed) return ex;
     variant *element = ex.result;
 
     variant *item;
@@ -442,7 +442,7 @@ static execution_outcome retrieve_member(expression *obj_exp, expression *mbr_ex
     // TODO: this should look for methods or attributes, it could return any type, including callables.
 
     execution_outcome ex = execute_expression(obj_exp, ctx);
-    if (ex.exception_thrown || ex.failed) return ex;
+    if (ex.excepted || ex.failed) return ex;
     variant *object = ex.result;
     if (this_value != NULL) // save for caller
         *this_value = object;

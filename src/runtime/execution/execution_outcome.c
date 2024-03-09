@@ -6,8 +6,8 @@
 execution_outcome ok_outcome(variant *result) {
     return (execution_outcome){
         .result = result,
-        .exception_thrown = false,
-        .exception = NULL,
+        .excepted = false,
+        .exception_thrown = NULL,
         .failed = false,
         .failure_message = NULL
     };
@@ -16,8 +16,8 @@ execution_outcome ok_outcome(variant *result) {
 execution_outcome exception_outcome(variant *exception) {
     return (execution_outcome){
         .result = NULL,
-        .exception_thrown = true,
-        .exception = exception,
+        .excepted = true,
+        .exception_thrown = exception,
         .failed = false,
         .failure_message = NULL
     };
@@ -36,8 +36,8 @@ execution_outcome failed_outcome(const char *fmt, ...) {
 
     return (execution_outcome){
         .result = NULL,
-        .exception_thrown = false,
-        .exception = NULL,
+        .excepted = false,
+        .exception_thrown = NULL,
         .failed = true,
         .failure_message = msg
     };

@@ -110,8 +110,8 @@ void execute_code(const char *code, const char *filename) {
     if (ex.failed) {
         printf("Execution failed: %s\n", ex.failure_message);
 
-    } else if (ex.exception_thrown) {
-        variant *s = variant_to_string(ex.exception);
+    } else if (ex.excepted) {
+        variant *s = variant_to_string(ex.exception_thrown);
         printf("Unhandled exception: %s\n", str_variant_as_str(s));
         variant_drop_ref(s);
         
