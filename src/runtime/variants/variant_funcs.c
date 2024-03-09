@@ -44,7 +44,7 @@ void initialize_variants() {
     false_instance = new_bool_variant(false);
     zero_instance = new_int_variant(0);
     one_instance = new_int_variant(1);
-    iteration_finished_exception_instance = new_exception_variant(NULL, 0, 0, NULL, "(iteration finished)");
+    iteration_finished_exception_instance = new_exception_variant("(iteration finished)");
 
     void_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     true_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
@@ -59,6 +59,7 @@ variant *variant_create(variant_type *type, variant *args, variant *named_args) 
         return NULL;
     
     variant *p = malloc(type->instance_size);
+    memset(p, 0, type->instance_size);
     p->_type = type;
     p->_references_count = 1; // the one we are going to return
     if (type->initializer != NULL) {
@@ -317,7 +318,7 @@ variant *variant_call(variant *obj, variant *args, variant *named_args) {
 
 execution_outcome variant_get_element(variant *obj, variant *index) {
     if (obj->_type->get_element == NULL)
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+        return exception_outcome(new_exception_variant(
             "Type '%s' does not support getting element by index"));
 
     return obj->_type->get_element(obj, index);
@@ -325,7 +326,7 @@ execution_outcome variant_get_element(variant *obj, variant *index) {
 
 execution_outcome variant_set_element(variant *obj, variant *index, variant *value) {
     if (obj->_type->set_element == NULL)
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+        return exception_outcome(new_exception_variant(
             "Type '%s' does not support setting element by index"));
     
     return obj->_type->set_element(obj, index, value);

@@ -27,7 +27,7 @@ static execution_outcome check_condition(expression *condition, exec_context *ct
     execution_outcome ex = execute_expression(condition, ctx);
     if (ex.excepted || ex.failed) return ex;
     if (!variant_instance_of(ex.result, bool_type))
-        return exception_outcome(new_exception_variant(condition->token->filename, condition->token->line_no, condition->token->column_no, NULL,
+        return exception_outcome(new_exception_variant_at(condition->token->filename, condition->token->line_no, condition->token->column_no, NULL,
             "condition expressions must yield boolean result"));
     
     return ok_outcome(ex.result);
@@ -165,7 +165,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
             if (ex.excepted || ex.failed) return ex;
             str_result = variant_to_string(ex.result);
         }
-        variant *exception = new_exception_variant(
+        variant *exception = new_exception_variant_at(
             stmt->token->filename, stmt->token->line_no, stmt->token->column_no, 
             NULL, 
             str_variant_as_str(str_result));
@@ -178,7 +178,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
     } else {
         str_builder *sb = new_str_builder();
         statement_describe(stmt, sb);
-        return exception_outcome(new_exception_variant(
+        return exception_outcome(new_exception_variant_at(
             stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL,
             "was expecting [ if, while, for, break, continue, expression, try, return, breakpoint ] but got %s", 
             str_builder_charptr(sb)
@@ -237,7 +237,7 @@ execution_outcome statement_function_callable_executor(list *positional_args, di
     list *arg_names = stmt->per_type.function.arg_names;
     if (list_length(positional_args) < list_length(arg_names)) {
         // we should report where the call was made, not where the function is
-        return exception_outcome(new_exception_variant(
+        return exception_outcome(new_exception_variant_at(
             stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL,
             "%s() expected %d arguments, got %d", stmt->per_type.function.name, list_length(arg_names), list_length(positional_args)
         ));

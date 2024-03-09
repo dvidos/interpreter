@@ -85,28 +85,59 @@ variant_type *exception_type = &(variant_type){
     .equality_checker = (equals_func)are_equal
 };
 
-variant *new_exception_variant(const char *filename, int line, int column, variant *inner, const char *fmt, ...) {
+static char *duplicate(const char *src) {
+    if (src == NULL)
+        return NULL;
+
+    char *p = malloc(strlen(src) + 1);
+    strcpy(p, src);
+    return p;
+}
+
+static char *format_message(const char *fmt, va_list args) {
+    char temp[256];
+    vsnprintf(temp, sizeof(temp), fmt, args);
+    char *p = malloc(strlen(temp) + 1);
+    strcpy(p, temp);
+    return p;
+}
+
+
+variant *new_exception_variant(const char *fmt, ...) {
     exception_instance *e = (exception_instance *)variant_create(exception_type, NULL, NULL);
 
-    char temp[256];
     va_list args;
     va_start(args, fmt);
-    vsnprintf(temp, sizeof(temp), fmt, args);
+    e->message = format_message(fmt, args);
     va_end(args);
-    e->message = malloc(strlen(temp) + 1);
-    strcpy(e->message, temp);
 
-    if (filename == NULL) {
-        e->file = NULL;
-        e->line = 0;
-        e->column = 0;
-    } else {
-        e->file = malloc(strlen(filename) + 1);
-        strcpy(e->file, filename);
-        e->line = line;
-        e->column = column;
-    }
-    e->inner = variant_clone(inner);
+    return (variant *)e;
+}
+
+variant *new_exception_variant_at(const char *filename, int line, int column, variant *inner, const char *fmt, ...) {
+    exception_instance *e = (exception_instance *)variant_create(exception_type, NULL, NULL);
+
+    va_list args;
+    va_start(args, fmt);
+    e->message = format_message(fmt, args);
+    va_end(args);
+
+    e->file = duplicate(filename);
+    e->line = line;
+    e->column = column;
     
     return (variant *)e;
+}
+
+void exception_variant_set_source(variant *v, const char *filename, int line, int column) {
+    if (v == NULL || !variant_instance_of(v, exception_type))
+        return;
+    exception_instance *e = (exception_instance *)v;
+
+    if (e->file != NULL)
+        free(e->file);
+    
+    e->file = duplicate(filename);
+    e->line = line;
+    e->column = column;
 }

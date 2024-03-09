@@ -62,12 +62,12 @@ static bool are_equal(dict_instance *a, dict_instance *b) {
 
 static execution_outcome get_element(dict_instance *obj, variant *index) {
     if (!variant_instance_of(index, str_type))
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+        return exception_outcome(new_exception_variant(
             "dict elements must be indexed by strings"));
         
     const char *key = str_variant_as_str(index);
     if (!dict_has(obj->dict, key))
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL,
+        return exception_outcome(new_exception_variant(
             "key '%s' not found in dictionary", key));
     
     return ok_outcome(dict_get(obj->dict, key));
@@ -75,7 +75,7 @@ static execution_outcome get_element(dict_instance *obj, variant *index) {
 
 static execution_outcome set_element(dict_instance *obj, variant *index, variant *value) {
     if (!variant_instance_of(index, str_type))
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+        return exception_outcome(new_exception_variant(
             "dict elements must be indexed by strings"));
         
     const char *key = str_variant_as_str(index);

@@ -105,7 +105,7 @@ BUILT_IN_CALLABLE(input) {
     // something like gets() ?
     char buffer[128];
     if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+        return exception_outcome(new_exception_variant(
             "EOF while reading input"));
     }
 
@@ -180,7 +180,7 @@ static execution_outcome built_in_list_filter(list *positional_args, dict *named
 
         if (call.excepted || call.failed) return call;
         if (!variant_instance_of(call.result, bool_type)) {
-            return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+            return exception_outcome(new_exception_variant(
                 "filter requires a function returning boolean"));
         }
         bool passed = bool_variant_as_bool(call.result);

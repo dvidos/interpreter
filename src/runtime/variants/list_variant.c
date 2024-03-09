@@ -55,12 +55,12 @@ static bool are_equal(list_instance *a, list_instance *b) {
 
 static execution_outcome get_element(list_instance *obj, variant *index) {
     if (!variant_instance_of(index, int_type))
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+        return exception_outcome(new_exception_variant(
             "list elements must be indexed by integers"));
         
     int i = int_variant_as_int(index);
     if (i < 0 || i >= list_length(obj->list))
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL,
+        return exception_outcome(new_exception_variant(
             "index %d outside of list bounds (%d..%d)", i, 0, list_length(obj->list) - 1));
     
     return ok_outcome(list_get(obj->list, i));
@@ -68,12 +68,12 @@ static execution_outcome get_element(list_instance *obj, variant *index) {
 
 static execution_outcome set_element(list_instance *obj, variant *index, variant *value) {
     if (!variant_instance_of(index, int_type))
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+        return exception_outcome(new_exception_variant(
             "list elements must be indexed by integers"));
         
     int i = int_variant_as_int(index);
     if (i < 0 || i > list_length(obj->list))
-        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL,
+        return exception_outcome(new_exception_variant(
             "index %d outside of list bounds (%d..%d)", i, 0, list_length(obj->list)));
     
     if (i == list_length(obj->list)) {
