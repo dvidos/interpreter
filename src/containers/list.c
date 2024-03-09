@@ -75,9 +75,9 @@ void *list_get(list *l, int index) {
 }
 
 void list_set(list *l, int index, void *item) {
-    // make sure this position is indexable
-    while (l->length < index)
-        list_add(l, NULL);
+    // call add() if you want to add
+    if (index < 0 || index >= l->length)
+        return;
         
     // walk and set
     list_entry *e = l->head;

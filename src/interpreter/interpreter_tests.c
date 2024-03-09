@@ -28,7 +28,7 @@ static void __verify_execution(const char *file, int line, char *code, variant *
     if (var_a_value != NULL)
         dict_set(values, "a", var_a_value);
     
-    execution_outcome ex = interpret_and_execute(code, "verify_execution", values, false, false, false);
+    execution_outcome ex = interpret_and_execute(code, "test_code", values, false, false, false);
 
     if (expect_outcome == EXP_FAILURE) {
         if (ex.failed) assertion_passed();
@@ -84,17 +84,6 @@ static void __verify_execution(const char *file, int line, char *code, variant *
         assertion_failed("Unsupported expected result!", code);
     }
 }
-
-// static void verify_execution_log(char *code, char *expected_log) {
-//     dict *values = new_dict(variant_item_info);
-//     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-//     if (ex.failed)
-//         assertion_failed(ex.failure_message, code);
-//     else if (ex.exception_thrown)
-//         assertion_failed("exception thrown", code);
-//     else
-//         assert_strs_are_equal(exec_context_get_log(), expected_log, code);
-// }
 
 void interpreter_self_diagnostics() {
 
@@ -193,8 +182,9 @@ void interpreter_self_diagnostics() {
     verify_execution("arr = [10,20,30]; return arr[2];",              NULL, EXP_INTEGER, 30);
     verify_execution("arr = []; arr[0] = 10; return arr[0];",         NULL, EXP_INTEGER, 10);
     verify_execution("arr = [10,20,30]; arr[1] = 22; return arr[1];", NULL, EXP_INTEGER, 22);
+    verify_execution("a = []; a[200] = 1;",                           NULL, EXP_EXCEPTION, NULL);
     verify_execution("man = {name:'Joe',age:40}; return man['age'];", NULL, EXP_INTEGER, 40);
-    verify_execution("man = {}; max['age'] = 20; return man['age'];", NULL, EXP_INTEGER, 20);
+    verify_execution("man = {}; man['age'] = 20; return man['age'];", NULL, EXP_INTEGER, 20);
 
     // set values, calculate on them
     verify_execution("i = 5; return i * i;", NULL, EXP_INTEGER, 25);

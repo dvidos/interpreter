@@ -24,14 +24,15 @@ enum comparison {
 static execution_outcome modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx);
 static execution_outcome retrieve_value(expression *e, exec_context *ctx, variant **this_value);
 static execution_outcome store_value(expression *lvalue, exec_context *ctx, variant *rvalue);
+
 static execution_outcome retrieve_element(expression *list_exp, expression *index_exp, exec_context *ctx);
+static execution_outcome store_element(expression *container_expr, expression *element_expr, variant *value, exec_context *ctx);
+
 static execution_outcome retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value);
 static execution_outcome make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
-
 static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx);
 static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx);
 static execution_outcome calculate_comparison(expression *op_expr, enum comparison cmp, variant *v1, variant *v2);
-
 static execution_outcome expression_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx);
 
 
@@ -70,8 +71,8 @@ execution_outcome execute_expression(expression *e, exec_context *ctx) {
                 execution_outcome retrieval = retrieve_value(rval_expr, ctx, NULL);
                 if (retrieval.exception_thrown || retrieval.failed) return retrieval;
                 execution_outcome storage = store_value(lval_expr, ctx, retrieval.result);
-                if (retrieval.exception_thrown || retrieval.failed) return retrieval;
-                return retrieval;
+                if (storage.exception_thrown || storage.failed) return storage;
+                return retrieval; // assignment returns the assigned value
             
             case OP_ADD_ASSIGN: return modify_and_store(lval_expr, MAS_ADD, rval_expr, false, ctx);
             case OP_SUB_ASSIGN: return modify_and_store(lval_expr, MAS_SUB, rval_expr, false, ctx);
@@ -167,8 +168,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
             break;
         
         case ET_FUNC_DECL:
-            // "retrieving" a `function () { ...}` expression
-            // merely creates and returns a callable variant
+            // "retrieving" a `function () { ...}` expression merely creates and returns a callable variant
             return ok_outcome(new_callable_variant(new_callable(
                 "(user anonymous expression function)",
                 expression_function_callable_executor, e
@@ -239,25 +239,8 @@ static execution_outcome store_value(expression *lvalue, exec_context *ctx, vari
     } else if (et == ET_BINARY_OP) {
         operator_type op = lvalue->op;
         if (op == OP_ARRAY_SUBSCRIPT) {
-            // e.g. "ARRAY_SUBSCRIPT(<list_like_executionable>, <int_like_executionable>)"
-            expression *op1 = lvalue->per_type.operation.operand1;
-            execution_outcome op1_exec = execute_expression(op1, ctx);
-            if (op1_exec.exception_thrown || op1_exec.failed) return op1_exec;
-            if (!variant_instance_of(op1_exec.result, list_type))
-                return exception_outcome(new_exception_variant(op1->token->filename, op1->token->line_no, op1->token->column_no, NULL,
-                    "array subscripts apply only to lists"));
+                return store_element(lvalue->per_type.operation.operand1, lvalue->per_type.operation.operand2, rvalue, ctx);
 
-            expression *op2 = lvalue->per_type.operation.operand2;
-            execution_outcome op2_exec = execute_expression(op2, ctx);
-            if (op2_exec.exception_thrown || op2_exec.failed) return op2_exec;
-            if (!variant_instance_of(op2_exec.result, int_type))
-                return exception_outcome(new_exception_variant(op2->token->filename, op2->token->line_no, op2->token->column_no, NULL,
-                    "only integer expression can be used as list indices"));
-
-            list *l = list_variant_as_list(op1_exec.result);
-            int i = int_variant_as_int(op2_exec.result);
-            list_set(l, i, rvalue);
-            return ok_outcome(NULL);
 
         } else if (op == OP_MEMBER) {
             expression *op1 = lvalue->per_type.operation.operand1;
@@ -351,39 +334,113 @@ static execution_outcome calculate_comparison(expression *op_expr, enum comparis
     return exception_outcome(exception);
 }
 
-static execution_outcome retrieve_element(expression *list_exp, expression *index_exp, exec_context *ctx) {
+static execution_outcome store_element(expression *container_expr, expression *element_expr, variant *value, exec_context *ctx) {
 
-    execution_outcome ex = execute_expression(list_exp, ctx);
+    execution_outcome ex = execute_expression(container_expr, ctx);
     if (ex.exception_thrown || ex.failed) return ex;
-    if (!variant_instance_of(ex.result, list_type)) 
-        return exception_outcome(new_exception_variant(
-            list_exp->token->filename, list_exp->token->line_no, list_exp->token->column_no, NULL,
-            "ARRAY_SUBSCRIPT requires a list as left operand"
-        ));
-    list *l = list_variant_as_list(ex.result);
+    variant *container = ex.result;
 
-    ex = execute_expression(index_exp, ctx);
+    ex = execute_expression(element_expr, ctx);
     if (ex.exception_thrown || ex.failed) return ex;
-    variant *subscript = ex.result;
-    if (!variant_instance_of(subscript, int_type))
-        return exception_outcome(new_exception_variant(
-            index_exp->token->filename, index_exp->token->line_no, index_exp->token->column_no, NULL,
-            "ARRAY_SUBSCRIPT requires an integer as right operand"
-        ));
-    int index = int_variant_as_int(subscript);
+    variant *element = ex.result;
 
-    if (index < 0 || index >= list_length(l))
-        return exception_outcome(new_exception_variant(
-            index_exp->token->filename, index_exp->token->line_no, index_exp->token->column_no, NULL,
-            "array index (%d) out of bounds (0..%d)", index, list_length(l)
+    if (variant_instance_of(container, list_type)) {  // access by integer index
+        if (!variant_instance_of(element, int_type))
+            return exception_outcome(new_exception_variant(element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
+                "list access requires an integer index"));
+        
+        list *l = list_variant_as_list(container);
+        int index = int_variant_as_int(element);
+
+        if (index < 0 || index > list_length(l)) // note we allow at the end of list
+            return exception_outcome(new_exception_variant(element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
+                "array index (%d) out of bounds (0..%d+1)", index, list_length(l)));
+
+        if (index == list_length(l))
+            list_add(l, value);
+        else
+            list_set(l, index, value);
+        
+    } else if (variant_instance_of(container, dict_type)) {  // access by string key
+        if (!variant_instance_of(element, str_type))
+            return exception_outcome(new_exception_variant(element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
+                "dictionary access requires a string key"));
+
+        dict *d = dict_variant_as_dict(container);
+        const char *key = str_variant_as_str(element);
+
+        dict_set(d, key, value);
+
+    } else {
+        return exception_outcome(new_exception_variant(container_expr->token->filename, container_expr->token->line_no, container_expr->token->column_no, NULL,
+            "element access works for lists and dictionaries"
         ));
-    return ok_outcome(list_get(l, index));
+    }
+    return ok_outcome(void_instance);
+}
+
+static execution_outcome retrieve_element(expression *container_expr, expression *element_expr, exec_context *ctx) {
+
+    execution_outcome ex = execute_expression(container_expr, ctx);
+    if (ex.exception_thrown || ex.failed) return ex;
+    variant *container = ex.result;
+
+    ex = execute_expression(element_expr, ctx);
+    if (ex.exception_thrown || ex.failed) return ex;
+    variant *element = ex.result;
+
+    variant *item;
+
+    if (variant_instance_of(container, list_type)) {  // access by integer index
+        if (!variant_instance_of(element, int_type))
+            return exception_outcome(new_exception_variant(
+                element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
+                "list access requires an integer index"));
+        
+        list *l = list_variant_as_list(container);
+        int index = int_variant_as_int(element);
+
+        if (index < 0 || index >= list_length(l))
+            return exception_outcome(new_exception_variant(
+                element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
+                "array index (%d) out of bounds (0..%d)", index, list_length(l)));
+
+        item = list_get(l, index);
+        
+    } else if (variant_instance_of(container, dict_type)) {  // access by string key
+        if (!variant_instance_of(element, str_type))
+            return exception_outcome(new_exception_variant(
+                element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
+                "dictionary access requires a string key"));
+
+        dict *d = dict_variant_as_dict(container);
+        const char *key = str_variant_as_str(element);
+
+        if (!dict_has(d, key))
+            return exception_outcome(new_exception_variant(
+                element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
+                "key '%s' does not exist in dictionary", key));
+        
+        item = dict_get(d, key);
+
+    } else {
+        return exception_outcome(new_exception_variant(
+            container_expr->token->filename, container_expr->token->line_no, container_expr->token->column_no, NULL,
+            "element access works for lists and dictionaries"
+        ));
+    }
+
+    variant_inc_ref(item);
+    return ok_outcome(item);
 }
 
 static execution_outcome retrieve_member(expression *obj_exp, expression *mbr_exp, exec_context *ctx, variant **this_value) {
 
     /* some objects, like a list, may behave as a dict,
     in the sense of methods, e.g. "list1.length()", or "items.add(item)" */
+
+    // TODO: this should look for methods or attributes, it could return any type, including callables.
+
     execution_outcome ex = execute_expression(obj_exp, ctx);
     if (ex.exception_thrown || ex.failed) return ex;
     variant *object = ex.result;
@@ -404,6 +461,7 @@ static execution_outcome retrieve_member(expression *obj_exp, expression *mbr_ex
         if (dict_has(d, member))
             return ok_outcome(dict_get(d, member));
         
+        // TODO: deprecate these, push methods in the discrete variant
         d = get_built_in_dict_methods_dictionary();
         if (dict_has(d, member))
             return ok_outcome(dict_get(d, member));
