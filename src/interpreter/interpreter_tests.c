@@ -10,312 +10,270 @@
 #include "../runtime/_module.h"
 #include "interpreter.h"
 
+typedef enum expected_outcome {
+    EXP_FAILURE,
+    EXP_EXCEPTION,
+    EXP_VOID,
+    EXP_BOOLEAN,
+    EXP_INTEGER,
+    EXP_STRING,
+    EXP_LOG_CONTENTS,
+} expected_outcome;
 
-static void verify_execution_failed(char *code) {
+#define verify_execution(code, a_var, expected_outcome, out_var)  __verify_execution(__FILE__, __LINE__, code, a_var, expected_outcome, out_var)
+
+static void __verify_execution(const char *file, int line, char *code, variant *var_a_value, expected_outcome expect_outcome, ...) {
+    str_builder *sb = new_str_builder();
     dict *values = new_dict(variant_item_info);
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (!ex.failed)
-        assertion_failed("Evaluation did not fail as expected", code);
-    else
-        assertion_passed();
+    if (var_a_value != NULL)
+        dict_set(values, "a", var_a_value);
+    
+    execution_outcome ex = interpret_and_execute(code, "verify_execution", values, false, false, false);
+
+    if (expect_outcome == EXP_FAILURE) {
+        if (ex.failed) assertion_passed();
+        else __testing_failed("Evaluation did not fail as expected", code, file, line);
+        return;
+    }
+    
+    if (expect_outcome == EXP_EXCEPTION) {
+        if (ex.exception_thrown) assertion_passed();
+        else __testing_failed("Evaluation did not throw exception as expected", code, file, line);
+        return;
+    }
+
+    // we expect some good result from now on       
+
+    if (ex.failed) {
+        str_builder_addf(sb, "Execution failed: %s", ex.failure_message);
+        __testing_failed(str_builder_charptr(sb), code, file, line);
+        return;
+    }
+    if (ex.exception_thrown) {
+        str_builder_addf(sb, "Uncaught exception: %s", str_variant_as_str(variant_to_string(ex.exception)));
+        __testing_failed(str_builder_charptr(sb), code, file, line);
+        return;
+    }
+
+    variant *actual_result = ex.result;
+    va_list args;
+    va_start(args, expect_outcome);
+
+    if (expect_outcome == EXP_VOID) {
+        assert_variant_is_of_type_fl(actual_result, void_type, code, file, line);
+
+    } else if (expect_outcome == EXP_BOOLEAN) {
+        // warning: ‘_Bool’ is promoted to ‘int’ when passed through ‘...’
+        bool expected_result = (bool)va_arg(args, int);
+        assert_variant_has_bool_value_fl(actual_result, expected_result, code, file, line);
+
+    } else if (expect_outcome == EXP_INTEGER) {
+        int expected_result = va_arg(args, int);
+        assert_variant_has_int_value_fl(actual_result, expected_result, code, file, line);
+
+    } else if (expect_outcome == EXP_STRING) {
+        char *expected_result = va_arg(args, char *);
+        assert_variant_has_str_value_fl(actual_result, expected_result, code, file, line);
+
+    } else if (expect_outcome == EXP_LOG_CONTENTS) {
+        char *expected_log = va_arg(args, char *);
+        const char *actual_log = exec_context_get_log();
+        assert_strs_are_equal_fl(actual_log, expected_log, code, file, line);
+
+    } else {
+        assertion_failed("Unsupported expected result!", code);
+    }
 }
 
-static void verify_execution_exceptioned(char *code) {
-    dict *values = new_dict(variant_item_info);
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (!ex.exception_thrown)
-        assertion_failed("Evaluation did not throw exception as expected", code);
-    else
-        assertion_passed();
-}
-
-static void verify_execution_void(char *code) {
-    dict *values = new_dict(variant_item_info);
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else if (ex.result != void_instance)
-        assertion_failed("Result is not null", code);
-    else
-        assertion_passed();
-}
-
-static void verify_execution_b(char *code, bool expected_result) {
-    dict *values = new_dict(variant_item_info);
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_variant_has_bool_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_bb(char *code, bool a, bool expected_result) {
-    dict *values = new_dict(variant_item_info);
-    dict_set(values, "a", new_bool_variant(a));
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_variant_has_bool_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_bbb(char *code, bool a, bool b, bool expected_result) {
-    dict *values = new_dict(variant_item_info);
-    dict_set(values, "a", new_bool_variant(a));
-    dict_set(values, "b", new_bool_variant(b));
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown!", code);
-    else
-        assert_variant_has_bool_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_i(char *code, int expected_result) {
-    dict *values = new_dict(variant_item_info);
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_variant_has_int_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_ii(char *code, int a, int expected_result) {
-    dict *values = new_dict(variant_item_info);
-    dict_set(values, "a", new_int_variant(a));
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_variant_has_int_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_iii(char *code, int a, int b, int expected_result) {
-    dict *values = new_dict(variant_item_info);
-    dict_set(values, "a", new_int_variant(a));
-    dict_set(values, "b", new_int_variant(b));
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_variant_has_int_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_ib(char *code, int a, bool expected_result) {
-    dict *values = new_dict(variant_item_info);
-    dict_set(values, "a", new_int_variant(a));
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_variant_has_bool_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_s(char *code, char *expected_result) {
-    dict *values = new_dict(variant_item_info);
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_variant_has_str_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_ss(char *code, char *a, char *expected_result) {
-    dict *values = new_dict(variant_item_info);
-    dict_set(values, "a", new_str_variant(a));
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_variant_has_str_value(ex.result, expected_result, code);
-}
-
-static void verify_execution_log(char *code, char *expected_log) {
-    dict *values = new_dict(variant_item_info);
-    execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
-    if (ex.failed)
-        assertion_failed(ex.failure_message, code);
-    else if (ex.exception_thrown)
-        assertion_failed("exception thrown", code);
-    else
-        assert_strs_are_equal(exec_context_get_log(), expected_log, code);
-}
+// static void verify_execution_log(char *code, char *expected_log) {
+//     dict *values = new_dict(variant_item_info);
+//     execution_outcome ex = interpret_and_execute(code, "test", values, false, false, false);
+//     if (ex.failed)
+//         assertion_failed(ex.failure_message, code);
+//     else if (ex.exception_thrown)
+//         assertion_failed("exception thrown", code);
+//     else
+//         assert_strs_are_equal(exec_context_get_log(), expected_log, code);
+// }
 
 void interpreter_self_diagnostics() {
 
-    // can of worms, if "null" keyword should be supported!
-    // verify_execution_void(NULL);
-    // verify_execution_void("");
-    // verify_execution_void("null"); 
+    verify_execution("", NULL, EXP_VOID, NULL);
 
-    verify_execution_b("false", false);
-    verify_execution_b("true", true);
-    verify_execution_b("!false", true);
-    verify_execution_b("!true", false);
-    verify_execution_b("!(false)", true);
-    verify_execution_b("!(true)", false);
+    // expressions that will cause exception
+    verify_execution("1/0",                    NULL, EXP_EXCEPTION, NULL);
+    verify_execution("some_var + 1",           NULL, EXP_EXCEPTION, NULL);
+    verify_execution("some_function('hello')", NULL, EXP_EXCEPTION, NULL);
 
-    verify_execution_bb("a", true, true);
-    verify_execution_bb("a", false, false);
-    verify_execution_bb("!a", true, false);
-    verify_execution_bb("!a", false, true);
+    // primitive boolean literals
+    verify_execution("false",    NULL, EXP_BOOLEAN, false);
+    verify_execution("true",     NULL, EXP_BOOLEAN, true);
+    verify_execution("!false",   NULL, EXP_BOOLEAN, true);
+    verify_execution("!true",    NULL, EXP_BOOLEAN, false);
+    verify_execution("!(false)", NULL, EXP_BOOLEAN, true);
+    verify_execution("!(true)",  NULL, EXP_BOOLEAN, false);
 
-    verify_execution_bbb("a && b", true, true, true);
-    verify_execution_bbb("a && b", true, false, false);
-    verify_execution_bbb("a && b", false, true, false);
-    verify_execution_bbb("a && b", false, false, false);
-    verify_execution_bbb("a || b", true, true, true);
-    verify_execution_bbb("a || b", true, false, true);
-    verify_execution_bbb("a || b", false, true, true);
-    verify_execution_bbb("a || b", false, false, false);
+    // boolean variables
+    verify_execution("a",  new_bool_variant(true),  EXP_BOOLEAN, true);
+    verify_execution("a",  new_bool_variant(false), EXP_BOOLEAN, false);
+    verify_execution("!a", new_bool_variant(true),  EXP_BOOLEAN, false);
+    verify_execution("!a", new_bool_variant(false), EXP_BOOLEAN, true);
 
-    verify_execution_i("0", 0);
-    verify_execution_i("1", 1);
-    verify_execution_i("-1", -1);
-    verify_execution_i("1 + 2", 3);
-    verify_execution_i("2 * 3", 6);
-    verify_execution_i("5 - 2", 3);
-    verify_execution_i("8 / 2", 4);
-    verify_execution_i("1 + 2 * 3 + 4", 11);
-    verify_execution_i("1 + (2 * 3) + 4", 11);
-    verify_execution_i("(1 + 2) * (3 + 4)", 21);
-    verify_execution_i("3", 3);
-    verify_execution_i("3;", 3);
-    verify_execution_i("3 ;", 3);
+    // primitive logic operations
+    verify_execution("true  && true ", NULL, EXP_BOOLEAN, true);
+    verify_execution("true  && false", NULL, EXP_BOOLEAN, false);
+    verify_execution("false && true ", NULL, EXP_BOOLEAN, false);
+    verify_execution("false && false", NULL, EXP_BOOLEAN, false);
+    verify_execution("true  || true ", NULL, EXP_BOOLEAN, true);
+    verify_execution("true  || false", NULL, EXP_BOOLEAN, true);
+    verify_execution("false || true ", NULL, EXP_BOOLEAN, true);
+    verify_execution("false || false", NULL, EXP_BOOLEAN, false);
 
-    verify_execution_exceptioned("1/0");
-    verify_execution_exceptioned("some_var + 1");
-    verify_execution_exceptioned("some_function('hello there', 2, 3)");
+    // primitive numbers
+    verify_execution("0",                 NULL, EXP_INTEGER,  0);
+    verify_execution("1",                 NULL, EXP_INTEGER,  1);
+    verify_execution("-1",                NULL, EXP_INTEGER, -1);
+    verify_execution("1 + 2",             NULL, EXP_INTEGER,  3);
+    verify_execution("2 * 3",             NULL, EXP_INTEGER,  6);
+    verify_execution("5 - 2",             NULL, EXP_INTEGER,  3);
+    verify_execution("8 / 2",             NULL, EXP_INTEGER,  4);
+    verify_execution("1 + 2 * 3 + 4",     NULL, EXP_INTEGER, 11);
+    verify_execution("1 + (2 * 3) + 4",   NULL, EXP_INTEGER, 11);
+    verify_execution("(1 + 2) * (3 + 4)", NULL, EXP_INTEGER, 21);
+    verify_execution("3",                 NULL, EXP_INTEGER,  3);
+    verify_execution("3;",                NULL, EXP_INTEGER,  3);
+    verify_execution("3 ;",               NULL, EXP_INTEGER,  3);
 
-    verify_execution_ii("a", 4, 4);
-    verify_execution_ii("a + 1", 4, 5);
-    verify_execution_ii("a - 1", 4, 3);
-    verify_execution_ii("a * 2", 4, 8);
-    verify_execution_ii("a / 2", 4, 2);
-    verify_execution_ii("a / 3", 10, 3);
-    verify_execution_ii("a++ + 3", 3, 6);
-    verify_execution_ii("++a + 3", 3, 7);
-    verify_execution_ii("a = a + 1", 5, 6);
+    // numeric manipulation, by variable
+    verify_execution("a",         new_int_variant(4),  EXP_INTEGER, 4);
+    verify_execution("a + 1",     new_int_variant(4),  EXP_INTEGER, 5);
+    verify_execution("a - 1",     new_int_variant(4),  EXP_INTEGER, 3);
+    verify_execution("a * 2",     new_int_variant(4),  EXP_INTEGER, 8);
+    verify_execution("a / 2",     new_int_variant(4),  EXP_INTEGER, 2);
+    verify_execution("a / 3",     new_int_variant(10), EXP_INTEGER, 3);
+    verify_execution("a++ + 3",   new_int_variant(3),  EXP_INTEGER, 6);
+    verify_execution("++a + 3",   new_int_variant(3),  EXP_INTEGER, 7);
+    verify_execution("a = a + 1", new_int_variant(5),  EXP_INTEGER, 6);
     
-    verify_execution_ib("a > 5", 8, true);
-    verify_execution_ib("a > 5", 5, false);
-    verify_execution_ib("a >= 5", 5, true);
-    verify_execution_ib("a < 5", 3, true);
-    verify_execution_ib("a < 5", 5, false);
-    verify_execution_ib("a <= 5", 5, true);
-    verify_execution_ib("a == 5", 5, true);
-    verify_execution_ib("a == 5", 6, false);
-    verify_execution_ib("a != 5", 5, false);
-    verify_execution_ib("a != 5", 6, true);
+    // comparisons
+    verify_execution("a > 5",  new_int_variant(8), EXP_BOOLEAN, true);
+    verify_execution("a > 5",  new_int_variant(5), EXP_BOOLEAN, false);
+    verify_execution("a >= 5", new_int_variant(5), EXP_BOOLEAN, true);
+    verify_execution("a < 5",  new_int_variant(3), EXP_BOOLEAN, true);
+    verify_execution("a < 5",  new_int_variant(5), EXP_BOOLEAN, false);
+    verify_execution("a <= 5", new_int_variant(5), EXP_BOOLEAN, true);
+    verify_execution("a == 5", new_int_variant(5), EXP_BOOLEAN, true);
+    verify_execution("a == 5", new_int_variant(6), EXP_BOOLEAN, false);
+    verify_execution("a != 5", new_int_variant(5), EXP_BOOLEAN, false);
+    verify_execution("a != 5", new_int_variant(6), EXP_BOOLEAN, true);
 
-    verify_execution_ii("a > 4 ? 5 : 6", 8, 5);
-    verify_execution_ii("a > 4 ? 5 : 6", 2, 6);
-    verify_execution_ii("a > 4 ? a + 1 : a + 2", 8, 9);
+    // short hand if
+    verify_execution("a > 4 ? 5 : 6",         new_int_variant(8), EXP_INTEGER, 5);
+    verify_execution("a > 4 ? 5 : 6",         new_int_variant(2), EXP_INTEGER, 6);
+    verify_execution("a > 4 ? a + 1 : a + 2", new_int_variant(8), EXP_INTEGER, 9);
 
-    verify_execution_s("''", "");
-    verify_execution_s("'hello'", "hello");
-    verify_execution_ss("a", "hello", "hello");
-    verify_execution_ss("a + ' there'", "hello", "hello there");
-    verify_execution_ss("a * 3", "-", "---");
+    // the substr() method
+    verify_execution("''",                            NULL, EXP_STRING, "");
+    verify_execution("'hello'",                       NULL, EXP_STRING, "hello");
+    verify_execution("substr('hello there', 2, 3)",   NULL, EXP_STRING, "llo");
+    verify_execution("substr('hello there', 20, 3)",  NULL, EXP_STRING, "");
+    verify_execution("substr('hello there', 5, 0)",   NULL, EXP_STRING, "");
+    verify_execution("substr('hello there', 6, 200)", NULL, EXP_STRING, "there");
+    verify_execution("substr('hello there', 200, 6)", NULL, EXP_STRING, "");
+    verify_execution("substr('hello there', -5, 3)",  NULL, EXP_STRING, "the");
+    verify_execution("substr('hello there', 4, -2)",  NULL, EXP_STRING, "o the");
+    verify_execution("substr('hello there', -5, -2)", NULL, EXP_STRING, "the");
 
-    verify_execution_s("substr('hello there', 2, 3)", "llo");
-    verify_execution_s("substr('hello there', 20, 3)", "");
-    verify_execution_s("substr('hello there', 5, 0)", "");
-    verify_execution_s("substr('hello there', 6, 200)", "there");
-    verify_execution_s("substr('hello there', 200, 6)", "");
-    verify_execution_s("substr('hello there', -5, 3)", "the");
-    verify_execution_s("substr('hello there', 4, -2)", "o the");
-    verify_execution_s("substr('hello there', -5, -2)", "the");
+    // string manipulations
+    verify_execution("a",            new_str_variant("hello"), EXP_STRING, "hello");
+    verify_execution("a + ' there'", new_str_variant("hello"), EXP_STRING, "hello there");
+    verify_execution("a * 3",        new_str_variant("-"),     EXP_STRING, "---");
+
+    // reading and writing of container elements (list:num, dict:str)
+    verify_execution("arr = [10,20,30]; return arr[2];",              NULL, EXP_INTEGER, 30);
+    verify_execution("arr = []; arr[0] = 10; return arr[0];",         NULL, EXP_INTEGER, 10);
+    verify_execution("arr = [10,20,30]; arr[1] = 22; return arr[1];", NULL, EXP_INTEGER, 22);
+    verify_execution("man = {name:'Joe',age:40}; return man['age'];", NULL, EXP_INTEGER, 40);
+    verify_execution("man = {}; max['age'] = 20; return man['age'];", NULL, EXP_INTEGER, 20);
+
+    // set values, calculate on them
+    verify_execution("i = 5; return i * i;", NULL, EXP_INTEGER, 25);
 
 
-    verify_execution_log("log('abc', true, 123, -456);",
-                         "abc true 123 -456\n");
+    verify_execution("log('abc', true, 123, -456);",
+                     NULL, EXP_LOG_CONTENTS,
+                     "abc true 123 -456\n");
 
-    verify_execution_log("if (1 + 1 == 2) log('if-body'); else log('else-body');", 
-                         "if-body\n");
+    verify_execution("if (1 + 1 == 2) log('if-body'); else log('else-body');", 
+                     NULL, EXP_LOG_CONTENTS,
+                     "if-body\n");
 
-    verify_execution_log("if (1 + 1 == 7) log('if-body'); else log('else-body');", 
-                         "else-body\n");
+    verify_execution("if (1 + 1 == 7) log('if-body'); else log('else-body');", 
+                     NULL, EXP_LOG_CONTENTS,
+                     "else-body\n");
 
-    verify_execution_log("for (i = 0; i < 3; i++) log(i);",
-                         "0\n1\n2\n");
+    verify_execution("for (i = 0; i < 3; i++) log(i);",
+                     NULL, EXP_LOG_CONTENTS,
+                     "0\n1\n2\n");
     
-    verify_execution_log("for (i = 0; i < 10; i++) {"
-                         "   if (i < 3) continue;"
-                         "   log(i);"
-                         "   if (i >= 6) break;"
-                         "}",
-                         "3\n4\n5\n6\n");
+    verify_execution("for (i = 0; i < 10; i++) {"
+                     "   if (i < 3) continue;"
+                     "   log(i);"
+                     "   if (i >= 6) break;"
+                     "}",
+                     NULL, EXP_LOG_CONTENTS,
+                     "3\n4\n5\n6\n");
     
-    verify_execution_log("i = 5; while (i > 0) {"
-                         "   log(i--);"
-                         "}",
-                         "5\n4\n3\n2\n1\n");
+    verify_execution("i = 5; while (i > 0) {"
+                     "   log(i--);"
+                     "}",
+                     NULL, EXP_LOG_CONTENTS,
+                     "5\n4\n3\n2\n1\n");
     
-    verify_execution_log("i = 0; while (i++ < 10) {"
-                         "   log(i);"
-                         "   if (i >= 5)"
-                         "       return i;"
-                         "}",
-                         "1\n2\n3\n4\n5\n");
+    verify_execution("i = 0; while (i++ < 10) {"
+                     "   log(i);"
+                     "   if (i >= 5)"
+                     "       return i;"
+                     "}",
+                     NULL, EXP_LOG_CONTENTS,
+                     "1\n2\n3\n4\n5\n");
     
-    verify_execution_i("i = 5; return i * i;", 25);
 
-    verify_execution_log("try {"
-                         "  log('in try block');"
-                         "} catch (e) {"
-                         "  log('in catch block');"
-                         "} finally {"
-                         "  log('in finally block');"
-                         "}",
-                         "in try block\n"
-                         "in finally block\n");
+    verify_execution("try {"
+                     "    log('in try block');"
+                     "} catch (e) {"
+                     "    log('in catch block');"
+                     "} finally {"
+                     "    log('in finally block');"
+                     "}",
+                     NULL, EXP_LOG_CONTENTS,
+                     "in try block\n"
+                     "in finally block\n");
     
-    verify_execution_log("try {"
-                         "  log('before throwing');"
-                         "  throw 'hello';"
-                         "  log('after throwing');"
-                         "} catch (e) {"
-                         "  log('caught exception');"
-                         "}",
-                         "before throwing\n"
-                         "caught exception\n");
+    verify_execution("try {"
+                     "    log('before throwing');"
+                     "    throw 'hello';"
+                     "    log('after throwing');"
+                     "} catch (e) {"
+                     "    log('caught exception');"
+                     "}",
+                     NULL, EXP_LOG_CONTENTS,
+                     "before throwing\n"
+                     "caught exception\n");
     
-    verify_execution_log("try {"
-                         "    try {"
-                         "        log('before throwing');"
-                         "        throw 'hello';"
-                         "        log('after throwing');"
-                         "    } finally {"
-                         "        log('in finally block');"
-                         "    }"
-                         "} catch (e) {"
-                         "   log('exception caught here');"
-                         "}",
-                         "before throwing\n"
-                         "in finally block\n"
-                         "exception caught here\n");
-
-    setenv("ENV_VAR_A", "some-value", true);
-    verify_execution_b("getenv('ENV_VAR_A') == 'some-value'", true); // bare expr format
-    verify_execution_b("return (getenv('ENV_VAR_A') == 'some-value');", true); // statement format
+    verify_execution("try {"
+                     "    try {"
+                     "        log('before throwing');"
+                     "        throw 'hello';"
+                     "        log('after throwing');"
+                     "    } finally {"
+                     "        log('in finally block');"
+                     "    }"
+                     "} catch (e) {"
+                     "   log('exception caught here');"
+                     "}",
+                     NULL, EXP_LOG_CONTENTS,
+                     "before throwing\n"
+                     "in finally block\n"
+                     "exception caught here\n");
 }

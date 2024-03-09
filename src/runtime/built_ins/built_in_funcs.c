@@ -77,11 +77,6 @@ BUILT_IN_CALLABLE(strpos) {
     return RET_INT(pos);
 }
 
-BUILT_IN_CALLABLE(getenv) {
-    const char *name = STR_ARG(0);
-    return RET_STR(getenv(name));
-}
-
 str_builder *log_line_builder = NULL;
 
 BUILT_IN_CALLABLE(log) {
@@ -272,7 +267,6 @@ void initialize_built_in_funcs_table() {
     add_callable(built_in_substr_callable());
     add_callable(built_in_strpos_callable());
     add_callable(built_in_strlen_callable());
-    add_callable(built_in_getenv_callable());
     add_callable(built_in_log_callable());
     add_callable(built_in_input_callable());
     add_callable(built_in_output_callable());

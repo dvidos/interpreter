@@ -17,14 +17,15 @@ bool testing_outcome();
 
 
 
+// TODO: make extra macros to accept file+line
 #define assert(x)                            __testing_assert(x, #x, NULL, __FILE__, __LINE__)
 #define assert_msg(x, extra)                 __testing_assert(x, #x, extra, __FILE__, __LINE__)
 #define assertion_passed()                   __testing_passed()
 #define assertion_failed(test_descr, extra)  __testing_failed(test_descr, extra, __FILE__, __LINE__)
 
-#define assert_true(x, extra)          __testing_assert((x), #x " is not true", extra, __FILE__, __LINE__)
-#define assert_false(x, extra)         __testing_assert(!(x), #x " is not false", extra, __FILE__, __LINE__)
-#define assert_null(x, extra)          __testing_assert((x) == NULL, #x " is not null", extra, __FILE__, __LINE__)
+#define assert_true(x, extra)                __testing_assert((x), #x " is not true", extra, __FILE__, __LINE__)
+#define assert_false(x, extra)               __testing_assert(!(x), #x " is not false", extra, __FILE__, __LINE__)
+#define assert_null(x, extra)                __testing_assert((x) == NULL, #x " is not null", extra, __FILE__, __LINE__)
 
 
 #define assert_bools_are_equal(actual, expected, extra)  \
@@ -45,11 +46,11 @@ bool testing_outcome();
         printf("    Actual  : %d\n", actual);  \
     }
 
-#define assert_strs_are_equal(actual, expected, extra)  \
+#define assert_strs_are_equal_fl(actual, expected, extra, file, line)  \
     if (strcmp(actual, expected) == 0) {  \
         __testing_passed();  \
     } else {  \
-        __testing_failed("String values are not equal", extra, __FILE__, __LINE__);  \
+        __testing_failed("String values are not equal", extra, file, line);  \
         printf("    Expected: %s\n", expected);  \
         printf("    Actual  : %s\n", actual);  \
     }
@@ -89,6 +90,24 @@ bool testing_outcome();
         dict_describe(actual, sb_a);  \
         printf("    Expected: %s\n", str_builder_charptr(sb_e));  \
         printf("    Actual  : %s\n", str_builder_charptr(sb_a));  \
+    }
+
+#define assert_variant_is_of_type_fl(actual_variant, expected_type, extra, file, line) \
+    if (variant_instance_of(actual_variant, expected_type)) {  \
+        __testing_passed(); \
+    } else { \
+        __testing_failed("Variant is not of the expected type", extra, file, line);  \
+        printf("    Expected: %s\n", expected_type->name);  \
+        printf("    Actual  : %s\n", actual_variant->_type->name);  \
+    }
+
+#define assert_variants_are_equal_fl(actual, expected, extra, file, line) \
+    if (variants_are_equal(actual, expected)) {  \
+        __testing_passed(); \
+    } else { \
+        __testing_failed("Variants are not equal", extra, file,);  \
+        printf("    Expected: %s\n", str_variant_as_str(variant_to_string(expected)));  \
+        printf("    Actual  : %s\n", str_variant_as_str(variant_to_string(actual)));  \
     }
 
 #define assert_variants_are_equal(actual, expected, extra) \
@@ -140,31 +159,37 @@ bool testing_outcome();
     }
 
 
-#define assert_variant_has_bool_value(var, expected_value, extra) \
+#define assert_variant_has_bool_value_fl(var, expected_value, extra, file, line) \
     if (!variant_instance_of(var, bool_type)) { \
-        __testing_failed("Variant is not a bool", extra, __FILE__, __LINE__); \
+        __testing_failed("Variant is not a bool", extra, file, line); \
     } else if (bool_variant_as_bool(var) != expected_value) { \
-        __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__); \
+        __testing_failed("Variant does not have expected value", extra, file, line); \
         printf("    Expected: %s\n", expected_value ? "true" : "false");  \
         printf("    Actual  : %s\n", bool_variant_as_bool(var) ? "true" : "false");  \
+    } else { \
+        __testing_passed(); \
     }
 
-#define assert_variant_has_int_value(var, expected_value, extra) \
+#define assert_variant_has_int_value_fl(var, expected_value, extra, file, line) \
     if (!variant_instance_of(var, int_type)) { \
-        __testing_failed("Variant is not an int", extra, __FILE__, __LINE__); \
+        __testing_failed("Variant is not an int", extra, file, line); \
     } else if (int_variant_as_int(var) != expected_value) { \
-        __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__); \
+        __testing_failed("Variant does not have expected value", extra, file, line); \
         printf("    Expected: %d\n", expected_value);  \
         printf("    Actual  : %d\n", int_variant_as_int(var));  \
+    } else { \
+        __testing_passed(); \
     }
 
-#define assert_variant_has_str_value(var, expected_value, extra) \
+#define assert_variant_has_str_value_fl(var, expected_value, extra, file, line) \
     if (!variant_instance_of(var, str_type)) {  \
-        __testing_failed("Variant is not a string", extra, __FILE__, __LINE__);  \
+        __testing_failed("Variant is not a string", extra, file, line);  \
     } else if (strcmp(str_variant_as_str(var), expected_value) != 0) {  \
-        __testing_failed("Variant does not have expected value", extra, __FILE__, __LINE__);  \
+        __testing_failed("Variant does not have expected value", extra, file, line);  \
         printf("    Expected: %s\n", expected_value);  \
         printf("    Actual  : %s\n", str_variant_as_str(var));  \
+    } else { \
+        __testing_passed(); \
     }
 
 

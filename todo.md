@@ -1,14 +1,17 @@
 # todo
 
-* continue to convert types from `variant_original` to the new types:
-  * float, bool, list, dict etc.
-  * then deprecate the `variant_original` file
-  * then we shall be left with the new object oriented variants!
-
-----------------------
+* implement method calling on data types.
+  * for lists: empty, length, add, filter, map, reduce, foreach.
+  * for dicts: empty, length, set, get, keys, values (make dict dup the key)
+  * for numbers: abs(), factorial()
+  * for strings: empty, length, substr(), find(), left(), right(), startswith(), endswith() etc
+  * kill most of the built in functions
+  * implement tests for all the above using the log or something
 
 * parse `class` with functions and attributes, private is the default mode, 
-`public` opens up visibility to others.
+`public` opens up visibility to others, create `variant_type`s on the fly.
+
+* convert to strongly typed language????
 
 * implement read only execution mode, where the root symbols are never changed.
 
@@ -22,16 +25,10 @@ of primitive actions, e.g. "factorial" for the integer variants.
 In that sense we could write: `5.power(2);` or `4.fact();`,
 same as we'd do `[4,1,3,2].sort();`, or `'hello'.print();`.
 
-* separate the built in functions into separate files, based on the object they attach to.
 * write tests to prove scope visibility and symbol resolution.
 
 * find a way to make `foreach()` iterators, and allow scripted objects
 to expose iterators behavior. For example to expose reset/curr/move.
-
-* create built-in methods for the built-in types. See OP_MEMBER execution.
-  * list: add, length, indexof, describe
-  * dict: add, set, contains, indexof, describe
-  * str: length, substr, indexof, split, etc
 
 * continue with the adventure game, it unveils good improvements.
 
@@ -42,8 +39,6 @@ to expose iterators behavior. For example to expose reset/curr/move.
 * reorg folders into src, scripts, docs etc?
 * where do we go with this? graphics? pipelines?
 
-* [maybe] consider removing getter functions and allow direct reading of struct members.
-for speed. and simplicity.
 * make better iterators, minimal ask from conntainers.
 * make iterator a two level object, internal is move/validate only, externa supports:
 `last`, `curr`, `peek` etc, to aleviate code repetition. Then, since we have the `last` method, fix the `if(a;b;c;d) {...} case
@@ -55,7 +50,6 @@ object, e.g. a json object, not only per text line or bytes.
 convert to function pointers, and implement discrete functions for each case.
 This should speed up runtime a ton.
 
-* experiment with idea of declaration & implementation of strongly typed containers through macros, akin to failables...
 * try to see if we can make an edit-compile-run cycle in VSCode by using the intepreter!!
 
 
@@ -71,6 +65,7 @@ keeping track of variables and memory, ala Rust.
 
 # done!
 
+* continue to old-style variants (union-based) convert types from `variant_original` to the new variant types (type-based)
 * implement exceptions in the script language
 * maybe see if we can make an interactive mode (-1),
 similar to python, where the user writes expressions
