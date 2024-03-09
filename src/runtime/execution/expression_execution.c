@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
+#include "../variants/_module.h"
 #include "../../debugger/debugger.h"
 #include "../../utils/str.h"
 #include "../../utils/str_builder.h"
-#include "execution_outcome.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
 #include "../built_ins/built_in_funcs.h"
@@ -119,6 +119,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
                 ex = execute_expression(list_exp, ctx);
                 if (ex.excepted || ex.failed) return ex;
                 variant *item = ex.result;
+                // TODO: fix this, remove this method.
                 list_variant_append(values_list, item);
                 variant_drop_ref(item);
             }
@@ -133,6 +134,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
                 if (ex.excepted || ex.failed) return ex;
                 variant *vkey = new_str_variant(key);
                 variant *vitem = ex.result;
+                // TODO: no, no, no, fix this, remove this method.
                 dict_variant_set(values_dict, vkey, vitem);
                 variant_drop_ref(vkey);
                 variant_drop_ref(vitem);
@@ -344,39 +346,19 @@ static execution_outcome store_element(expression *container_expr, expression *e
     if (ex.excepted || ex.failed) return ex;
     variant *element = ex.result;
 
-    if (variant_instance_of(container, list_type)) {  // access by integer index
-        if (!variant_instance_of(element, int_type))
-            return exception_outcome(new_exception_variant(element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
-                "list access requires an integer index"));
-        
-        list *l = list_variant_as_list(container);
-        int index = int_variant_as_int(element);
-
-        if (index < 0 || index > list_length(l)) // note we allow at the end of list
-            return exception_outcome(new_exception_variant(element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
-                "array index (%d) out of bounds (0..%d+1)", index, list_length(l)));
-
-        if (index == list_length(l))
-            list_add(l, value);
-        else
-            list_set(l, index, value);
-        
-    } else if (variant_instance_of(container, dict_type)) {  // access by string key
-        if (!variant_instance_of(element, str_type))
-            return exception_outcome(new_exception_variant(element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
-                "dictionary access requires a string key"));
-
-        dict *d = dict_variant_as_dict(container);
-        const char *key = str_variant_as_str(element);
-
-        dict_set(d, key, value);
-
-    } else {
-        return exception_outcome(new_exception_variant(container_expr->token->filename, container_expr->token->line_no, container_expr->token->column_no, NULL,
-            "element access works for lists and dictionaries"
-        ));
+    ex = variant_set_element(container, element, value);
+    if (ex.failed) return ex;
+    if (ex.excepted) {
+        // TODO: switch to enriching the exception with trace data, instead of recreating.
+        variant *s = variant_to_string(ex.exception_thrown);
+        variant *traced = new_exception_variant(container_expr->token->filename, container_expr->token->line_no, container_expr->token->column_no, NULL,
+            "%s", str_variant_as_str(s));
+        variant_drop_ref(s);
+        variant_drop_ref(ex.exception_thrown);
+        return exception_outcome(traced);
     }
-    return ok_outcome(void_instance);
+
+    return ok_outcome(NULL);
 }
 
 static execution_outcome retrieve_element(expression *container_expr, expression *element_expr, exec_context *ctx) {
@@ -384,54 +366,25 @@ static execution_outcome retrieve_element(expression *container_expr, expression
     execution_outcome ex = execute_expression(container_expr, ctx);
     if (ex.excepted || ex.failed) return ex;
     variant *container = ex.result;
-
+    
     ex = execute_expression(element_expr, ctx);
     if (ex.excepted || ex.failed) return ex;
     variant *element = ex.result;
 
-    variant *item;
-
-    if (variant_instance_of(container, list_type)) {  // access by integer index
-        if (!variant_instance_of(element, int_type))
-            return exception_outcome(new_exception_variant(
-                element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
-                "list access requires an integer index"));
-        
-        list *l = list_variant_as_list(container);
-        int index = int_variant_as_int(element);
-
-        if (index < 0 || index >= list_length(l))
-            return exception_outcome(new_exception_variant(
-                element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
-                "array index (%d) out of bounds (0..%d)", index, list_length(l)));
-
-        item = list_get(l, index);
-        
-    } else if (variant_instance_of(container, dict_type)) {  // access by string key
-        if (!variant_instance_of(element, str_type))
-            return exception_outcome(new_exception_variant(
-                element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
-                "dictionary access requires a string key"));
-
-        dict *d = dict_variant_as_dict(container);
-        const char *key = str_variant_as_str(element);
-
-        if (!dict_has(d, key))
-            return exception_outcome(new_exception_variant(
-                element_expr->token->filename, element_expr->token->line_no, element_expr->token->column_no, NULL,
-                "key '%s' does not exist in dictionary", key));
-        
-        item = dict_get(d, key);
-
-    } else {
-        return exception_outcome(new_exception_variant(
-            container_expr->token->filename, container_expr->token->line_no, container_expr->token->column_no, NULL,
-            "element access works for lists and dictionaries"
-        ));
+    ex = variant_get_element(container, element);
+    if (ex.failed) return ex;
+    if (ex.excepted) {
+        // TODO: switch to enriching the exception with trace data, instead of recreating.
+        variant *s = variant_to_string(ex.exception_thrown);
+        variant *traced = new_exception_variant(container_expr->token->filename, container_expr->token->line_no, container_expr->token->column_no, NULL,
+            "%s", str_variant_as_str(s));
+        variant_drop_ref(s);
+        variant_drop_ref(ex.exception_thrown);
+        return exception_outcome(traced);
     }
 
-    variant_inc_ref(item);
-    return ok_outcome(item);
+    variant_inc_ref(ex.result);
+    return ok_outcome(ex.result);
 }
 
 static execution_outcome retrieve_member(expression *obj_exp, expression *mbr_exp, exec_context *ctx, variant **this_value) {

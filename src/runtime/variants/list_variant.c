@@ -53,6 +53,45 @@ static bool are_equal(list_instance *a, list_instance *b) {
     return lists_are_equal(a->list, b->list);
 }
 
+static execution_outcome get_element(list_instance *obj, variant *index) {
+    if (!variant_instance_of(index, int_type))
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+            "list elements must be indexed by integers"));
+        
+    int i = int_variant_as_int(index);
+    if (i < 0 || i >= list_length(obj->list))
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL,
+            "index %d outside of list bounds (%d..%d)", i, 0, list_length(obj->list) - 1));
+    
+    return ok_outcome(list_get(obj->list, i));
+}
+
+static execution_outcome set_element(list_instance *obj, variant *index, variant *value) {
+    if (!variant_instance_of(index, int_type))
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+            "list elements must be indexed by integers"));
+        
+    int i = int_variant_as_int(index);
+    if (i < 0 || i > list_length(obj->list))
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL,
+            "index %d outside of list bounds (%d..%d)", i, 0, list_length(obj->list)));
+    
+    if (i == list_length(obj->list)) {
+        list_add(obj->list, value);
+        variant_inc_ref(value);
+        return ok_outcome(NULL);
+    }
+
+    variant *old_value = list_get(obj->list, i);
+    if (old_value == value)
+        return ok_outcome(NULL);
+
+    variant_drop_ref(old_value);
+    list_set(obj->list, i, value);
+    variant_inc_ref(value);
+    return ok_outcome(NULL);
+}
+
 variant_type *list_type = &(variant_type){
     ._type = NULL,
     ._references_count = VARIANT_STATICALLY_ALLOCATED,
@@ -66,7 +105,9 @@ variant_type *list_type = &(variant_type){
     .stringifier = (stringifier_func)stringify,
     .hasher = (hashing_func)hash,
     .comparer = (compare_func)compare,
-    .equality_checker = (equals_func)are_equal
+    .equality_checker = (equals_func)are_equal,
+    .get_element = (get_element_func)get_element,
+    .set_element = (set_element_func)set_element,
 };
 
 variant *new_list_variant() {

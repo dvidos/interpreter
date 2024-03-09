@@ -6,6 +6,7 @@
 #include <stdbool.h> // for bool
 
 #include "variant_base.h"
+#include "execution_outcome.h"
 
 #include "int_variant.h"
 #include "str_variant.h"
@@ -23,6 +24,8 @@ typedef unsigned (*hashing_func)(variant *obj);
 typedef int (*compare_func)(variant *a, variant *b);
 typedef bool (*equals_func)(variant *a, variant *b);
 typedef variant *(*call_handler_func)(variant *obj, variant *args, variant *named_args);
+typedef execution_outcome (*get_element_func)(variant *obj, variant *index);
+typedef execution_outcome (*set_element_func)(variant *obj, variant *index, variant *value);
 
 // each variant has zero or more methods. 
 // they are defined in an array of this structure
@@ -87,6 +90,8 @@ struct variant_type {
     return_obj_func    iterator_factory;
     return_obj_func    iterator_next_implementation;
     call_handler_func  call_handler;
+    get_element_func   get_element;
+    set_element_func   set_element;
 
     // array of attributes and methods of the instances
     // last element in array has a NULL name

@@ -1,5 +1,8 @@
 # todo
 
+* merge execution_outcome with variants. 
+* exceptions need 
+
 * implement method calling on data types.
   * for lists: empty, length, add, filter, map, reduce, foreach.
   * for dicts: empty, length, set, get, keys, values (make dict dup the key)

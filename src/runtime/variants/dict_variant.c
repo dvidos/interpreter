@@ -60,6 +60,42 @@ static bool are_equal(dict_instance *a, dict_instance *b) {
     return dicts_are_equal(a->dict, b->dict);
 }
 
+static execution_outcome get_element(dict_instance *obj, variant *index) {
+    if (!variant_instance_of(index, str_type))
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+            "dict elements must be indexed by strings"));
+        
+    const char *key = str_variant_as_str(index);
+    if (!dict_has(obj->dict, key))
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL,
+            "key '%s' not found in dictionary", key));
+    
+    return ok_outcome(dict_get(obj->dict, key));
+}
+
+static execution_outcome set_element(dict_instance *obj, variant *index, variant *value) {
+    if (!variant_instance_of(index, str_type))
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+            "dict elements must be indexed by strings"));
+        
+    const char *key = str_variant_as_str(index);
+    
+    if (!dict_has(obj->dict, key)) {
+        dict_set(obj->dict, key, value);
+        variant_inc_ref(value);
+        return ok_outcome(NULL);
+    }
+
+    variant *old_value = dict_get(obj->dict, key);
+    if (old_value == value)
+        return ok_outcome(NULL);
+    
+    variant_drop_ref(old_value);
+    dict_set(obj->dict, key, value);
+    variant_inc_ref(value);
+    return ok_outcome(NULL);
+}
+
 variant_type *dict_type = &(variant_type){
     ._type = NULL,
     ._references_count = VARIANT_STATICALLY_ALLOCATED,
@@ -73,7 +109,9 @@ variant_type *dict_type = &(variant_type){
     .stringifier = (stringifier_func)stringify,
     .hasher = (hashing_func)hash,
     .comparer = (compare_func)compare,
-    .equality_checker = (equals_func)are_equal
+    .equality_checker = (equals_func)are_equal,
+    .get_element = (get_element_func)get_element,
+    .set_element = (set_element_func)set_element,
 };
 
 variant *new_dict_variant() {

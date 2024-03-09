@@ -1,7 +1,8 @@
 #include "execution_outcome.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 execution_outcome ok_outcome(variant *result) {
     return (execution_outcome){

@@ -3,7 +3,6 @@
 
 #include "exec_context.h"
 #include "../../runtime/variants/_module.h"
-#include "../../runtime/execution/execution_outcome.h"
 #include "../../containers/_module.h"
 
 // We want to support both callables being called,

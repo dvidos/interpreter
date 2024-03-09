@@ -17,7 +17,6 @@ bool testing_outcome();
 
 
 
-// TODO: make extra macros to accept file+line
 #define assert(x)                            __testing_assert(x, #x, NULL, __FILE__, __LINE__)
 #define assert_msg(x, extra)                 __testing_assert(x, #x, extra, __FILE__, __LINE__)
 #define assertion_passed()                   __testing_passed()
@@ -28,20 +27,20 @@ bool testing_outcome();
 #define assert_null(x, extra)                __testing_assert((x) == NULL, #x " is not null", extra, __FILE__, __LINE__)
 
 
-#define assert_bools_are_equal(actual, expected, extra)  \
+#define assert_bools_are_equal_fl(actual, expected, extra, file, line)  \
     if (actual == expected) {  \
         __testing_passed();  \
     } else {  \
-        __testing_failed("Boolean values are not equal", extra, __FILE__, __LINE__);  \
+        __testing_failed("Boolean values are not equal", extra, file, line);  \
         printf("    Expected: %s\n", expected ? "true" : "false");  \
         printf("    Actual  : %s\n", actual ? "true" : "false");  \
     }
 
-#define assert_ints_are_equal(actual, expected, extra)  \
+#define assert_ints_are_equal_fl(actual, expected, extra, file, line)  \
     if (actual == expected) {  \
         __testing_passed();  \
     } else {  \
-        __testing_failed("Integer values are not equal", extra, __FILE__, __LINE__);  \
+        __testing_failed("Integer values are not equal", extra, file, line);  \
         printf("    Expected: %d\n", expected);  \
         printf("    Actual  : %d\n", actual);  \
     }

@@ -39,6 +39,7 @@ FILES = \
 	src/parser/statement_parser_tests.c \
 	\
 	src/runtime/variants/variant_type.c \
+	src/runtime/variants/execution_outcome.c \
 	src/runtime/variants/variant_funcs.c \
 	src/runtime/variants/variant_item_info.c \
 	src/runtime/variants/variant_tests.c \
@@ -53,7 +54,6 @@ FILES = \
 	src/runtime/variants/dict_variant.c \
 	src/runtime/variants/callable_variant.c \
 	\
-	src/runtime/execution/execution_outcome.c \
 	src/runtime/execution/expression_execution.c \
 	src/runtime/execution/statement_execution.c \
 	\

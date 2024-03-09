@@ -315,4 +315,18 @@ variant *variant_call(variant *obj, variant *args, variant *named_args) {
     return NULL;
 }
 
-// in order to contain 
+execution_outcome variant_get_element(variant *obj, variant *index) {
+    if (obj->_type->get_element == NULL)
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+            "Type '%s' does not support getting element by index"));
+
+    return obj->_type->get_element(obj, index);
+}
+
+execution_outcome variant_set_element(variant *obj, variant *index, variant *value) {
+    if (obj->_type->set_element == NULL)
+        return exception_outcome(new_exception_variant(NULL, 0, 0, NULL, 
+            "Type '%s' does not support setting element by index"));
+    
+    return obj->_type->set_element(obj, index, value);
+}

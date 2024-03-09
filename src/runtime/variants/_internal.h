@@ -14,6 +14,7 @@ typedef struct variant_type variant_type;
 #include "../../utils/error.h"
 
 #include "variant_base.h" 
+#include "execution_outcome.h"
 #include "variant_type.h" 
 #include "variant_funcs.h"
 #include "variant_item_info.h"
