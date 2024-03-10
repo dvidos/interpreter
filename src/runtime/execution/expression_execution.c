@@ -421,17 +421,17 @@ static execution_outcome call_member(expression *container_expr, expression *mem
         return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
     ex = retrieve_value(args_expr, ctx);
     if (ex.excepted || ex.failed) return ex;
-    variant *args_values_list = ex.result;
+    list *args = list_variant_as_list(ex.result);
 
     if (variant_has_method(container, member)) {
-        return variant_call_method(container, member, args_values_list, NULL);
+        return variant_call_method(container, member, args, NULL, ctx);
 
     } else if (variant_has_attr(container, member)) {
         ex = variant_get_attr_value(container, member);
         if (ex.excepted || ex.failed) return ex;
 
         // could be a callable expression or an expression function etc.
-        return variant_call(ex.result, args_values_list, NULL);
+        return variant_call(ex.result, args, NULL, ctx);
 
     } else {
         return exception_outcome(new_exception_variant("no callable member '%s' found in object type '%s'",
@@ -439,12 +439,12 @@ static execution_outcome call_member(expression *container_expr, expression *mem
     }
 }
 
-
 static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, exec_context *ctx) {
-    
+
     if (call_target_expr->op == OP_MEMBER) {
         // if calling a member of something, avoid promoting the method 
-        // to an instance, hence call on the object directly.
+        // to an instance, call on the object directly.
+        // remember, object instances don't have func pointers, the class instance does.
         return call_member(call_target_expr->per_type.operation.operand1, call_target_expr->per_type.operation.operand2, args_expr, ctx);
 
     } else {
@@ -457,9 +457,9 @@ static execution_outcome make_function_call(expression *call_target_expr, expres
             return exception_outcome(new_exception_variant("call requires identifier as right operand"));
         ex = retrieve_value(args_expr, ctx);
         if (ex.excepted || ex.failed) return ex;
-        variant *args_values_list = ex.result;
+        list *args = list_variant_as_list(ex.result);
 
-        ex = variant_call(call_target, args_values_list, NULL);
+        ex = variant_call(call_target, args, NULL, ctx);
         if (ex.exception_thrown != NULL)
             exception_variant_set_source(ex.exception_thrown, call_target_expr->token->filename, call_target_expr->token->line_no, call_target_expr->token->column_no);
         return ex;

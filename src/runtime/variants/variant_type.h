@@ -5,14 +5,13 @@
 #include <stddef.h> // for offsetof()
 #include <stdbool.h> // for bool
 
+#include "../../containers/_module.h"
+
 #include "variant_base.h"
 #include "execution_outcome.h"
 
-#include "int_variant.h"
-#include "str_variant.h"
-#include "bool_variant.h"
-#include "float_variant.h"
 
+typedef struct exec_context exec_context;
 
 // some specific function types, used in types
 typedef void (*initialize_func)(variant *obj, variant *args, variant *named_args);
@@ -25,45 +24,45 @@ typedef int (*compare_func)(variant *a, variant *b);
 typedef bool (*equals_func)(variant *a, variant *b);
 
 typedef execution_outcome (*iterator_next_func)(variant *obj);
-typedef execution_outcome (*call_handler_func)(variant *obj, variant *args_list, variant *named_args);
+typedef execution_outcome (*call_handler_func)(variant *obj, list *args, dict *named_args, exec_context *ctx);
 typedef execution_outcome (*get_element_func)(variant *obj, variant *index);
 typedef execution_outcome (*set_element_func)(variant *obj, variant *index, variant *value);
 
 // each variant has zero or more methods. 
 // they are defined in an array of this structure
-typedef execution_outcome (*type_method_handler_func)(variant *self, variant *args, variant *named_args);
-enum type_method_flags {
-    TPF_DEFAULT = 0,
-    TPF_VARARGS = 1,
-    TPF_NOARGS  = 2
+typedef execution_outcome (*variant_method_handler_func)(variant *self, list *args, dict *named_args, exec_context *ctx);
+enum variant_method_flags {
+    VMF_DEFAULT = 0,
+    VMF_VARARGS = 1,
+    VMF_NOARGS  = 2
 };
-typedef struct type_method_definition {
+typedef struct variant_method_definition {
     const char *name;
-    type_method_handler_func handler;
-    enum type_method_flags tpf_flags;
-} type_method_definition;
+    variant_method_handler_func handler;
+    enum variant_method_flags tpf_flags;
+} variant_method_definition;
 
 
 // each variant has zero or more attributes. 
 // they can be used directly, or through getters and setters.
 // they are defined in an array of this structure
-typedef execution_outcome type_attrib_getter(variant *self, const char *name);
-typedef execution_outcome type_attrib_setter(variant *self, const char *name, variant *value);
-enum type_attrib_type {
-    TAT_DEFAULT = 0,
-    TAT_INT     = 1,
-    TAT_BOOL    = 2,
-    TAT_CONST_CHAR_PTR = 3,
-    TAT_VARIANT_PTR = 4,
-    TAT_READ_ONLY = 1024,
+typedef execution_outcome variant_attrib_getter(variant *self, const char *name);
+typedef execution_outcome variant_attrib_setter(variant *self, const char *name, variant *value);
+enum variant_attrib_type {
+    VAT_DEFAULT = 0,
+    VAT_INT     = 1,
+    VAT_BOOL    = 2,
+    VAT_CONST_CHAR_PTR = 3,
+    VAT_VARIANT_PTR = 4,
+    VAT_READ_ONLY = 1024,
 };
-typedef struct type_attrib_definition {
+typedef struct variant_attrib_definition {
     const char *name;
-    type_attrib_getter *getter; // optional, preferred if not null
-    type_attrib_setter *setter; // optional, preferred if not null
+    variant_attrib_getter *getter; // optional, preferred if not null
+    variant_attrib_setter *setter; // optional, preferred if not null
     int offset; // offsetof() the attribute in the variant structure
-    enum type_attrib_type tat_flags;
-} type_attrib_definition;
+    enum variant_attrib_type tat_flags;
+} variant_attrib_definition;
 
 
 // each variant is associated with a variant_type. 
@@ -97,8 +96,8 @@ struct variant_type {
 
     // array of attributes and methods of the instances
     // last element in array has a NULL name
-    struct type_attrib_definition *attributes;
-    struct type_method_definition *methods;
+    struct variant_attrib_definition *attributes;
+    struct variant_method_definition *methods;
 };
 
 

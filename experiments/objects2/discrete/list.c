@@ -38,14 +38,14 @@ static object *list_delete(object *self, object *index) {
 
 };
 
-static struct type_method_definition methods[] = {
+static struct variant_method_definition methods[] = {
     { "add",    list_add,    0 },
     { "insert", list_insert, 0 },
     { "delete", list_delete, 0 },
     { NULL }
 };
 
-static struct type_attrib_definition attributes[] = {
+static struct variant_attrib_definition attributes[] = {
     { "length", NULL, NULL, offsetof(list_object, length), TMT_INT },
     { NULL }
 };

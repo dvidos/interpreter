@@ -11,29 +11,34 @@
 
 typedef struct callable_instance {
     BASE_VARIANT_FIRST_ATTRIBUTES;
-    callable *callable;
-    variant *member_parent; // reference, not owned value, can be null
+
+    const char *name;       // for debugging, stack trace etc.
+    void *payload;          // used for AST nodes etc (statements, expressions)
+    variant *this;          // optional, in case of a method call (captured or direct)
+    dict *captured_values;  // optional, captured values in case of lambdas
+
+    callable_variant_call_handler handler;
+
+    // TODO: remove this
+    callable *callable_deprecated;
 } callable_instance;
 
 static void initialize(callable_instance *obj, variant *args, variant *named_args) {
-    obj->callable = NULL;
-    obj->member_parent = NULL;
 }
 
 static void destruct(callable_instance *obj) {
 }
 
 static variant *stringify(callable_instance *obj) {
-    if (obj->callable == NULL)
+    if (obj->callable_deprecated == NULL)
         return NULL;
-    if (obj->member_parent != NULL) {
-        return new_str_variant("%s.%s()", 
-            obj->member_parent->_type->name,
-            callable_name(obj->callable));
-    } else {
-        return new_str_variant("%s()", 
-            callable_name(obj->callable));
-    }
+    
+    if (obj->this != NULL)
+        return new_str_variant("%s.%s()", obj->this->_type->name, obj->name);
+    else if (obj->name != NULL)
+        return new_str_variant("%s()", obj->name);
+    else
+        return new_str_variant("(callable @ 0x%p", obj);
 }
 
 static unsigned hash(callable_instance *obj) {
@@ -41,11 +46,26 @@ static unsigned hash(callable_instance *obj) {
 }
 
 static int compare(callable_instance *a, callable_instance *b) {
-    
 }
 
 static bool are_equal(callable_instance *a, callable_instance *b) {
-    return callables_are_equal(a->callable, b->callable);
+    return callables_are_equal(a->callable_deprecated, b->callable_deprecated);
+}
+
+static execution_outcome call(variant *obj, list *args_list, dict *named_args, exec_context *ctx) {
+    // we may have captured 'this'
+    // we may have captured variables of a lambda enrironment
+    // we may have captured nothing e.g. in a time() method.
+    
+    callable_instance *c = (callable_instance *)obj;
+    return c->handler(
+        args_list,
+        named_args,
+        ctx,
+        c->payload,
+        c->this,
+        c->captured_values
+    );
 }
 
 variant_type *callable_type = &(variant_type){
@@ -61,18 +81,18 @@ variant_type *callable_type = &(variant_type){
     .stringifier = (stringifier_func)stringify,
     .hasher = (hashing_func)hash,
     .comparer = (compare_func)compare,
-    .equality_checker = (equals_func)are_equal
+    .equality_checker = (equals_func)are_equal,
+    .call_handler = (call_handler_func)call,
 };
 
-variant *new_callable_variant(callable *c, variant *member_parent) {
+variant *new_callable_variant(callable *c, variant *member_container) {
     callable_instance *obj = (callable_instance *)variant_create(callable_type, NULL, NULL);
-    obj->callable = c;
-    obj->member_parent = member_parent;
+    obj->callable_deprecated = c;
     return (variant *)obj;
 }
 
 callable *callable_variant_as_callable(variant *v) {
     if (!variant_instance_of(v, callable_type))
         return NULL;
-    return ((callable_instance *)v)->callable;
+    return ((callable_instance *)v)->callable_deprecated;
 }

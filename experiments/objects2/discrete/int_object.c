@@ -24,11 +24,11 @@ static object *int_factorial(object *self) {
 
 };
 
-static struct type_method_definition methods[] = {
+static struct variant_method_definition methods[] = {
     { NULL }
 };
 
-static struct type_attrib_definition attributes[] = {
+static struct variant_attrib_definition attributes[] = {
     { NULL }
 };
 

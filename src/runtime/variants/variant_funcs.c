@@ -134,24 +134,24 @@ execution_outcome variant_get_attr_value(variant *obj, const char *name) {
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
         
-        type_attrib_definition *def = &type->attributes[i];
+        variant_attrib_definition *def = &type->attributes[i];
         if (def->getter != NULL) {
             return def->getter(obj, name);
 
-        } else if (def->tat_flags & TAT_VARIANT_PTR) {
+        } else if (def->tat_flags & VAT_VARIANT_PTR) {
             variant *obj_ptr_ = (variant *)(((char *)obj) + def->offset);
             variant_inc_ref(obj_ptr_); // the one returned
             return ok_outcome(obj_ptr_);
 
-        } else if (def->tat_flags & TAT_INT) {
+        } else if (def->tat_flags & VAT_INT) {
             int *int_ptr = (int *)(((char *)obj) + def->offset);
             return ok_outcome(new_int_variant(*int_ptr));
 
-        } else if (def->tat_flags & TAT_BOOL) {
+        } else if (def->tat_flags & VAT_BOOL) {
             bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
             return ok_outcome(new_bool_variant(*bool_ptr));
 
-        } else if (def->tat_flags & TAT_CONST_CHAR_PTR) {
+        } else if (def->tat_flags & VAT_CONST_CHAR_PTR) {
             const char *char_ptr = (((const char *)obj) + def->offset);
             return ok_outcome(new_str_variant(char_ptr));
 
@@ -172,34 +172,34 @@ execution_outcome variant_set_attr_value(variant *obj, const char *name, variant
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
 
-        type_attrib_definition *def = &type->attributes[i];
-        if (def->tat_flags & TAT_READ_ONLY)
+        variant_attrib_definition *def = &type->attributes[i];
+        if (def->tat_flags & VAT_READ_ONLY)
             return exception_outcome(new_exception_variant("attribute '%s' is read only in type '%s'", name, type->name));
 
         if (def->setter != NULL) {
             return def->setter(obj, name, value);
 
-        } else if (def->tat_flags & TAT_VARIANT_PTR) {
+        } else if (def->tat_flags & VAT_VARIANT_PTR) {
             variant **obj_ptr_ptr = (variant **)(((char *)obj) + def->offset);
             *obj_ptr_ptr = value;
             variant_inc_ref(value);
             return ok_outcome(NULL);
 
-        } else if (def->tat_flags & TAT_INT) {
+        } else if (def->tat_flags & VAT_INT) {
             if (!variant_instance_of(value, int_type))
                 return exception_outcome(new_exception_variant("cannot assign type '%s' to int attribute %s.%s", value->_type->name, obj->_type->name, name));
             int *int_ptr = (int *)(((char *)obj) + def->offset);
             *int_ptr = int_variant_as_int(value);
             return ok_outcome(NULL);
 
-        } else if (def->tat_flags & TAT_BOOL) {
+        } else if (def->tat_flags & VAT_BOOL) {
             if (!variant_instance_of(value, bool_type))
                 return exception_outcome(new_exception_variant("cannot assign type '%s' to bool attribute %s.%s", value->_type->name, obj->_type->name, name));
             bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
             *bool_ptr = bool_variant_as_bool(value);
             return ok_outcome(NULL);
 
-        } else if (def->tat_flags & TAT_CONST_CHAR_PTR) {
+        } else if (def->tat_flags & VAT_CONST_CHAR_PTR) {
             if (!variant_instance_of(value, str_type))
                 return exception_outcome(new_exception_variant("cannot assign type '%s' to str attribute %s.%s", value->_type->name, obj->_type->name, name));
             const char **char_ptr_ptr = (const char **)(((char *)obj) + def->offset);
@@ -227,7 +227,7 @@ bool variant_has_method(variant *obj, const char *name) {
     return false;
 }
 
-execution_outcome variant_call_method(variant *obj, const char *name, variant *args_list, variant *named_args) {
+execution_outcome variant_call_method(variant *obj, const char *name, list *args, dict *named_args, exec_context *ctx) {
 
     variant_type *type = obj->_type;
     if (type->methods == NULL)
@@ -237,8 +237,8 @@ execution_outcome variant_call_method(variant *obj, const char *name, variant *a
         if (strcmp(type->methods[i].name, name) != 0)
             continue;
         
-        type_method_definition *tmd = &type->methods[i];
-        return tmd->handler(obj, args_list, named_args);
+        variant_method_definition *tmd = &type->methods[i];
+        return tmd->handler(obj, args, named_args, ctx);
     }
     
     return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));
@@ -330,14 +330,14 @@ execution_outcome variant_iterator_next(variant *obj) { // advance and get next,
     return obj->_type->iterator_next_implementation(obj);
 }
 
-execution_outcome variant_call(variant *obj, variant *args_list, variant *named_args) {
+execution_outcome variant_call(variant *obj, list *args, dict *named_args, exec_context *ctx) {
     if (obj == NULL || obj->_type == NULL)
         return failed_outcome("Expecting variant with a type, got null");
 
     if (obj->_type->call_handler == NULL)
         return exception_outcome(new_exception_variant("Type '%s' is not callable", obj->_type->name));
 
-    return obj->_type->call_handler(obj, args_list, named_args);
+    return obj->_type->call_handler(obj, args, named_args, ctx);
 }
 
 execution_outcome variant_get_element(variant *obj, variant *index) {

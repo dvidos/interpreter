@@ -43,12 +43,12 @@ static object *stringify(object *obj) {
     return object_clone(obj);
 }
 
-static struct type_method_definition methods[] = {
+static struct variant_method_definition methods[] = {
     { NULL }
 };
 
-static struct type_attrib_definition attributes[] = {
-    { "length", NULL, NULL, offsetof(str, length), TAT_INT + TAT_READ_ONLY },
+static struct variant_attrib_definition attributes[] = {
+    { "length", NULL, NULL, offsetof(str, length), VAT_INT + VAT_READ_ONLY },
     { NULL }
 };
 

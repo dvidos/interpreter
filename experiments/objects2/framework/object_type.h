@@ -24,16 +24,16 @@ typedef object *(*call_handler_func)(object *obj, object *args, object *named_ar
 // each object has zero or more methods. 
 // they are defined in an array of this structure
 typedef object *type_method_func(object *self, object *args, object *named_args);
-enum type_method_flags {
-    TPF_DEFAULT = 0,
-    TPF_VARARGS = 1,
-    TPF_NOARGS  = 2
+enum variant_method_flags {
+    VMF_DEFAULT = 0,
+    VMF_VARARGS = 1,
+    VMF_NOARGS  = 2
 };
-typedef struct type_method_definition {
+typedef struct variant_method_definition {
     const char *name;
     type_method_func *func;
-    enum type_method_flags tpf_flags;
-} type_method_definition;
+    enum variant_method_flags tpf_flags;
+} variant_method_definition;
 
 
 // each object has zero or more attributes. 
@@ -41,21 +41,21 @@ typedef struct type_method_definition {
 // they are defined in an array of this structure
 typedef object *type_attrib_getter(object *self, const char *name);
 typedef object *type_attrib_setter(object *self, const char *name, object *value);
-enum type_attrib_type {
-    TAT_DEFAULT = 0,
-    TAT_INT     = 1,
-    TAT_BOOL    = 2,
-    TAT_CONST_CHAR_PTR = 3,
+enum variant_attrib_type {
+    VAT_DEFAULT = 0,
+    VAT_INT     = 1,
+    VAT_BOOL    = 2,
+    VAT_CONST_CHAR_PTR = 3,
     TAT_OBJECT_PTR = 4,
-    TAT_READ_ONLY = 1024,
+    VAT_READ_ONLY = 1024,
 };
-typedef struct type_attrib_definition {
+typedef struct variant_attrib_definition {
     const char *name;
     type_attrib_getter *getter; // optional, preferred if not null
     type_attrib_setter *setter; // optional, preferred if not null
     int offset; // offsetof() the attribute in the object structure
-    enum type_attrib_type tat_flags;
-} type_attrib_definition;
+    enum variant_attrib_type tat_flags;
+} variant_attrib_definition;
 
 
 // each object is associated with a object_type. 
@@ -87,8 +87,8 @@ struct object_type {
 
     // array of attributes and methods of the instances
     // last element in array has a NULL name
-    struct type_attrib_definition *attributes;
-    struct type_method_definition *methods;
+    struct variant_attrib_definition *attributes;
+    struct variant_method_definition *methods;
 };
 
 

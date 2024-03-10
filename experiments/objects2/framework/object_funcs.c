@@ -100,7 +100,7 @@ object *object_get_attr(object *obj, const char *name) {
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
         
-        type_attrib_definition *def = &type->attributes[i];
+        variant_attrib_definition *def = &type->attributes[i];
         if (def->getter != NULL) {
             return def->getter(obj, name);
 
@@ -109,15 +109,15 @@ object *object_get_attr(object *obj, const char *name) {
             object_add_ref(obj_ptr); // the one returned
             return obj_ptr;
 
-        } else if (def->tat_flags & TAT_INT) {
+        } else if (def->tat_flags & VAT_INT) {
             int *int_ptr = (int *)(((char *)obj) + def->offset);
             return methods.int_boxer(*int_ptr);
 
-        } else if (def->tat_flags & TAT_BOOL) {
+        } else if (def->tat_flags & VAT_BOOL) {
             bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
             return methods.bool_boxer(*bool_ptr);
 
-        } else if (def->tat_flags & TAT_CONST_CHAR_PTR) {
+        } else if (def->tat_flags & VAT_CONST_CHAR_PTR) {
             const char *char_ptr = (((const char *)obj) + def->offset);
             return methods.const_char_ptr_boxer(char_ptr);
 
@@ -138,8 +138,8 @@ object *object_set_attr(object *obj, const char *name, object *value) {
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
 
-        type_attrib_definition *def = &type->attributes[i];
-        if (def->tat_flags & TAT_READ_ONLY) {
+        variant_attrib_definition *def = &type->attributes[i];
+        if (def->tat_flags & VAT_READ_ONLY) {
             set_error("attribute '%s' is read only in type '%s'", name, type->name);
             return NULL;
         }
@@ -152,15 +152,15 @@ object *object_set_attr(object *obj, const char *name, object *value) {
             object_add_ref(value); // the one stored
             *obj_ptr = value;
 
-        } else if (def->tat_flags & TAT_INT) {
+        } else if (def->tat_flags & VAT_INT) {
             int *int_ptr = (int *)(((char *)obj) + def->offset);
             *int_ptr = methods.int_unboxer(value);
 
-        } else if (def->tat_flags & TAT_BOOL) {
+        } else if (def->tat_flags & VAT_BOOL) {
             bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
             *bool_ptr = methods.bool_unboxer(value);
 
-        } else if (def->tat_flags & TAT_CONST_CHAR_PTR) {
+        } else if (def->tat_flags & VAT_CONST_CHAR_PTR) {
             const char **char_ptr = (const char **)(((char *)obj) + def->offset);
             *char_ptr = methods.const_char_ptr_unboxer(value);
 
