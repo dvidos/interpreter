@@ -271,7 +271,7 @@ void interpreter_self_diagnostics() {
 
 
     // call named function
-    verify_execution("function increaser(base) { return base + 1; };"
+    verify_execution("function increaser(base) { return base + 1; }"
                      "return increaser(1);",
                      NULL, EXP_INTEGER, 2);
                     
@@ -282,7 +282,7 @@ void interpreter_self_diagnostics() {
                     
     // closure captures env values
     verify_execution("function make_reminder(number) {"
-                     "    return function() { return number; }"
+                     "    return function() { return number; };"
                      "}"
                      "r = make_reminder(2);"
                      "return r();",
@@ -290,7 +290,7 @@ void interpreter_self_diagnostics() {
 
     // closure modifies captured values
     verify_execution("function make_sequencer(base) {"
-                     "    return function() { return ++base; }"
+                     "    return function() { return ++base; };"
                      "}"
                      "s = make_sequencer(1);"
                      "return s();",

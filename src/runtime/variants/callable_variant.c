@@ -52,20 +52,26 @@ static bool are_equal(callable_instance *a, callable_instance *b) {
     return callables_are_equal(a->callable_deprecated, b->callable_deprecated);
 }
 
-static execution_outcome call(variant *obj, list *args_list, dict *named_args, exec_context *ctx) {
+static execution_outcome call(variant *obj, list *args, dict *named_args, exec_context *ctx) {
     // we may have captured 'this'
     // we may have captured variables of a lambda enrironment
     // we may have captured nothing e.g. in a time() method.
-    
     callable_instance *c = (callable_instance *)obj;
-    return c->handler(
-        args_list,
-        named_args,
-        ctx,
-        c->payload,
-        c->this,
-        c->captured_values
-    );
+    
+    // is this an old callable or a new?
+    if (c->callable_deprecated != NULL) {
+        return callable_call(c->callable_deprecated, args, named_args, NULL, ctx);
+    } else {
+        // new
+        return c->handler(
+            args,
+            named_args,
+            ctx,
+            c->payload,
+            c->this,
+            c->captured_values
+        );
+    }
 }
 
 variant_type *callable_type = &(variant_type){
