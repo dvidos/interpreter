@@ -303,31 +303,30 @@ variant *variant_get_iterator(variant *obj) { // create & reset iterator to befo
     return NULL;
 }
 
-variant *variant_iterator_next(variant *obj) { // advance and get next, or return error
-    if (obj->_type->iterator_next_implementation != NULL)
-        return obj->_type->iterator_next_implementation(obj);
-    return NULL;
+execution_outcome variant_iterator_next(variant *obj) { // advance and get next, or return error
+    if (obj->_type->iterator_next_implementation == NULL)
+        return exception_outcome(new_exception_variant("Type '%s' is not iterable", obj->_type->name));
+
+    return obj->_type->iterator_next_implementation(obj);
 }
 
-variant *variant_call(variant *obj, variant *args, variant *named_args) {
-    // here is the hard part!
-    if (obj->_type->call_handler != NULL)
-        return obj->_type->call_handler(obj, args, named_args);
-    return NULL;
+execution_outcome variant_call(variant *obj, variant *args, variant *named_args) {
+    if (obj->_type->call_handler == NULL)
+        return exception_outcome(new_exception_variant("Type '%s' is not callable", obj->_type->name));
+
+    return obj->_type->call_handler(obj, args, named_args);
 }
 
 execution_outcome variant_get_element(variant *obj, variant *index) {
     if (obj->_type->get_element == NULL)
-        return exception_outcome(new_exception_variant(
-            "Type '%s' does not support getting element by index"));
+        return exception_outcome(new_exception_variant("Type '%s' does not support getting element by index", obj->_type->name));
 
     return obj->_type->get_element(obj, index);
 }
 
 execution_outcome variant_set_element(variant *obj, variant *index, variant *value) {
     if (obj->_type->set_element == NULL)
-        return exception_outcome(new_exception_variant(
-            "Type '%s' does not support setting element by index"));
+        return exception_outcome(new_exception_variant("Type '%s' does not support setting element by index", obj->_type->name));
     
     return obj->_type->set_element(obj, index, value);
 }

@@ -189,7 +189,6 @@ void interpreter_self_diagnostics() {
     // set values, calculate on them
     verify_execution("i = 5; return i * i;", NULL, EXP_INTEGER, 25);
 
-
     verify_execution("log('abc', true, 123, -456);",
                      NULL, EXP_LOG_CONTENTS,
                      "abc true 123 -456\n");

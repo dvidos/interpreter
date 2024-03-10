@@ -23,7 +23,9 @@ typedef variant *(*stringifier_func)(variant *obj);
 typedef unsigned (*hashing_func)(variant *obj);
 typedef int (*compare_func)(variant *a, variant *b);
 typedef bool (*equals_func)(variant *a, variant *b);
-typedef variant *(*call_handler_func)(variant *obj, variant *args, variant *named_args);
+
+typedef execution_outcome (*iterator_next_func)(variant *obj);
+typedef execution_outcome (*call_handler_func)(variant *obj, variant *args, variant *named_args);
 typedef execution_outcome (*get_element_func)(variant *obj, variant *index);
 typedef execution_outcome (*set_element_func)(variant *obj, variant *index, variant *value);
 
@@ -80,18 +82,18 @@ struct variant_type {
     // class wide functions to define behavior of instances
     // e.g. to_string(), to_bool(), hash(), len(), call(), serialize(), iterator() etc
     // wherever supported
-    initialize_func    initializer;
-    destruct_func      destructor;
-    copy_initializer_func   copy_initializer;
-    stringifier_func   stringifier;
-    equals_func        equality_checker;
-    hashing_func       hasher;
-    compare_func       comparer;
-    return_obj_func    iterator_factory;
-    return_obj_func    iterator_next_implementation;
-    call_handler_func  call_handler;
-    get_element_func   get_element;
-    set_element_func   set_element;
+    initialize_func        initializer;
+    destruct_func          destructor;
+    copy_initializer_func  copy_initializer;
+    stringifier_func       stringifier;
+    equals_func            equality_checker;
+    hashing_func           hasher;
+    compare_func           comparer;
+    return_obj_func        iterator_factory;
+    iterator_next_func     iterator_next_implementation;
+    call_handler_func      call_handler;
+    get_element_func       get_element;
+    set_element_func       set_element;
 
     // array of attributes and methods of the instances
     // last element in array has a NULL name

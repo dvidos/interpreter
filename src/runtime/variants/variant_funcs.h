@@ -44,12 +44,10 @@ int       variant_compare(variant *a, variant *b);
 unsigned  variant_hash(variant *obj);
 variant  *variant_clone(variant *obj);
 variant  *variant_get_iterator(variant *obj); // create & reset iterator to before first
-variant  *variant_iterator_next(variant *obj); // advance and get next, or return error
-variant  *variant_call(variant *obj, variant *args, variant *named_args);
+execution_outcome variant_iterator_next(variant *obj); // advance and get next, or return error
+execution_outcome variant_call(variant *obj, variant *args, variant *named_args);
 execution_outcome variant_get_element(variant *obj, variant *index);
 execution_outcome variant_set_element(variant *obj, variant *index, variant *value);
-
-
 
 
 
