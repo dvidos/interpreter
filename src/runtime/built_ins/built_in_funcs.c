@@ -40,7 +40,8 @@ static dict *built_in_dict_methods = NULL;
     dict_set(built_in_ ## target_obj_type ## _methods, \
         #name, \
         new_callable_variant( \
-            new_callable(#target_obj_type "." #name, function, NULL) \
+            new_callable(#target_obj_type "." #name, function, NULL), \
+            NULL \
         ) \
     ) \
 

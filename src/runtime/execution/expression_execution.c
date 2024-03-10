@@ -22,13 +22,16 @@ enum comparison {
 };
 
 static execution_outcome modify_and_store(expression *lvalue, enum modify_and_store op, expression *rvalue, bool return_original, exec_context *ctx);
-static execution_outcome retrieve_value(expression *e, exec_context *ctx, variant **this_value);
+static execution_outcome retrieve_value(expression *e, exec_context *ctx);
 static execution_outcome store_value(expression *lvalue, exec_context *ctx, variant *rvalue);
 
 static execution_outcome retrieve_element(expression *list_exp, expression *index_exp, exec_context *ctx);
 static execution_outcome store_element(expression *container_expr, expression *element_expr, variant *value, exec_context *ctx);
 
-static execution_outcome retrieve_member(expression *object, expression *member, exec_context *ctx, variant **this_value);
+static execution_outcome retrieve_member(expression *object, expression *member, exec_context *ctx);
+static execution_outcome store_member(expression *container_expr, expression *member_expr, variant *value, exec_context *ctx);
+static execution_outcome call_member(expression *container_expr, expression *member_expr, expression *args_expr, exec_context *ctx);
+
 static execution_outcome make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
 static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx);
 static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx);
@@ -68,7 +71,7 @@ execution_outcome execute_expression(expression *e, exec_context *ctx) {
         rval_expr = e->per_type.operation.operand2;
         switch (op) {
             case OP_ASSIGNMENT:
-                execution_outcome retrieval = retrieve_value(rval_expr, ctx, NULL);
+                execution_outcome retrieval = retrieve_value(rval_expr, ctx);
                 if (retrieval.exception_thrown || retrieval.failed) return retrieval;
                 execution_outcome storage = store_value(lval_expr, ctx, retrieval.result);
                 if (storage.exception_thrown || storage.failed) return storage;
@@ -88,10 +91,10 @@ execution_outcome execute_expression(expression *e, exec_context *ctx) {
     }
 
     // all other expression types are not storing values
-    return retrieve_value(e, ctx, NULL);
+    return retrieve_value(e, ctx);
 }
 
-static execution_outcome retrieve_value(expression *e, exec_context *ctx, variant **this_value) {
+static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
     execution_outcome ex;
     operator_type op = e->op;
     const char *data = e->per_type.terminal_data;
@@ -155,7 +158,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
             if (op == OP_ARRAY_SUBSCRIPT) {
                 return retrieve_element(operand1, operand2, ctx);
             } else if (op == OP_MEMBER) {
-                return retrieve_member(operand1, operand2, ctx, this_value);
+                return retrieve_member(operand1, operand2, ctx);
             } else if (op == OP_FUNC_CALL) {
                 return make_function_call(operand1, operand2, ctx);
             } else {
@@ -174,7 +177,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx, varian
             return ok_outcome(new_callable_variant(new_callable(
                 "(user anonymous expression function)",
                 expression_function_callable_executor, e
-            )));
+            ), NULL));
     }
 
     return exception_outcome(new_exception_variant_at(e->token->filename, e->token->line_no, e->token->column_no, NULL,
@@ -188,14 +191,14 @@ static execution_outcome modify_and_store(expression *lvalue, enum modify_and_st
     int result_int;
 
     // for now we allow variable creation via simple assignment
-    retrieval = retrieve_value(lvalue, ctx, NULL);
+    retrieval = retrieve_value(lvalue, ctx);
     if (retrieval.exception_thrown || retrieval.failed) return retrieval;
     variant *original = retrieval.result;
     if (!variant_instance_of(original, int_type))
         return failed_outcome("modify_and_store() should be called for integers only");
     original_int = int_variant_as_int(original);
 
-    retrieval = retrieve_value(rvalue, ctx, NULL);
+    retrieval = retrieve_value(rvalue, ctx);
     if (retrieval.exception_thrown || retrieval.failed) return retrieval;
     variant *operand = retrieval.result;
     if (!variant_instance_of(operand, int_type))
@@ -241,26 +244,11 @@ static execution_outcome store_value(expression *lvalue, exec_context *ctx, vari
     } else if (et == ET_BINARY_OP) {
         operator_type op = lvalue->op;
         if (op == OP_ARRAY_SUBSCRIPT) {
-                return store_element(lvalue->per_type.operation.operand1, lvalue->per_type.operation.operand2, rvalue, ctx);
+            return store_element(lvalue->per_type.operation.operand1, lvalue->per_type.operation.operand2, rvalue, ctx);
 
 
         } else if (op == OP_MEMBER) {
-            expression *op1 = lvalue->per_type.operation.operand1;
-            execution_outcome op1_exec = execute_expression(op1, ctx);
-            if (op1_exec.exception_thrown || op1_exec.failed) return op1_exec;
-            if (!variant_instance_of(op1_exec.result, dict_type))
-                return exception_outcome(new_exception_variant_at(op1->token->filename, op1->token->line_no, op1->token->column_no, NULL,
-                    "identifier member storage works only with dictionaries"));
-
-            expression *op2 = lvalue->per_type.operation.operand2;
-            if (op2->type != ET_IDENTIFIER)
-                return exception_outcome(new_exception_variant_at(op1->token->filename, op1->token->line_no, op1->token->column_no, NULL,
-                    "only identifiers can be used for dictionary member storage"));
-
-            dict *d = dict_variant_as_dict(op1_exec.result);
-            const char *key = op2->per_type.terminal_data;
-            dict_set(d, key, rvalue);
-            return ok_outcome(NULL);
+            return store_member(lvalue->per_type.operation.operand1, lvalue->per_type.operation.operand2, rvalue, ctx);
 
         } else {
             return exception_outcome(new_exception_variant_at(lvalue->token->filename, lvalue->token->line_no, lvalue->token->column_no, NULL,
@@ -336,24 +324,6 @@ static execution_outcome calculate_comparison(expression *op_expr, enum comparis
     return exception_outcome(exception);
 }
 
-static execution_outcome store_element(expression *container_expr, expression *element_expr, variant *value, exec_context *ctx) {
-
-    execution_outcome ex = execute_expression(container_expr, ctx);
-    if (ex.excepted || ex.failed) return ex;
-    variant *container = ex.result;
-
-    ex = execute_expression(element_expr, ctx);
-    if (ex.excepted || ex.failed) return ex;
-    variant *element = ex.result;
-
-    ex = variant_set_element(container, element, value);
-
-    if (ex.exception_thrown != NULL)
-        exception_variant_set_source(ex.exception_thrown, container_expr->token->filename, container_expr->token->line_no, container_expr->token->column_no);
-    
-    return ex;
-}
-
 static execution_outcome retrieve_element(expression *container_expr, expression *element_expr, exec_context *ctx) {
 
     execution_outcome ex = execute_expression(container_expr, ctx);
@@ -374,79 +344,126 @@ static execution_outcome retrieve_element(expression *container_expr, expression
     return ex;
 }
 
-static execution_outcome retrieve_member(expression *obj_exp, expression *mbr_exp, exec_context *ctx, variant **this_value) {
+static execution_outcome store_element(expression *container_expr, expression *element_expr, variant *value, exec_context *ctx) {
 
-    /* some objects, like a list, may behave as a dict,
-    in the sense of methods, e.g. "list1.length()", or "items.add(item)" */
-
-    // TODO: this should look for methods or attributes, it could return any type, including callables.
-
-    execution_outcome ex = execute_expression(obj_exp, ctx);
+    execution_outcome ex = execute_expression(container_expr, ctx);
     if (ex.excepted || ex.failed) return ex;
-    variant *object = ex.result;
-    if (this_value != NULL) // save for caller
-        *this_value = object;
-    
-    if (mbr_exp->type != ET_IDENTIFIER)
-        return exception_outcome(new_exception_variant_at(
-            mbr_exp->token->filename, mbr_exp->token->line_no, mbr_exp->token->column_no, NULL,
-            "MEMBER_OF requires identifier as right operand"
-        ));
-    const char *member = mbr_exp->per_type.terminal_data;
-    
-    dict *d = NULL;
-    if (variant_instance_of(object, dict_type)) {
-        // find member in normal members, fallback to built-it methods
-        d = dict_variant_as_dict(object);
-        if (dict_has(d, member))
-            return ok_outcome(dict_get(d, member));
-        
-        // TODO: deprecate these, push methods in the discrete variant
-        d = get_built_in_dict_methods_dictionary();
-        if (dict_has(d, member))
-            return ok_outcome(dict_get(d, member));
+    variant *container = ex.result;
 
-    } else if (variant_instance_of(object, list_type)) {
-        d = get_built_in_list_methods_dictionary();
-        if (dict_has(d, member))
-            return ok_outcome(dict_get(d, member));
-        
-    } else if (variant_instance_of(object, str_type)) {
-        d = get_built_in_str_methods_dictionary();
-        if (dict_has(d, member))
-            return ok_outcome(dict_get(d, member));
-    }
+    ex = execute_expression(element_expr, ctx);
+    if (ex.excepted || ex.failed) return ex;
+    variant *element = ex.result;
 
-    return exception_outcome(new_exception_variant_at(
-        mbr_exp->token->filename, mbr_exp->token->line_no, mbr_exp->token->column_no, NULL,
-        "member '%s' not found in object / dict", member
-    ));
+    ex = variant_set_element(container, element, value);
+
+    if (ex.exception_thrown != NULL)
+        exception_variant_set_source(ex.exception_thrown, container_expr->token->filename, container_expr->token->line_no, container_expr->token->column_no);
+    
+    return ex;
 }
 
-static execution_outcome make_function_call(expression *target_exp, expression *args_expr, exec_context *ctx) {
+static execution_outcome retrieve_member(expression *container_expr, expression *member_expr, exec_context *ctx) {
 
-    variant *this_value = NULL;
-    execution_outcome retrieval = retrieve_value(target_exp, ctx, &this_value);
-    if (retrieval.exception_thrown || retrieval.failed) return retrieval;
-    variant *target = retrieval.result;
+    execution_outcome ex = execute_expression(container_expr, ctx);
+    if (ex.excepted || ex.failed) return ex;
+    variant *container = ex.result;
 
-    if (target == NULL)
-        return exception_outcome(new_exception_variant_at(
-            target_exp->token->filename, target_exp->token->line_no, target_exp->token->column_no, NULL,
-            "could not resolve call target"
-        ));
-    if (!variant_instance_of(target, callable_type))
-        return exception_outcome(new_exception_variant_at(
-            target_exp->token->filename, target_exp->token->line_no, target_exp->token->column_no, NULL,
-            "call target is not callable"
-        ));
-    callable *c = callable_variant_as_callable(target);
+    if (member_expr->type != ET_IDENTIFIER)
+        return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
+    const char *member = member_expr->per_type.terminal_data;
 
-    retrieval = retrieve_value(args_expr, ctx, NULL);
-    if (retrieval.exception_thrown || retrieval.failed) return retrieval;
-    list *arg_values = list_variant_as_list(retrieval.result);
+    if (variant_has_attr(container, member)) {
+        ex = variant_get_attr_value(container, member);
+        if (ex.excepted || ex.failed) return ex;
+        variant *value = ex.result;
+        variant_inc_ref(value);
+        return ok_outcome(value);
 
-    return callable_call(c, arg_values, NULL, this_value, ctx);
+    } else if (variant_has_method(container, member)) {
+        // promote a function to an instance, capturing the container as 'this'
+        return variant_get_bound_method(container, member);
+
+    } else {
+        return exception_outcome(new_exception_variant("member '%s' not found in object type '%s'",
+            member, container->_type->name));
+    }
+}
+
+static execution_outcome store_member(expression *container_expr, expression *member_expr, variant *value, exec_context *ctx) {
+
+    execution_outcome ex = execute_expression(container_expr, ctx);
+    if (ex.excepted || ex.failed) return ex;
+    variant *container = ex.result;
+
+    if (member_expr->type != ET_IDENTIFIER)
+        return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
+    const char *member = member_expr->per_type.terminal_data;
+
+    if (!variant_has_attr(container, member))
+        return exception_outcome(new_exception_variant("attribute '%s' not found in object type '%s'",
+            member, container->_type->name));
+
+    return variant_set_attr_value(container, member, value);
+}
+
+static execution_outcome call_member(expression *container_expr, expression *member_expr, expression *args_expr, exec_context *ctx) {
+
+    execution_outcome ex = execute_expression(container_expr, ctx);
+    if (ex.excepted || ex.failed) return ex;
+    variant *container = ex.result;
+
+    if (member_expr->type != ET_IDENTIFIER)
+        return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
+    const char *member = member_expr->per_type.terminal_data;
+
+    // arguments is a list of expressions, evaluating to a list of values
+    if (args_expr->type != ET_LIST_DATA)
+        return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
+    ex = retrieve_value(args_expr, ctx);
+    if (ex.excepted || ex.failed) return ex;
+    variant *args_values_list = ex.result;
+
+    if (variant_has_method(container, member)) {
+        return variant_call_method(container, member, args_values_list, NULL);
+
+    } else if (variant_has_attr(container, member)) {
+        ex = variant_get_attr_value(container, member);
+        if (ex.excepted || ex.failed) return ex;
+
+        // could be a callable expression or an expression function etc.
+        return variant_call(ex.result, args_values_list, NULL);
+
+    } else {
+        return exception_outcome(new_exception_variant("no callable member '%s' found in object type '%s'",
+            member, container->_type->name));
+    }
+}
+
+
+static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, exec_context *ctx) {
+    
+    if (call_target_expr->op == OP_MEMBER) {
+        // if calling a member of something, avoid promoting the method 
+        // to an instance, hence call on the object directly.
+        return call_member(call_target_expr->per_type.operation.operand1, call_target_expr->per_type.operation.operand2, args_expr, ctx);
+
+    } else {
+        // otherwise, derive the callable and call it.
+        execution_outcome ex = retrieve_value(call_target_expr, ctx);
+        if (ex.excepted || ex.failed) return ex;
+        variant *call_target = ex.result;
+
+        if (args_expr->type != ET_LIST_DATA)
+            return exception_outcome(new_exception_variant("call requires identifier as right operand"));
+        ex = retrieve_value(args_expr, ctx);
+        if (ex.excepted || ex.failed) return ex;
+        variant *args_values_list = ex.result;
+
+        ex = variant_call(call_target, args_values_list, NULL);
+        if (ex.exception_thrown != NULL)
+            exception_variant_set_source(ex.exception_thrown, call_target_expr->token->filename, call_target_expr->token->line_no, call_target_expr->token->column_no);
+        return ex;
+    }
 }
 
 static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx) {

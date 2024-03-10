@@ -3,22 +3,6 @@
 #include "../../utils/error.h"
 
 
-typedef variant *(*box_int_func)(int value);
-typedef variant *(*box_bool_func)(bool value);
-typedef variant *(*box_const_char_ptr_func)(const char *value);
-typedef int (*unbox_int_func)(variant *value);
-typedef bool (*unbox_bool_func)(variant *value);
-typedef const char *(*unbox_const_char_ptr_func)(variant *value);
-
-static struct variant_methods {
-    box_int_func               int_boxer;
-    box_bool_func              bool_boxer;
-    box_const_char_ptr_func    const_char_ptr_boxer;
-    unbox_int_func             int_unboxer;
-    unbox_bool_func            bool_unboxer;
-    unbox_const_char_ptr_func  const_char_ptr_unboxer;
-} methods;
-
 
 variant *void_instance;
 variant *true_instance;
@@ -141,9 +125,11 @@ bool variant_has_attr(variant *obj, const char *name) {
     return false;
 }
 
-variant *variant_get_attr(variant *obj, const char *name) {
+execution_outcome variant_get_attr_value(variant *obj, const char *name) {
     variant_type *type = obj->_type;
-    if (type->attributes == NULL) return false;
+    if (type->attributes == NULL)
+        return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
+
     for (int i = 0; type->attributes[i].name != NULL; i++) {
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
@@ -153,98 +139,132 @@ variant *variant_get_attr(variant *obj, const char *name) {
             return def->getter(obj, name);
 
         } else if (def->tat_flags & TAT_VARIANT_PTR) {
-            variant *obj_ptr = (variant *)(((char *)obj) + def->offset);
-            variant_inc_ref(obj_ptr); // the one returned
-            return obj_ptr;
+            variant *obj_ptr_ = (variant *)(((char *)obj) + def->offset);
+            variant_inc_ref(obj_ptr_); // the one returned
+            return ok_outcome(obj_ptr_);
 
         } else if (def->tat_flags & TAT_INT) {
             int *int_ptr = (int *)(((char *)obj) + def->offset);
-            return methods.int_boxer(*int_ptr);
+            return ok_outcome(new_int_variant(*int_ptr));
 
         } else if (def->tat_flags & TAT_BOOL) {
             bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
-            return methods.bool_boxer(*bool_ptr);
+            return ok_outcome(new_bool_variant(*bool_ptr));
 
         } else if (def->tat_flags & TAT_CONST_CHAR_PTR) {
             const char *char_ptr = (((const char *)obj) + def->offset);
-            return methods.const_char_ptr_boxer(char_ptr);
+            return ok_outcome(new_str_variant(char_ptr));
 
         } else {
-            set_error("attribute '%s' not supported type '%d'", name, def->tat_flags);
-            return NULL;
+            return failed_outcome("attribute '%s' not supported type '%d'", name, def->tat_flags);
         }
     }
 
-    set_error("attribute '%s' not found in type '%s'", name, type->name);
-    return NULL;
+    return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
 }
 
-variant *variant_set_attr(variant *obj, const char *name, variant *value) {
+execution_outcome variant_set_attr_value(variant *obj, const char *name, variant *value) {
     variant_type *type = obj->_type;
-    if (type->attributes == NULL) return false;
+    if (type->attributes == NULL)
+        return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
+        
     for (int i = 0; type->attributes[i].name != NULL; i++) {
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
 
         type_attrib_definition *def = &type->attributes[i];
-        if (def->tat_flags & TAT_READ_ONLY) {
-            set_error("attribute '%s' is read only in type '%s'", name, type->name);
-            return NULL;
-        }
+        if (def->tat_flags & TAT_READ_ONLY)
+            return exception_outcome(new_exception_variant("attribute '%s' is read only in type '%s'", name, type->name));
 
         if (def->setter != NULL) {
-            return def->setter(obj, name, value); // error checking
+            return def->setter(obj, name, value);
 
         } else if (def->tat_flags & TAT_VARIANT_PTR) {
-            variant **obj_ptr = (variant **)(((char *)obj) + def->offset);
-            variant_inc_ref(value); // the one stored
-            *obj_ptr = value;
+            variant **obj_ptr_ptr = (variant **)(((char *)obj) + def->offset);
+            *obj_ptr_ptr = value;
+            variant_inc_ref(value);
+            return ok_outcome(NULL);
 
         } else if (def->tat_flags & TAT_INT) {
+            if (!variant_instance_of(value, int_type))
+                return exception_outcome(new_exception_variant("cannot assign type '%s' to int attribute %s.%s", value->_type->name, obj->_type->name, name));
             int *int_ptr = (int *)(((char *)obj) + def->offset);
-            *int_ptr = methods.int_unboxer(value);
+            *int_ptr = int_variant_as_int(value);
+            return ok_outcome(NULL);
 
         } else if (def->tat_flags & TAT_BOOL) {
+            if (!variant_instance_of(value, bool_type))
+                return exception_outcome(new_exception_variant("cannot assign type '%s' to bool attribute %s.%s", value->_type->name, obj->_type->name, name));
             bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
-            *bool_ptr = methods.bool_unboxer(value);
+            *bool_ptr = bool_variant_as_bool(value);
+            return ok_outcome(NULL);
 
         } else if (def->tat_flags & TAT_CONST_CHAR_PTR) {
-            const char **char_ptr = (const char **)(((char *)obj) + def->offset);
-            *char_ptr = methods.const_char_ptr_unboxer(value);
+            if (!variant_instance_of(value, str_type))
+                return exception_outcome(new_exception_variant("cannot assign type '%s' to str attribute %s.%s", value->_type->name, obj->_type->name, name));
+            const char **char_ptr_ptr = (const char **)(((char *)obj) + def->offset);
+            *char_ptr_ptr = str_variant_as_str(value); // we should copy maybe instead of refering to?
+            return ok_outcome(NULL);
 
         } else {
-            set_error("attribute '%s' not supported type '%d'", def->tat_flags);
-            return NULL;
+            return exception_outcome(new_exception_variant("attribute '%s' has not supported type '%d'", def->tat_flags));
         }
     }
-    set_error("attribute '%s' not found in type '%s'", name, type->name);
-    return NULL;
+    return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
 }
 
 bool variant_has_method(variant *obj, const char *name) {
     variant_type *type = obj->_type;
-    if (type->methods == NULL) return false;
+    if (type->methods == NULL)
+        return false;
+    
     for (int i = 0; type->methods[i].name != NULL; i++) {
         if (strcmp(type->methods[i].name, name) == 0) {
             return true;
         }
     }
+
     return false;
 }
 
-variant *variant_call_method(variant *obj, const char *name, variant *args, variant *named_args) {
+execution_outcome variant_call_method(variant *obj, const char *name, variant *args_list, variant *named_args) {
+
     variant_type *type = obj->_type;
     if (type->methods == NULL)
-        return false; // notify method not found
+        return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));
+
     for (int i = 0; type->methods[i].name != NULL; i++) {
-        if (strcmp(type->methods[i].name, name) == 0) {
-            // should call
-            return NULL;
-        }
+        if (strcmp(type->methods[i].name, name) != 0)
+            continue;
+        
+        type_method_definition *tmd = &type->methods[i];
+        return tmd->handler(obj, args_list, named_args);
     }
     
-    //return new_error_variant("method '%s' not found in type '%s'", name, type->name);
-    return NULL;
+    return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));
+}
+
+execution_outcome variant_get_bound_method(variant *obj, const char *name) {
+
+    variant_type *type = obj->_type;
+    if (type->methods == NULL)
+        return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));
+
+    for (int i = 0; type->methods[i].name != NULL; i++) {
+        if (strcmp(type->methods[i].name, name) != 0)
+            continue;
+        
+        // we must make a class that is callable by design!!!!!
+        // same thing could be used for an expression function that has captured variables.
+        variant *bound_method = new_callable_variant(
+            NULL, // TODO: fix this.
+            obj
+        );
+        // but we need the callable, no?
+        return ok_outcome(bound_method);
+    }
+    
+    return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));
 }
 
 variant *variant_to_string(variant *obj) {
@@ -310,11 +330,14 @@ execution_outcome variant_iterator_next(variant *obj) { // advance and get next,
     return obj->_type->iterator_next_implementation(obj);
 }
 
-execution_outcome variant_call(variant *obj, variant *args, variant *named_args) {
+execution_outcome variant_call(variant *obj, variant *args_list, variant *named_args) {
+    if (obj == NULL || obj->_type == NULL)
+        return failed_outcome("Expecting variant with a type, got null");
+
     if (obj->_type->call_handler == NULL)
         return exception_outcome(new_exception_variant("Type '%s' is not callable", obj->_type->name));
 
-    return obj->_type->call_handler(obj, args, named_args);
+    return obj->_type->call_handler(obj, args_list, named_args);
 }
 
 execution_outcome variant_get_element(variant *obj, variant *index) {

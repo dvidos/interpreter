@@ -25,13 +25,13 @@ typedef int (*compare_func)(variant *a, variant *b);
 typedef bool (*equals_func)(variant *a, variant *b);
 
 typedef execution_outcome (*iterator_next_func)(variant *obj);
-typedef execution_outcome (*call_handler_func)(variant *obj, variant *args, variant *named_args);
+typedef execution_outcome (*call_handler_func)(variant *obj, variant *args_list, variant *named_args);
 typedef execution_outcome (*get_element_func)(variant *obj, variant *index);
 typedef execution_outcome (*set_element_func)(variant *obj, variant *index, variant *value);
 
 // each variant has zero or more methods. 
 // they are defined in an array of this structure
-typedef variant *type_method_func(variant *self, variant *args, variant *named_args);
+typedef execution_outcome (*type_method_handler_func)(variant *self, variant *args, variant *named_args);
 enum type_method_flags {
     TPF_DEFAULT = 0,
     TPF_VARARGS = 1,
@@ -39,7 +39,7 @@ enum type_method_flags {
 };
 typedef struct type_method_definition {
     const char *name;
-    type_method_func *func;
+    type_method_handler_func handler;
     enum type_method_flags tpf_flags;
 } type_method_definition;
 
@@ -47,8 +47,8 @@ typedef struct type_method_definition {
 // each variant has zero or more attributes. 
 // they can be used directly, or through getters and setters.
 // they are defined in an array of this structure
-typedef variant *type_attrib_getter(variant *self, const char *name);
-typedef variant *type_attrib_setter(variant *self, const char *name, variant *value);
+typedef execution_outcome type_attrib_getter(variant *self, const char *name);
+typedef execution_outcome type_attrib_setter(variant *self, const char *name, variant *value);
 enum type_attrib_type {
     TAT_DEFAULT = 0,
     TAT_INT     = 1,

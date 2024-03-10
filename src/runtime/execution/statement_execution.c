@@ -123,7 +123,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
                 stmt->per_type.function.name,
                 statement_function_callable_executor,
                 stmt
-            ))
+            ), NULL)
         );
 
     } else if (s_type == ST_TRY_CATCH) {

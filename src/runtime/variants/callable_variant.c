@@ -5,13 +5,19 @@
 #include <stdio.h>
 
 
+// the callable class must be callable by design,
+// it will be used for base functions, class methods (bound to 'this'),
+// even anonymous functions (bound to variables at the time of evaluation)
+
 typedef struct callable_instance {
     BASE_VARIANT_FIRST_ATTRIBUTES;
     callable *callable;
+    variant *member_parent; // reference, not owned value, can be null
 } callable_instance;
 
 static void initialize(callable_instance *obj, variant *args, variant *named_args) {
     obj->callable = NULL;
+    obj->member_parent = NULL;
 }
 
 static void destruct(callable_instance *obj) {
@@ -20,7 +26,14 @@ static void destruct(callable_instance *obj) {
 static variant *stringify(callable_instance *obj) {
     if (obj->callable == NULL)
         return NULL;
-    return new_str_variant("%s", callable_name(obj->callable));
+    if (obj->member_parent != NULL) {
+        return new_str_variant("%s.%s()", 
+            obj->member_parent->_type->name,
+            callable_name(obj->callable));
+    } else {
+        return new_str_variant("%s()", 
+            callable_name(obj->callable));
+    }
 }
 
 static unsigned hash(callable_instance *obj) {
@@ -51,9 +64,10 @@ variant_type *callable_type = &(variant_type){
     .equality_checker = (equals_func)are_equal
 };
 
-variant *new_callable_variant(callable *c) {
+variant *new_callable_variant(callable *c, variant *member_parent) {
     callable_instance *obj = (callable_instance *)variant_create(callable_type, NULL, NULL);
     obj->callable = c;
+    obj->member_parent = member_parent;
     return (variant *)obj;
 }
 
