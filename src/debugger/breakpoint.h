@@ -8,7 +8,7 @@ typedef struct breakpoint breakpoint;
 extern item_info *breakpoint_item_info;
 
 struct breakpoint {
-    item_info *class;
+    item_info *item_info;
     const char *filename;
     int line_no;
 };

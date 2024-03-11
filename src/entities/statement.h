@@ -9,7 +9,7 @@
 typedef struct statement statement;
 extern item_info *statement_item_info;
 struct statement {
-    item_info *class;
+    item_info *item_info;
     statement_type type;
     union {
         struct expr {

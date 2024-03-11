@@ -8,7 +8,7 @@
 
 static statement *new_statement(statement_type type, token *token) {
     statement *s = malloc(sizeof(statement));
-    s->class = expression_item_info;
+    s->item_info = expression_item_info;
     s->type = type;
     s->token = token;
     return s;

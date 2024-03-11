@@ -17,7 +17,7 @@ item_info *expression_item_info = &(item_info){
 static expression *new_expression(expression_type type, token *token, operator_type op) {
     expression *e = malloc(sizeof(expression));
     memset(e, 0, sizeof(expression));
-    e->class = expression_item_info;
+    e->item_info = expression_item_info;
     e->type = type;
     e->token = token;
     e->op = op;

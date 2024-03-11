@@ -13,7 +13,7 @@ typedef struct stack_frame stack_frame;
 extern item_info *stack_frame_item_info;
 
 struct stack_frame {
-    item_info *class;
+    item_info *item_info;
     const char *func_name;
     statement *func_stmt;
     expression *func_expr;

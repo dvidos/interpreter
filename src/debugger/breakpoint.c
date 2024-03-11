@@ -13,7 +13,7 @@ item_info *breakpoint_item_info = &(item_info){
 
 breakpoint *new_breakpoint(const char *filename, int line_no) {
     breakpoint *b = malloc(sizeof(breakpoint));
-    b->class = breakpoint_item_info;
+    b->item_info = breakpoint_item_info;
     b->filename = filename;
     b->line_no = line_no;
 }

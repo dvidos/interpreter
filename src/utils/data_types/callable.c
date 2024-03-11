@@ -15,7 +15,7 @@
 
 
 struct callable {
-    item_info *class;
+    item_info *item_info;
     const char *name;
     const char *description;
     callable_handler *handler;
@@ -24,7 +24,7 @@ struct callable {
 
 callable *new_callable(const char *name, callable_handler *handler, void *callable_data) {
     callable *c = malloc(sizeof(callable));
-    c->class = callable_item_info;
+    c->item_info = callable_item_info;
     c->name = name;
     c->handler = handler;
     c->callable_data = callable_data;

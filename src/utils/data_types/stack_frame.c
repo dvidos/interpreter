@@ -5,7 +5,7 @@
 
 stack_frame *new_stack_frame(const char *func_name, statement *func_stmt, expression *func_expr) {
     stack_frame *f = malloc(sizeof(stack_frame));
-    f->class = stack_frame_item_info;
+    f->item_info = stack_frame_item_info;
     f->func_name = func_name;
     f->func_stmt = func_stmt;
     f->func_expr = func_expr;
