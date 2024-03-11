@@ -8,6 +8,10 @@
   * kill most of the built in functions
   * implement tests for all the above using the log or something
 
+* update documentation when done.
+* add many more methods to dict and string.
+
+
 * parse `class` with functions and attributes, private is the default mode, 
 `public` opens up visibility to others, create `variant_type`s on the fly.
 

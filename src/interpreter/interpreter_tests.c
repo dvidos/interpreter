@@ -17,75 +17,19 @@ typedef enum expected_outcome {
     EXP_BOOLEAN,
     EXP_INTEGER,
     EXP_STRING,
+    EXP_LIST,
     EXP_LOG_CONTENTS,
 } expected_outcome;
 
 #define verify_execution(code, a_var, expected_outcome, out_var)  __verify_execution(__FILE__, __LINE__, code, a_var, expected_outcome, out_var)
+static void __verify_execution(const char *file, int line, char *code, variant *var_a_value, expected_outcome expect_outcome, ...);
 
-static void __verify_execution(const char *file, int line, char *code, variant *var_a_value, expected_outcome expect_outcome, ...) {
-    str_builder *sb = new_str_builder();
-    dict *values = new_dict(variant_item_info);
-    if (var_a_value != NULL)
-        dict_set(values, "a", var_a_value);
-    
-    execution_outcome ex = interpret_and_execute(code, "test_code", values, false, false, false);
-
-    if (expect_outcome == EXP_FAILURE) {
-        if (ex.failed) assertion_passed();
-        else __testing_failed("Evaluation did not fail as expected", code, file, line);
-        return;
-    }
-    
-    if (expect_outcome == EXP_EXCEPTION) {
-        if (ex.excepted) assertion_passed();
-        else __testing_failed("Evaluation did not throw exception as expected", code, file, line);
-        return;
-    }
-
-    // we expect some good result from now on       
-
-    if (ex.failed) {
-        str_builder_addf(sb, "Execution failed: %s", ex.failure_message);
-        __testing_failed(str_builder_charptr(sb), code, file, line);
-        return;
-    }
-    if (ex.excepted) {
-        str_builder_addf(sb, "Uncaught exception: %s", str_variant_as_str(variant_to_string(ex.exception_thrown)));
-        __testing_failed(str_builder_charptr(sb), code, file, line);
-        return;
-    }
-
-    variant *actual_result = ex.result;
-    va_list args;
-    va_start(args, expect_outcome);
-
-    if (expect_outcome == EXP_VOID) {
-        assert_variant_is_of_type_fl(actual_result, void_type, code, file, line);
-
-    } else if (expect_outcome == EXP_BOOLEAN) {
-        // warning: ‘_Bool’ is promoted to ‘int’ when passed through ‘...’
-        bool expected_result = (bool)va_arg(args, int);
-        assert_variant_has_bool_value_fl(actual_result, expected_result, code, file, line);
-
-    } else if (expect_outcome == EXP_INTEGER) {
-        int expected_result = va_arg(args, int);
-        assert_variant_has_int_value_fl(actual_result, expected_result, code, file, line);
-
-    } else if (expect_outcome == EXP_STRING) {
-        char *expected_result = va_arg(args, char *);
-        assert_variant_has_str_value_fl(actual_result, expected_result, code, file, line);
-
-    } else if (expect_outcome == EXP_LOG_CONTENTS) {
-        char *expected_log = va_arg(args, char *);
-        const char *actual_log = exec_context_get_log();
-        assert_strs_are_equal_fl(actual_log, expected_log, code, file, line);
-
-    } else {
-        assertion_failed("Unsupported expected result!", code);
-    }
-}
 
 static void verify_basic_expressions() {
+
+    // verify empty code returns a void result.
+    verify_execution("", NULL, EXP_VOID, NULL);
+
     // primitive boolean literals
     verify_execution("false",    NULL, EXP_BOOLEAN, false);
     verify_execution("true",     NULL, EXP_BOOLEAN, true);
@@ -122,15 +66,22 @@ static void verify_branching_logic() {
                      NULL, EXP_LOG_CONTENTS,
                      "abc true 123 -456\n");
 
-    verify_execution("if (1 + 1 == 2) log('if-body'); else log('else-body');", 
+    verify_execution("if (1 + 1 == 2)"
+                     "    log('if-body');"
+                     "else"
+                     "    log('else-body');", 
                      NULL, EXP_LOG_CONTENTS,
                      "if-body\n");
 
-    verify_execution("if (1 + 1 == 7) log('if-body'); else log('else-body');", 
+    verify_execution("if (1 + 1 == 7)"
+                     "    log('if-body');"
+                     "else"
+                     "    log('else-body');", 
                      NULL, EXP_LOG_CONTENTS,
                      "else-body\n");
 
-    verify_execution("for (i = 0; i < 3; i++) log(i);",
+    verify_execution("for (i = 0; i < 3; i++)"
+                     "   log(i);",
                      NULL, EXP_LOG_CONTENTS,
                      "0\n1\n2\n");
     
@@ -155,7 +106,6 @@ static void verify_branching_logic() {
                      "}",
                      NULL, EXP_LOG_CONTENTS,
                      "1\n2\n3\n4\n5\n");
-
 }
 
 static void verify_int_expressions() {
@@ -223,10 +173,33 @@ static void verify_string_expressions() {
 }
 
 static void verify_list_expressions() {
+    verify_execution("arr = []; return arr.empty();",      NULL, EXP_BOOLEAN, true);
+    verify_execution("arr = [1]; return arr.empty();",     NULL, EXP_BOOLEAN, false);
+    verify_execution("arr = []; return arr.length();",     NULL, EXP_INTEGER, 0);
+    verify_execution("arr = [1]; return arr.length();",    NULL, EXP_INTEGER, 1);
+    verify_execution("arr = [1, 2]; return arr.length();", NULL, EXP_INTEGER, 2);
+
     verify_execution("arr = [10,20,30]; return arr[2];",              NULL, EXP_INTEGER, 30);
     verify_execution("arr = []; arr[0] = 10; return arr[0];",         NULL, EXP_INTEGER, 10);
     verify_execution("arr = [10,20,30]; arr[1] = 22; return arr[1];", NULL, EXP_INTEGER, 22);
     verify_execution("a = []; a[200] = 1;",                           NULL, EXP_EXCEPTION, NULL);
+
+    verify_execution("arr = [1, 2, 3, 4];"
+                     "f = function(item, idx, arr){return item % 2 == 0;};"
+                     "return arr.filter(f);",
+                     NULL, EXP_LIST,
+                     list_of(variant_item_info, 2, new_int_variant(2), new_int_variant(4)));
+
+    verify_execution("arr = [1, 2, 3];"
+                     "f = function(item, idx, arr){return item * 2;};"
+                     "return arr.map(f);",
+                     NULL, EXP_LIST,
+                     list_of(variant_item_info, 3, new_int_variant(2), new_int_variant(4), new_int_variant(6)));
+
+    verify_execution("arr = [1, 2, 3];"
+                     "f = function(acc, item, idx, arr){return acc + item;};"
+                     "return arr.reduce(0, f);",
+                     NULL, EXP_INTEGER, 6);
 }
 
 static void verify_dict_expressions() {
@@ -329,8 +302,6 @@ static void verify_function_creation_and_calling() {
 }
 
 void interpreter_self_diagnostics() {
-    // verify empty code returns a void result.
-    verify_execution("", NULL, EXP_VOID, NULL);
 
     verify_basic_expressions();
     verify_branching_logic();
@@ -340,4 +311,76 @@ void interpreter_self_diagnostics() {
     verify_dict_expressions();
     verify_exception_handling();
     verify_function_creation_and_calling();
+}
+
+static void __verify_execution(const char *file, int line, char *code, variant *var_a_value, expected_outcome expect_outcome, ...) {
+    str_builder *sb = new_str_builder();
+    dict *values = new_dict(variant_item_info);
+    if (var_a_value != NULL)
+        dict_set(values, "a", var_a_value);
+    
+    execution_outcome ex = interpret_and_execute(code, "test_code", values, false, false, false);
+
+    if (expect_outcome == EXP_FAILURE) {
+        if (ex.failed) assertion_passed();
+        else __testing_failed("Evaluation did not fail as expected", code, file, line);
+        return;
+    }
+    
+    if (expect_outcome == EXP_EXCEPTION) {
+        if (ex.excepted) assertion_passed();
+        else __testing_failed("Evaluation did not throw exception as expected", code, file, line);
+        return;
+    }
+
+    // we expect some good result from now on       
+
+    if (ex.failed) {
+        str_builder_addf(sb, "Execution failed: %s", ex.failure_message);
+        __testing_failed(str_builder_charptr(sb), code, file, line);
+        return;
+    }
+    if (ex.excepted) {
+        str_builder_addf(sb, "Uncaught exception: %s", str_variant_as_str(variant_to_string(ex.exception_thrown)));
+        __testing_failed(str_builder_charptr(sb), code, file, line);
+        return;
+    }
+
+    variant *actual_result = ex.result;
+    va_list args;
+    va_start(args, expect_outcome);
+
+    if (expect_outcome == EXP_VOID) {
+        assert_variant_is_of_type_fl(actual_result, void_type, code, file, line);
+
+    } else if (expect_outcome == EXP_BOOLEAN) {
+        // warning: ‘_Bool’ is promoted to ‘int’ when passed through ‘...’
+        bool expected_result = (bool)va_arg(args, int);
+        assert_variant_has_bool_value_fl(actual_result, expected_result, code, file, line);
+
+    } else if (expect_outcome == EXP_INTEGER) {
+        int expected_result = va_arg(args, int);
+        assert_variant_has_int_value_fl(actual_result, expected_result, code, file, line);
+
+    } else if (expect_outcome == EXP_STRING) {
+        char *expected_result = va_arg(args, char *);
+        assert_variant_has_str_value_fl(actual_result, expected_result, code, file, line);
+
+    } else if (expect_outcome == EXP_LIST) {
+        if (!variant_instance_of(actual_result, list_type)) {
+            str_builder_addf(sb, "Was expecting a list result, got '%s'", actual_result->_type->name);
+            __testing_failed(str_builder_charptr(sb), code, file, line);
+        } else {
+            list *expected_contents = va_arg(args, list *);
+            assert_lists_are_equal_fl(list_variant_as_list(actual_result), expected_contents, code, file, line);
+        }
+
+    } else if (expect_outcome == EXP_LOG_CONTENTS) {
+        char *expected_log = va_arg(args, char *);
+        const char *actual_log = exec_context_get_log();
+        assert_strs_are_equal_fl(actual_log, expected_log, code, file, line);
+
+    } else {
+        assertion_failed("Unsupported expected result!", code);
+    }
 }

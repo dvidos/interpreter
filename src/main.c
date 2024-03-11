@@ -19,7 +19,7 @@
     like complex business conditions etc.
 
     To do this we need a whole ecosystem for these:
-    - values (strings, numbers, booleans, lists, dictionaries)
+    - variants (strings, numbers, booleans, lists, dictionaries)
     - parser of expressions with precedence, into an abstract syntax tree
     - evaluation of the syntax tree, to find the result
 
@@ -44,7 +44,6 @@ struct options {
     bool verbose;
     bool show_help;
     bool run_unit_tests;
-    bool show_built_in_functions;
     bool execute_expression;
     char *expression;
     bool execute_script;
@@ -76,7 +75,6 @@ void parse_options(int argc, char *argv[]) {
                     break;
                 case 'h': options.show_help = true; break;
                 case 'v': options.verbose = true; break;
-                case 'b': options.show_built_in_functions = true; break;
                 case 'u': options.run_unit_tests = true; options.suppress_log_echo = true; break;
                 case 'q': options.suppress_log_echo = true; break;
                 case 'd': options.enable_debugger = true; break;
@@ -94,7 +92,6 @@ void show_help() {
     printf("  -e <expression>     Interpret and execute the expression\n");
     printf("  -i                  Start interactive shell\n");
     printf("  -d                  Enable debugger\n");
-    printf("  -b                  Show built in functions\n");
     printf("  -v                  Be verbose\n");
     printf("  -u                  Run self diagnostics (unit tests)\n");
     printf("  -h                  Show this help message\n");
@@ -158,9 +155,6 @@ int main(int argc, char *argv[]) {
     } else if (options.run_unit_tests) {
         if (!run_self_diagnostics(options.verbose))
             return 1;
-    } else if (options.show_built_in_functions) {
-        printf("Built-in functions:\n");
-        print_built_in_funcs_list();
     } else if (options.execute_expression) {
         execute_code(options.expression, "inline");
     } else if (options.execute_script) {

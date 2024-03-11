@@ -237,10 +237,6 @@ void initialize_built_in_funcs_table() {
     // TODO: now that we know they work... fill in the rest!
 }
 
-void print_built_in_funcs_list() {
-    printf("Not implemented yet...\n");
-}
-
 dict *get_built_in_funcs_table() {
     return built_in_funcs_dict;
 }

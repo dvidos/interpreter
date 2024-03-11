@@ -65,15 +65,15 @@ bool testing_outcome();
     }
 
 
-#define assert_lists_are_equal(actual, expected, extra)  \
+#define assert_lists_are_equal_fl(actual, expected, extra, file, line)  \
     if (lists_are_equal(actual, expected)) {  \
         __testing_passed(); \
     } else { \
-        __testing_failed("Lists are not equal", extra, __FILE__, __LINE__);  \
+        __testing_failed("Lists are not equal", extra, file, line);  \
         str_builder *sb_e = new_str_builder();  \
         str_builder *sb_a = new_str_builder();  \
-        list_describe(expected, sb_e);  \
-        list_describe(actual, sb_a);  \
+        list_describe(expected, ", ", sb_e);  \
+        list_describe(actual, ", ", sb_a);  \
         printf("    Expected: %s\n", str_builder_charptr(sb_e));  \
         printf("    Actual  : %s\n", str_builder_charptr(sb_a));  \
     }

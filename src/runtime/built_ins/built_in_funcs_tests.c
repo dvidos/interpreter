@@ -20,31 +20,5 @@ static void run_use_case(const char *code, variant *expected, bool verbose) {
 }
 
 void built_in_self_diagnostics(bool verbose) {
-
-    run_use_case(
-        "[1,2,3,4].filter(function(item, idx, arr){return item % 2 == 0;})", 
-        new_list_variant_of(2,
-            new_int_variant(2),
-            new_int_variant(4)
-        ),
-        verbose
-    );
-
-    run_use_case(
-        "[1,2,3].map(function(item, idx, arr){return item * 2;})", 
-        new_list_variant_of(3,
-            new_int_variant(2),
-            new_int_variant(4),
-            new_int_variant(6)
-        ),
-        verbose
-    );
-
-    run_use_case(
-        "[1,2,3].reduce(0, function(acc, item, idx, arr){return acc + item;})", 
-        new_int_variant(6),
-        verbose
-    );
-
 }
 
