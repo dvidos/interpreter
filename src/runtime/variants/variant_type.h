@@ -30,7 +30,7 @@ typedef execution_outcome (*set_element_func)(variant *obj, variant *index, vari
 
 // each variant has zero or more methods. 
 // they are defined in an array of this structure
-typedef execution_outcome (*variant_method_handler_func)(variant *self, list *args, dict *named_args, exec_context *ctx);
+typedef execution_outcome (*variant_method_handler_func)(variant *this, list *args, dict *named_args, exec_context *ctx);
 enum variant_method_flags {
     VMF_DEFAULT = 0,
     VMF_VARARGS = 1,
@@ -46,8 +46,8 @@ typedef struct variant_method_definition {
 // each variant has zero or more attributes. 
 // they can be used directly, or through getters and setters.
 // they are defined in an array of this structure
-typedef execution_outcome variant_attrib_getter(variant *self, const char *name);
-typedef execution_outcome variant_attrib_setter(variant *self, const char *name, variant *value);
+typedef execution_outcome variant_attrib_getter(variant *this, const char *name);
+typedef execution_outcome variant_attrib_setter(variant *this, const char *name, variant *value);
 enum variant_attrib_type {
     VAT_DEFAULT = 0,
     VAT_INT     = 1,

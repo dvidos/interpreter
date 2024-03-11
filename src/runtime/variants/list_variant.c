@@ -92,6 +92,102 @@ static execution_outcome set_element(list_instance *obj, variant *index, variant
     return ok_outcome(NULL);
 }
 
+static execution_outcome method_empty(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+    return ok_outcome(new_bool_variant(list_empty(this->list)));
+}
+
+static execution_outcome method_legth(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+    return ok_outcome(new_int_variant(list_length(this->list)));
+}
+
+static execution_outcome method_add(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+    if (list_length(args) < 1)
+        return exception_outcome(new_exception_variant("expected the item to add as argument"));
+    
+    variant *item = list_get(args, 0);
+    variant_inc_ref(item);
+    list_add(this->list, item);
+}
+
+static execution_outcome method_filter(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+    if (list_length(args) < 1)
+        return exception_outcome(new_exception_variant("expected the filtering function as argument"));
+    
+    variant *func = (variant *)list_get(args, 0);
+    list *filtered_list = new_list(variant_item_info);
+    int index = 0;
+    
+    for_list(this->list, it, variant, item) {
+        list *func_args = list_of(variant_item_info, 3, item, new_int_variant(index), this);
+        execution_outcome ex = variant_call(func, func_args, NULL, ctx);
+        list_free(func_args);
+
+        if (ex.excepted || ex.failed) return ex;
+        if (!variant_instance_of(ex.result, bool_type))
+            return exception_outcome(new_exception_variant("filter callables are expected to return a boolean result"));
+
+        if (bool_variant_as_bool(ex.result)) {
+            variant_inc_ref(item);
+            list_add(filtered_list, item);
+        }
+        index++;
+    }
+
+    return ok_outcome(new_list_variant_owning(filtered_list));
+}
+
+static execution_outcome method_map(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+    if (list_length(args) < 1)
+        return exception_outcome(new_exception_variant("expected the mapping function as argument"));
+    
+    variant *func = (variant *)list_get(args, 0);
+    list *mapped_list = new_list(variant_item_info);
+    int index = 0;
+    
+    for_list(this->list, it, variant, item) {
+        list *func_args = list_of(variant_item_info, 3, item, new_int_variant(index), this);
+        execution_outcome ex = variant_call(func, func_args, NULL, ctx);
+        list_free(func_args);
+
+        if (ex.excepted || ex.failed) return ex;
+        list_add(mapped_list, ex.result);
+        index++;
+    }
+
+    return ok_outcome(new_list_variant_owning(mapped_list));
+}
+
+static execution_outcome method_reduce(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+    if (list_length(args) < 2)
+        return exception_outcome(new_exception_variant("expected (start value, aggregating function) as arguments"));
+    variant *value = list_get(args, 0);
+    variant *aggregator = list_get(args, 1);
+    int index = 0;
+    
+    for_list(this->list, it, variant, item) {
+        list *func_args = list_of(variant_item_info, 4, value, item, new_int_variant(index), this);
+        execution_outcome ex = variant_call(aggregator, func_args, NULL, ctx);
+        list_free(func_args);
+
+        if (ex.excepted || ex.failed) return ex;
+        value = ex.result;
+        index++;
+    }
+
+    return ok_outcome(value);
+}
+
+static variant_method_definition methods[] = {
+    // insert, delete, contains, sort, foreach, anymatch, nomatch, ...
+    { "empty",    (variant_method_handler_func)method_empty, VMF_DEFAULT },
+    { "length",   (variant_method_handler_func)method_legth, VMF_DEFAULT },
+    { "add",      (variant_method_handler_func)method_add, VMF_DEFAULT },
+    { "filter",   (variant_method_handler_func)method_filter, VMF_DEFAULT },
+    { "map",      (variant_method_handler_func)method_map, VMF_DEFAULT },
+    { "reduce",   (variant_method_handler_func)method_reduce, VMF_DEFAULT },
+    { NULL }
+};
+
 variant_type *list_type = &(variant_type){
     ._type = NULL,
     ._references_count = VARIANT_STATICALLY_ALLOCATED,
@@ -108,6 +204,8 @@ variant_type *list_type = &(variant_type){
     .equality_checker = (equals_func)are_equal,
     .get_element = (get_element_func)get_element,
     .set_element = (set_element_func)set_element,
+
+    .methods = methods,
 };
 
 variant *new_list_variant() {
@@ -123,6 +221,12 @@ variant *new_list_variant_of(int argc, ...) {
         list_add(l->list, item);
     }
     va_end(args);
+    return (variant *)l;
+}
+
+variant *new_list_variant_owning(list *list) {
+    list_instance *l = (list_instance *)new_list_variant();
+    l->list = list;
     return (variant *)l;
 }
 
