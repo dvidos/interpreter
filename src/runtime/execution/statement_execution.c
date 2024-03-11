@@ -36,7 +36,7 @@ static execution_outcome check_condition(expression *condition, exec_context *ct
 static execution_outcome execute_single_statement(statement *stmt, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return) {
     statement_type s_type = stmt->type;
     execution_outcome ex;
-    variant *return_value = void_instance;
+    variant *return_value = void_singleton;
 
     // not all statement types should be checked for debugger
     if (s_type != ST_EXPRESSION && s_type != ST_FUNCTION) {
@@ -111,7 +111,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
                 return ex;
             return_value = ex.result;
         } else {
-            return_value = void_instance;
+            return_value = void_singleton;
         }
         if (should_return != NULL)
             *should_return = true;
@@ -189,7 +189,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
 }
 
 static execution_outcome execute_statements_with_flow(list *statements, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return) {
-    variant *return_value = void_instance;
+    variant *return_value = void_singleton;
 
     for_list(statements, it, statement, stmt) {
         execution_outcome ex = execute_single_statement(stmt, ctx, should_break, should_continue, should_return);
@@ -203,7 +203,7 @@ static execution_outcome execute_statements_with_flow(list *statements, exec_con
 }
 
 static execution_outcome execute_statements_in_loop(expression *pre_condition, list *statements, expression *next, exec_context *ctx, bool *should_return) {
-    variant *return_value = void_instance;
+    variant *return_value = void_singleton;
     execution_outcome ex;
 
     while (true) {

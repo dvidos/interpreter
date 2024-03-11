@@ -7,7 +7,7 @@
 // predefined reusable read only instances
 extern variant *true_instance;
 extern variant *false_instance;
-extern variant *void_instance;
+extern variant *void_singleton;
 extern variant *zero_instance;
 extern variant *one_instance;
 extern variant *iteration_finished_exception_instance;

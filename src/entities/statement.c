@@ -75,7 +75,33 @@ statement *new_throw_statement(expression *exception, token *token) {
 statement *new_breakpoint_statement(token *token) {
     return new_statement(ST_BREAKPOINT, token);
 }
+statement *new_class_statement(const char *name, list *attributes, list *methods, token *token) {
+    statement *s = new_statement(ST_CLASS, token);
+    s->per_type.class.name = name;
+    s->per_type.class.attributes = attributes;
+    s->per_type.class.methods = methods;
+    return s;
+}
 
+class_attribute *new_class_attribute(bool public, const char *name, expression *init_value) {
+    class_attribute *p = malloc(sizeof(class_attribute));
+    p->public = public;
+    char *n = malloc(strlen(name) + 1);
+    strcpy(n, name);
+    p->name = n;
+    p->init_value = init_value;
+    return p;
+}
+
+class_method *new_class_method(bool public, const char *name, statement *function) {
+    class_method *p = malloc(sizeof(class_method));
+    p->public = public;
+    char *n = malloc(strlen(name) + 1);
+    strcpy(n, name);
+    p->name = n;
+    p->function = function;
+    return p;
+}
 
 bool statement_is_at(statement *s, const char *filename, int line_no) {
     return s->token != NULL &&
@@ -157,6 +183,12 @@ const void statement_describe(statement *s, str_builder *sb) {
             expression_describe(s->per_type.throw.exception, sb);
             str_builder_add(sb, ");");
             break;
+        case ST_BREAKPOINT:
+            str_builder_add(sb, "breakpoint;");
+            break;
+        case ST_CLASS:
+            str_builder_addf(sb, "class '%s' { ... }", s->per_type.class.name);
+            break;
     }
 }
 
@@ -208,6 +240,11 @@ bool statements_are_equal(statement *a, statement *b) {
         case ST_THROW:
             if (!expressions_are_equal(a->per_type.throw.exception, b->per_type.throw.exception)) return false;
             break;
+        case ST_CLASS:
+            if (!strs_are_equal(a->per_type.class.name, b->per_type.class.name)) return false;
+            if (!lists_are_equal(a->per_type.class.attributes, b->per_type.class.attributes)) return false;
+            if (!lists_are_equal(a->per_type.class.methods, b->per_type.class.methods)) return false;
+            break;
     }
 
     return true;
@@ -218,6 +255,51 @@ item_info *statement_item_info = &(item_info){
     .type_name = "statement",
     .describe = (describe_item_func)statement_describe,
     .are_equal = (items_equal_func)statements_are_equal
+};
+
+static const void class_attribute_describe(class_attribute *a, str_builder *sb) {
+    str_builder_addf(sb, "%s%s", 
+        a->public ? "public " : "",
+        a->name);
+}
+static bool class_attributes_are_equal(class_attribute *a, class_attribute *b) {
+    if (a == NULL && b == NULL) return true;
+    if (a == NULL && b != NULL) return false;
+    if (a != NULL && b == NULL) return false;
+    if (a == b) return true;
+    if (a->public != b->public) return false;
+    if (strcmp(a->name, b->name) != 0) return false;
+    if (!expressions_are_equal(a->init_value, b->init_value)) return false;
+    return true;
+}
+static const void class_method_describe(class_method *m, str_builder *sb) {
+    str_builder_addf(sb, "%s%s()", 
+        m->public ? "public " : "",
+        m->name);
+}
+static bool class_method_are_equal(class_method *a, class_method *b) {
+    if (a == NULL && b == NULL) return true;
+    if (a == NULL && b != NULL) return false;
+    if (a != NULL && b == NULL) return false;
+    if (a == b) return true;
+    if (a->public != b->public) return false;
+    if (strcmp(a->name, b->name) != 0) return false;
+    if (!statements_are_equal(a->function, b->function)) return false;
+    return true;
+}
+
+item_info *class_attribute_item_info = &(item_info) {
+    .item_info_magic = ITEM_INFO_MAGIC,
+    .type_name = "class_attribute",
+    .describe = (describe_item_func)class_attribute_describe,
+    .are_equal = (items_equal_func)class_attributes_are_equal
+};
+
+item_info *class_method_item_info = &(item_info) {
+    .item_info_magic = ITEM_INFO_MAGIC,
+    .type_name = "class_method",
+    .describe = (describe_item_func)class_method_describe,
+    .are_equal = (items_equal_func)class_method_are_equal
 };
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(statement);

@@ -13,6 +13,7 @@ typedef enum statement_type {
     ST_TRY_CATCH,
     ST_THROW,
     ST_BREAKPOINT,
+    ST_CLASS,
 } statement_type;
 
 

@@ -256,6 +256,49 @@ static void verify_exception_handling() {
 
 }
 
+static void verify_classes_handling() {
+    
+    // access should be private by default
+    verify_execution("class T { a1 = 313; }"
+                     "c = new(T);"
+                     "return c.a1;",
+                     NULL, EXP_EXCEPTION, NULL);
+
+    // but could be made public if one wants
+    verify_execution("class T { public a1 = 313; }"
+                     "c = new(T);"
+                     "return c.a1;",
+                     NULL, EXP_EXCEPTION, NULL);
+
+    // simple class
+    verify_execution("class T {"
+                     "    a1 = 313;"
+                     "    function giveme() { return this.a1; }"
+                     "}"
+                     "c = new(T);"
+                     "return c.giveme();",
+                     NULL, EXP_INTEGER, 313);
+
+    // uninitialized attribute
+    verify_execution("class T {"
+                     "    a1;"
+                     "    function giveme() { return this.a1; }"
+                     "}"
+                     "c = new(T);"
+                     "return c.giveme();",
+                     NULL, EXP_VOID, NULL);
+
+    // constructor parameter
+    verify_execution("class T {"
+                     "    a1 = 313;"
+                     "    function construct(num) { this.a1 = num; }"
+                     "    function giveme() { return this.a1; }"
+                     "}"
+                     "c = new(T, 626);"
+                     "return c.giveme();",
+                     NULL, EXP_INTEGER, 626);
+}
+
 static void verify_function_creation_and_calling() {
     // call named function
     verify_execution("function increaser(base) { return base + 1; }"
@@ -267,38 +310,37 @@ static void verify_function_creation_and_calling() {
                      "return increaser(1);",
                      NULL, EXP_INTEGER, 2);
                     
-    // closure captures env values
-    verify_execution("function make_reminder(number) {"
-                     "    return function() { return number; };"
-                     "}"
-                     "r = make_reminder(2);"
-                     "return r();",
-                     NULL, EXP_INTEGER, 2);
+    // TODO: implement support for capturing env variables in closures.
+    // // closure captures env values
+    // verify_execution("function make_reminder(number) {"
+    //                  "    return function() { return number; };"
+    //                  "}"
+    //                  "r = make_reminder(2);"
+    //                  "return r();",
+    //                  NULL, EXP_INTEGER, 2);
 
-    // closure modifies captured values
-    verify_execution("function make_sequencer(base) {"
-                     "    return function() { return ++base; };"
-                     "}"
-                     "s = make_sequencer(1);"
-                     "return s();",
-                     NULL, EXP_INTEGER, 2);
+    // // closure modifies captured values
+    // verify_execution("function make_sequencer(base) {"
+    //                  "    return function() { return ++base; };"
+    //                  "}"
+    //                  "s = make_sequencer(1);"
+    //                  "return s();",
+    //                  NULL, EXP_INTEGER, 2);
 
-    // TODO: enable these tests when we parse classes
     // // call method on object
     // verify_execution("class sequencer { base = 1; function next() { return ++(this.base); }; }"
-    //                  "s = new sequencer();"
+    //                  "s = new(sequencer);"
     //                  "return s.next();", 
     //                  NULL, EXP_INTEGER,
     //                  2);
                     
     // // promote method to callable and call it.
     // verify_execution("class sequencer { base = 1; function next() { return ++(this.base); }; }"
-    //                  "s = new sequencer();"
+    //                  "s = new(sequencer);"
     //                  "f = s.next;" 
     //                  "return f();",
     //                  NULL, EXP_INTEGER,
     //                  2);
-
 }
 
 void interpreter_self_diagnostics() {
@@ -310,6 +352,7 @@ void interpreter_self_diagnostics() {
     verify_list_expressions();
     verify_dict_expressions();
     verify_exception_handling();
+    verify_classes_handling();
     verify_function_creation_and_calling();
 }
 

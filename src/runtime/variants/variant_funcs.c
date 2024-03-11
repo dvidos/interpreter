@@ -4,7 +4,7 @@
 
 
 
-variant *void_instance;
+variant *void_singleton;
 variant *true_instance;
 variant *false_instance;
 variant *zero_instance;
@@ -23,14 +23,14 @@ void initialize_variants() {
     float_type->_type = type_of_types;
     exception_type->_type = type_of_types;
 
-    void_instance = new_void_variant();
+    void_singleton = new_void_variant();
     true_instance = new_bool_variant(true);
     false_instance = new_bool_variant(false);
     zero_instance = new_int_variant(0);
     one_instance = new_int_variant(1);
     iteration_finished_exception_instance = new_exception_variant("(iteration finished)");
 
-    void_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
+    void_singleton->_references_count = VARIANT_STATICALLY_ALLOCATED;
     true_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     false_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
     zero_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;

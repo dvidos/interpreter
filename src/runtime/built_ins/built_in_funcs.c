@@ -34,7 +34,7 @@ static dict *built_in_dict_methods = NULL;
 
 #define RET_STR(val)    ok_outcome(new_str_variant(val))
 #define RET_INT(val)    ok_outcome(new_int_variant(val))
-#define RET_VOID()      ok_outcome(void_instance)
+#define RET_VOID()      ok_outcome(void_singleton)
 
 #define BUILT_IN_METHOD(target_obj_type, name, function)  \
     dict_set(built_in_ ## target_obj_type ## _methods, \
@@ -167,7 +167,7 @@ static execution_outcome built_in_list_add(list *positional_args, dict *named_ar
     list *l = list_variant_as_list(this_obj);
     variant *item = list_get(positional_args, 0);
     list_add(l, item);
-    return ok_outcome(void_instance);
+    return ok_outcome(void_singleton);
 }
 
 static execution_outcome built_in_dict_empty(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {

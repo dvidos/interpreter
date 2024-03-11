@@ -40,7 +40,6 @@ to expose iterators behavior. For example to expose reset/curr/move.
   * ideas: tic-tac-toe, othello, score-4, rock-paper-scissors, 
   * text based adventure? make a random map with random items (keys, chests, doors) and allow user to play and print the map.
   * sort, grep, ?
-* reorg folders into src, scripts, docs etc?
 * where do we go with this? graphics? pipelines?
 
 * make better iterators, minimal ask from conntainers.
@@ -63,12 +62,13 @@ This should speed up runtime a ton.
 * Maybe start implementing memory management for the exeuted code, therefore
 keeping track of variables and memory, ala Rust.
 * Ability to parse EBNF syntax and then parse things on the fly?
-* Make a debugger, with ability to step, and investigate variables!!!!!
 
 
 
 # done!
 
+* Make a debugger, with ability to step, and investigate variables!!!!!
+* reorg folders into src, scripts, docs etc?
 * continue to old-style variants (union-based) convert types from `variant_original` to the new variant types (type-based)
 * implement exceptions in the script language
 * maybe see if we can make an interactive mode (-1),

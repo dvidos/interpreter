@@ -236,6 +236,53 @@ static failable_statement parse_breakpoint_statement() {
     return ok_statement(new_breakpoint_statement(token));
 }
 
+static failable_statement parse_class_statement() {
+    if (!accept(T_CLASS)) return failed_statement(NULL, "was expecting 'class'");
+    token *token = accepted();
+    if (!accept(T_IDENTIFIER)) return failed_statement(NULL, "was expecting class name");
+    const char *class_name = accepted()->data;
+    // any "extends" or "implements" would be here
+    if (!accept(T_LBRACKET)) return failed_statement(NULL, "was expecting '{' after class");
+
+    const char *name;
+    list *attributes = new_list(class_attribute_item_info);
+    list *methods = new_list(class_method_item_info);
+    failable_statement st;
+    failable_expression ex;
+    bool public;
+    
+    while (!accept(T_RBRACKET)) {
+        public = accept(T_PUBLIC);
+
+        if (accept(T_IDENTIFIER)) {
+            // parse attribute
+            name = accepted()->data;
+            expression *init_expr = NULL;
+            if (accept(T_EQUAL)) {
+                ex = parse_expression(tokens_it, CM_SEMICOLON, false);
+                if (ex.failed) return failed_statement(NULL, "%s", ex.err_msg);
+                init_expr = ex.result;
+            } else if (!accept(T_SEMICOLON)) {
+                return failed_statement(NULL, "was expecting semicolon after attribute declaration");
+            }
+            list_add(attributes, new_class_attribute(public, name, init_expr));
+            
+        } else if (peek()->type == T_FUNCTION_KEYWORD) {
+            st = parse_function_statement();
+            if (st.failed) return st;
+            name = st.result->per_type.function.name;
+            list_add(methods, new_class_method(public, name, st.result));
+
+        } else {
+            str_builder *sb = new_str_builder();
+            token_describe(peek(), sb);
+            return failed_statement(NULL, "was expecting 'function' or identifier in class declaration, got %s", str_builder_charptr(sb));
+        }
+    }
+
+    return ok_statement(new_class_statement(class_name, attributes, methods, token));
+}
+
 failable_statement parse_statement(iterator *tokens) {
     tokens_it = tokens;
 
@@ -251,6 +298,7 @@ failable_statement parse_statement(iterator *tokens) {
         case T_TRY:              return parse_try_catch_statement();
         case T_THROW:            return parse_throw_statement();
         case T_BREAKPOINT:       return parse_breakpoint_statement();
+        case T_CLASS:            return parse_class_statement();
         default:                 return parse_expression_statement();
     }
 }
