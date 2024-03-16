@@ -28,33 +28,37 @@ typedef execution_outcome (*call_handler_func)(variant *obj, list *args, dict *n
 typedef execution_outcome (*get_element_func)(variant *obj, variant *index);
 typedef execution_outcome (*set_element_func)(variant *obj, variant *index, variant *value);
 
+
 // each variant has zero or more methods. 
 // they are defined in an array of this structure
-typedef execution_outcome (*variant_method_handler_func)(variant *this, list *args, dict *named_args, exec_context *ctx);
+typedef struct variant_method_definition variant_method_definition;
+typedef execution_outcome (*variant_method_handler_func)(variant *this, variant_method_definition *method, list *args, dict *named_args, exec_context *ctx);
 enum variant_method_flags {
     VMF_DEFAULT = 0,
     VMF_VARARGS = 1,
     VMF_NOARGS  = 2,
     VMF_PUBLIC  = 1024
 };
-typedef struct variant_method_definition {
+struct variant_method_definition {
     const char *name;
     variant_method_handler_func handler;
     enum variant_method_flags vmf_flags;
-} variant_method_definition;
+    void *ast_node; // for AST based methods
+};
 
 
 // each variant has zero or more attributes. 
 // they can be used directly, or through getters and setters.
 // they are defined in an array of this structure
-typedef execution_outcome variant_attrib_getter(variant *this, const char *name);
-typedef execution_outcome variant_attrib_setter(variant *this, const char *name, variant *value);
+typedef struct variant_attrib_definition variant_attrib_definition;
+typedef execution_outcome variant_attrib_getter(variant *this, variant_attrib_definition *attrib);
+typedef execution_outcome variant_attrib_setter(variant *this, variant_attrib_definition *attrib, variant *value);
 enum variant_attrib_flags {
     VAF_DEFAULT = 0,
-    VAF_INT     = 1,
-    VAF_BOOL    = 2,
-    VAF_CONST_CHAR_PTR = 3,
-    VAF_VARIANT_PTR = 4,
+    VAF_INT_VARIANT     = 1,
+    VAF_BOOL_VARIANT    = 2,
+    VAF_STR_VARIANT = 3,
+    VAF_ANY_VARIANT = 4,
     VAF_PUBLIC = 1024,
     VAF_READ_ONLY = 2048,
 };

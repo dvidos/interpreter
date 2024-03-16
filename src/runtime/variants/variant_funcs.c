@@ -134,29 +134,15 @@ execution_outcome variant_get_attr_value(variant *obj, const char *name) {
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
         
-        variant_attrib_definition *def = &type->attributes[i];
-        if (def->getter != NULL) {
-            return def->getter(obj, name);
-
-        } else if (def->vaf_flags & VAF_VARIANT_PTR) {
-            variant *obj_ptr_ = (variant *)(((char *)obj) + def->offset);
-            variant_inc_ref(obj_ptr_); // the one returned
-            return ok_outcome(obj_ptr_);
-
-        } else if (def->vaf_flags & VAF_INT) {
-            int *int_ptr = (int *)(((char *)obj) + def->offset);
-            return ok_outcome(new_int_variant(*int_ptr));
-
-        } else if (def->vaf_flags & VAF_BOOL) {
-            bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
-            return ok_outcome(new_bool_variant(*bool_ptr));
-
-        } else if (def->vaf_flags & VAF_CONST_CHAR_PTR) {
-            const char *char_ptr = (((const char *)obj) + def->offset);
-            return ok_outcome(new_str_variant(char_ptr));
+        variant_attrib_definition *attr = &type->attributes[i];
+        if (attr->getter != NULL) {
+            return attr->getter(obj, attr);
 
         } else {
-            return failed_outcome("attribute '%s' not supported type '%d'", name, def->vaf_flags);
+            variant **var_ptr_ptr = (variant **)(((void *)obj) + attr->offset);
+            variant_inc_ref(*var_ptr_ptr); // the one returned
+            return ok_outcome(*var_ptr_ptr);
+
         }
     }
 
@@ -172,44 +158,21 @@ execution_outcome variant_set_attr_value(variant *obj, const char *name, variant
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
 
-        variant_attrib_definition *def = &type->attributes[i];
-        if (def->vaf_flags & VAF_READ_ONLY)
+        variant_attrib_definition *attr = &type->attributes[i];
+        if (attr->vaf_flags & VAF_READ_ONLY)
             return exception_outcome(new_exception_variant("attribute '%s' is read only in type '%s'", name, type->name));
 
-        if (def->setter != NULL) {
-            return def->setter(obj, name, value);
+        if (attr->setter != NULL)
+            return attr->setter(obj, attr, value);
 
-        } else if (def->vaf_flags & VAF_VARIANT_PTR) {
-            variant **obj_ptr_ptr = (variant **)(((char *)obj) + def->offset);
-            *obj_ptr_ptr = value;
-            variant_inc_ref(value);
-            return ok_outcome(NULL);
-
-        } else if (def->vaf_flags & VAF_INT) {
-            if (!variant_instance_of(value, int_type))
-                return exception_outcome(new_exception_variant("cannot assign type '%s' to int attribute %s.%s", value->_type->name, obj->_type->name, name));
-            int *int_ptr = (int *)(((char *)obj) + def->offset);
-            *int_ptr = int_variant_as_int(value);
-            return ok_outcome(NULL);
-
-        } else if (def->vaf_flags & VAF_BOOL) {
-            if (!variant_instance_of(value, bool_type))
-                return exception_outcome(new_exception_variant("cannot assign type '%s' to bool attribute %s.%s", value->_type->name, obj->_type->name, name));
-            bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
-            *bool_ptr = bool_variant_as_bool(value);
-            return ok_outcome(NULL);
-
-        } else if (def->vaf_flags & VAF_CONST_CHAR_PTR) {
-            if (!variant_instance_of(value, str_type))
-                return exception_outcome(new_exception_variant("cannot assign type '%s' to str attribute %s.%s", value->_type->name, obj->_type->name, name));
-            const char **char_ptr_ptr = (const char **)(((char *)obj) + def->offset);
-            *char_ptr_ptr = str_variant_as_str(value); // we should copy maybe instead of refering to?
-            return ok_outcome(NULL);
-
-        } else {
-            return exception_outcome(new_exception_variant("attribute '%s' has not supported type '%d'", def->vaf_flags));
-        }
+        // we could do a small type test, if we wanted.
+        variant **var_ptr_ptr = (variant **)(((void *)obj) + attr->offset);
+        variant_drop_ref(*var_ptr_ptr);
+        *var_ptr_ptr = value;
+        variant_inc_ref(*var_ptr_ptr);
+        return ok_outcome(NULL);
     }
+
     return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
 }
 
@@ -237,8 +200,8 @@ execution_outcome variant_call_method(variant *obj, const char *name, list *args
         if (strcmp(type->methods[i].name, name) != 0)
             continue;
         
-        variant_method_definition *tmd = &type->methods[i];
-        return tmd->handler(obj, args, named_args, ctx);
+        variant_method_definition *method = &type->methods[i];
+        return method->handler(obj, method, args, named_args, ctx);
     }
     
     return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));

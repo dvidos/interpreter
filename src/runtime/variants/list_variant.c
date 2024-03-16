@@ -92,15 +92,15 @@ static execution_outcome set_element(list_instance *obj, variant *index, variant
     return ok_outcome(NULL);
 }
 
-static execution_outcome method_empty(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+static execution_outcome method_empty(list_instance *this, variant_method_definition *method, list *args, dict *named_args, exec_context *ctx) {
     return ok_outcome(new_bool_variant(list_empty(this->list)));
 }
 
-static execution_outcome method_legth(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+static execution_outcome method_legth(list_instance *this, variant_method_definition *method, list *args, dict *named_args, exec_context *ctx) {
     return ok_outcome(new_int_variant(list_length(this->list)));
 }
 
-static execution_outcome method_add(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+static execution_outcome method_add(list_instance *this, variant_method_definition *method, list *args, dict *named_args, exec_context *ctx) {
     if (list_length(args) < 1)
         return exception_outcome(new_exception_variant("expected the item to add as argument"));
     
@@ -109,7 +109,7 @@ static execution_outcome method_add(list_instance *this, list *args, dict *named
     list_add(this->list, item);
 }
 
-static execution_outcome method_filter(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+static execution_outcome method_filter(list_instance *this, variant_method_definition *method, list *args, dict *named_args, exec_context *ctx) {
     if (list_length(args) < 1)
         return exception_outcome(new_exception_variant("expected the filtering function as argument"));
     
@@ -136,7 +136,7 @@ static execution_outcome method_filter(list_instance *this, list *args, dict *na
     return ok_outcome(new_list_variant_owning(filtered_list));
 }
 
-static execution_outcome method_map(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+static execution_outcome method_map(list_instance *this, variant_method_definition *method, list *args, dict *named_args, exec_context *ctx) {
     if (list_length(args) < 1)
         return exception_outcome(new_exception_variant("expected the mapping function as argument"));
     
@@ -157,7 +157,7 @@ static execution_outcome method_map(list_instance *this, list *args, dict *named
     return ok_outcome(new_list_variant_owning(mapped_list));
 }
 
-static execution_outcome method_reduce(list_instance *this, list *args, dict *named_args, exec_context *ctx) {
+static execution_outcome method_reduce(list_instance *this, variant_method_definition *method, list *args, dict *named_args, exec_context *ctx) {
     if (list_length(args) < 2)
         return exception_outcome(new_exception_variant("expected (start value, aggregating function) as arguments"));
     variant *value = list_get(args, 0);

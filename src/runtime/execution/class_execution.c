@@ -42,16 +42,17 @@ static execution_outcome class_to_string(variant *instance) {
     return ok_outcome(new_str_variant("(%s @ %p)", instance->_type->name, instance));
 }
 
-static execution_outcome method_call_handler(variant *this, list *args, dict *named_args, exec_context *ctx) {
+static execution_outcome method_call_handler(variant *this, variant_method_definition *method, list *args, dict *named_args, exec_context *ctx) {
     // this handler is called when a method of this class is called.
-    // we somehow must find a way to tell which method this was!
+    statement *stmt = (statement *)method->ast_node;
+    // run stmt->per_type.function.statements ...
     return failed_outcome("Not implemented yet!");
 }
 
 
-static struct variant_attrib_definition *prepare_attrib_definitions(statement *stmt) {
+static variant_attrib_definition *prepare_attrib_definitions(statement *stmt) {
     int len = list_length(stmt->per_type.class.attributes);
-    struct variant_attrib_definition *attribs = malloc((len + 1) * sizeof(struct variant_attrib_definition *));
+    variant_attrib_definition *attribs = malloc((len + 1) * sizeof(variant_attrib_definition *));
 
     int index = 0;
     int offset = BASE_VARIANT_FIRST_ATTRIBUTES_SIZE;
@@ -68,9 +69,9 @@ static struct variant_attrib_definition *prepare_attrib_definitions(statement *s
     return attribs;
 }
 
-static struct variant_method_definition *prepare_method_definitions(statement *stmt) {
+static variant_method_definition *prepare_method_definitions(statement *stmt) {
     int len = list_length(stmt->per_type.class.methods);
-    struct variant_method_definition *methods = malloc((len + 1) * sizeof(struct variant_attrib_definition *));
+    variant_method_definition *methods = malloc((len + 1) * sizeof(variant_attrib_definition *));
 
     int index = 0;
     for_list(stmt->per_type.class.methods, it, class_method, cm) {
@@ -79,6 +80,7 @@ static struct variant_method_definition *prepare_method_definitions(statement *s
         methods[index].handler = method_call_handler;
         if (cm->public)
             methods[index].vmf_flags += VMF_PUBLIC;
+        methods[index].ast_node = cm;
     }
     methods[index].name = NULL; // signal the last attribute
 
