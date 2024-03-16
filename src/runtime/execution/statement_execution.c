@@ -135,6 +135,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
                     stmt
                 ), NULL)
             );
+            break;
 
         case ST_TRY_CATCH:
             ex = execute_statements_with_flow(stmt->per_type.try_catch.try_statements, ctx, should_break, should_continue, should_return);
