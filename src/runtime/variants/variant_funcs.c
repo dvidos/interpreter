@@ -138,25 +138,25 @@ execution_outcome variant_get_attr_value(variant *obj, const char *name) {
         if (def->getter != NULL) {
             return def->getter(obj, name);
 
-        } else if (def->tat_flags & VAT_VARIANT_PTR) {
+        } else if (def->vaf_flags & VAF_VARIANT_PTR) {
             variant *obj_ptr_ = (variant *)(((char *)obj) + def->offset);
             variant_inc_ref(obj_ptr_); // the one returned
             return ok_outcome(obj_ptr_);
 
-        } else if (def->tat_flags & VAT_INT) {
+        } else if (def->vaf_flags & VAF_INT) {
             int *int_ptr = (int *)(((char *)obj) + def->offset);
             return ok_outcome(new_int_variant(*int_ptr));
 
-        } else if (def->tat_flags & VAT_BOOL) {
+        } else if (def->vaf_flags & VAF_BOOL) {
             bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
             return ok_outcome(new_bool_variant(*bool_ptr));
 
-        } else if (def->tat_flags & VAT_CONST_CHAR_PTR) {
+        } else if (def->vaf_flags & VAF_CONST_CHAR_PTR) {
             const char *char_ptr = (((const char *)obj) + def->offset);
             return ok_outcome(new_str_variant(char_ptr));
 
         } else {
-            return failed_outcome("attribute '%s' not supported type '%d'", name, def->tat_flags);
+            return failed_outcome("attribute '%s' not supported type '%d'", name, def->vaf_flags);
         }
     }
 
@@ -173,33 +173,33 @@ execution_outcome variant_set_attr_value(variant *obj, const char *name, variant
             continue;
 
         variant_attrib_definition *def = &type->attributes[i];
-        if (def->tat_flags & VAT_READ_ONLY)
+        if (def->vaf_flags & VAF_READ_ONLY)
             return exception_outcome(new_exception_variant("attribute '%s' is read only in type '%s'", name, type->name));
 
         if (def->setter != NULL) {
             return def->setter(obj, name, value);
 
-        } else if (def->tat_flags & VAT_VARIANT_PTR) {
+        } else if (def->vaf_flags & VAF_VARIANT_PTR) {
             variant **obj_ptr_ptr = (variant **)(((char *)obj) + def->offset);
             *obj_ptr_ptr = value;
             variant_inc_ref(value);
             return ok_outcome(NULL);
 
-        } else if (def->tat_flags & VAT_INT) {
+        } else if (def->vaf_flags & VAF_INT) {
             if (!variant_instance_of(value, int_type))
                 return exception_outcome(new_exception_variant("cannot assign type '%s' to int attribute %s.%s", value->_type->name, obj->_type->name, name));
             int *int_ptr = (int *)(((char *)obj) + def->offset);
             *int_ptr = int_variant_as_int(value);
             return ok_outcome(NULL);
 
-        } else if (def->tat_flags & VAT_BOOL) {
+        } else if (def->vaf_flags & VAF_BOOL) {
             if (!variant_instance_of(value, bool_type))
                 return exception_outcome(new_exception_variant("cannot assign type '%s' to bool attribute %s.%s", value->_type->name, obj->_type->name, name));
             bool *bool_ptr = (bool *)(((char *)obj) + def->offset);
             *bool_ptr = bool_variant_as_bool(value);
             return ok_outcome(NULL);
 
-        } else if (def->tat_flags & VAT_CONST_CHAR_PTR) {
+        } else if (def->vaf_flags & VAF_CONST_CHAR_PTR) {
             if (!variant_instance_of(value, str_type))
                 return exception_outcome(new_exception_variant("cannot assign type '%s' to str attribute %s.%s", value->_type->name, obj->_type->name, name));
             const char **char_ptr_ptr = (const char **)(((char *)obj) + def->offset);
@@ -207,7 +207,7 @@ execution_outcome variant_set_attr_value(variant *obj, const char *name, variant
             return ok_outcome(NULL);
 
         } else {
-            return exception_outcome(new_exception_variant("attribute '%s' has not supported type '%d'", def->tat_flags));
+            return exception_outcome(new_exception_variant("attribute '%s' has not supported type '%d'", def->vaf_flags));
         }
     }
     return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));

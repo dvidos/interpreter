@@ -56,6 +56,7 @@ FILES = \
 	\
 	src/runtime/execution/expression_execution.c \
 	src/runtime/execution/statement_execution.c \
+	src/runtime/execution/class_execution.c \
 	\
 	src/runtime/built_ins/built_in_funcs.c \
 	src/runtime/built_ins/built_in_funcs_tests.c \

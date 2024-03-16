@@ -49,7 +49,7 @@ struct statement {
         struct throw {
             expression *exception;
         } throw;
-        struct class {
+        struct statement_class_info {
             const char *name;
             list *attributes; // each entry is a class_attribute
             list *methods;    // each entry is a class_method

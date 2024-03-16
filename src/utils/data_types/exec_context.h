@@ -16,6 +16,7 @@ struct exec_context {
     list *ast_root_statements;
     dict *built_in_symbols;
     dict *global_values;
+    dict *constructable_variant_types;
     stack *stack_frames;
 
     struct debugger_info {
@@ -45,6 +46,9 @@ bool exec_context_symbol_exists(exec_context *c, const char *name);
 failable exec_context_register_symbol(exec_context *c, const char *name, variant *v);
 failable exec_context_update_symbol(exec_context *c, const char *name, variant *v);
 failable exec_context_unregister_symbol(exec_context *c, const char *name);
+
+failable exec_context_register_constructable_type(exec_context *c, variant_type *type);
+variant_type *exec_context_get_constructable_type(exec_context *c, const char *name);
 
 
 

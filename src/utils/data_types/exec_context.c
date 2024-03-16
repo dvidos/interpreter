@@ -26,6 +26,7 @@ exec_context *new_exec_context(const char *script_name, listing *code_listing, l
     c->stack_frames = new_stack(stack_frame_item_info);
     c->built_in_symbols = new_dict(variant_item_info);
     c->global_values = global_values;
+    c->constructable_variant_types = new_dict(NULL);
     return c;
 }
 
@@ -127,6 +128,17 @@ failable exec_context_unregister_symbol(exec_context *c, const char *name) {
     return ok();
 }
 
+failable exec_context_register_constructable_type(exec_context *c, variant_type *type) {
+    if (dict_has(c->constructable_variant_types, type->name))
+        return failed(NULL, "type '%s' already registered", type->name);
+    dict_set(c->constructable_variant_types, type->name, type);
+}
+
+variant_type *exec_context_get_constructable_type(exec_context *c, const char *name) {
+    if (!dict_has(c->constructable_variant_types, name))
+        return NULL;
+    return (variant_type *)dict_get(c->constructable_variant_types, name);
+}
 
 
 // ---------------------------

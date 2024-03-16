@@ -237,6 +237,7 @@ static failable_statement parse_breakpoint_statement() {
 }
 
 static failable_statement parse_class_statement() {
+
     if (!accept(T_CLASS)) return failed_statement(NULL, "was expecting 'class'");
     token *token = accepted();
     if (!accept(T_IDENTIFIER)) return failed_statement(NULL, "was expecting class name");
@@ -245,6 +246,7 @@ static failable_statement parse_class_statement() {
     if (!accept(T_LBRACKET)) return failed_statement(NULL, "was expecting '{' after class");
 
     const char *name;
+    dict *names = new_dict(str_item_info);
     list *attributes = new_list(class_attribute_item_info);
     list *methods = new_list(class_method_item_info);
     failable_statement st;
@@ -257,6 +259,9 @@ static failable_statement parse_class_statement() {
         if (accept(T_IDENTIFIER)) {
             // parse attribute
             name = accepted()->data;
+            if (dict_has(names, name))
+                return failed_statement("class '%s' already has a member named '%s'", class_name, name);
+            
             expression *init_expr = NULL;
             if (accept(T_EQUAL)) {
                 ex = parse_expression(tokens_it, CM_SEMICOLON, false);
@@ -271,6 +276,8 @@ static failable_statement parse_class_statement() {
             st = parse_function_statement();
             if (st.failed) return st;
             name = st.result->per_type.function.name;
+            if (dict_has(names, name))
+                return failed_statement("class '%s' already has a member named '%s'", class_name, name);
             list_add(methods, new_class_method(public, name, st.result));
 
         } else {
@@ -278,9 +285,13 @@ static failable_statement parse_class_statement() {
             token_describe(peek(), sb);
             return failed_statement(NULL, "was expecting 'function' or identifier in class declaration, got %s", str_builder_charptr(sb));
         }
+
+        dict_set(names, name, (char *)name);
     }
 
-    return ok_statement(new_class_statement(class_name, attributes, methods, token));
+    statement *clst = new_class_statement(class_name, attributes, methods, token);
+    dict_free(names);
+    return ok_statement(clst);
 }
 
 failable_statement parse_statement(iterator *tokens) {

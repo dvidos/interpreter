@@ -5,12 +5,14 @@
 #include "../../utils/data_types/_module.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
+#include "class_execution.h"
 
 
 static execution_outcome check_condition(expression *condition, exec_context *ctx);
 static execution_outcome execute_single_statement(statement *stmt, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return);
 static execution_outcome execute_statements_with_flow(list *statements, exec_context *ctx, bool *should_break, bool *should_continue, bool *should_return);
 static execution_outcome execute_statements_in_loop(expression *condition, list *statements, expression *next, exec_context *ctx, bool *should_return);
+static void register_class_in_exec_context(statement *statement, exec_context *ctx);
 
 execution_outcome statement_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx);
 
@@ -46,143 +48,155 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
         }
     }
 
-    if (s_type == ST_IF) {
-        ex = check_condition(stmt->per_type.if_.condition, ctx);
-        if (ex.excepted || ex.failed)
-            return ex;
-        bool passed = bool_variant_as_bool(ex.result);
+    switch (s_type) {
+        case ST_IF:
+            ex = check_condition(stmt->per_type.if_.condition, ctx);
+            if (ex.excepted || ex.failed)
+                return ex;
+            bool passed = bool_variant_as_bool(ex.result);
 
-        if (passed) {
-            ex = execute_statements_with_flow(stmt->per_type.if_.body_statements, ctx, should_break, should_continue, should_return);
-        } else if (stmt->per_type.if_.has_else) { 
-            ex = execute_statements_with_flow(stmt->per_type.if_.else_body_statements, ctx, should_break, should_continue, should_return);
-        } else {
-            ex = ok_outcome(ex.result);
-        }
-        if (ex.excepted || ex.failed)
-            return ex;
-        return_value = ex.result;
-        
-    } else if (s_type == ST_WHILE) {
-        ex = execute_statements_in_loop(
-            stmt->per_type.while_.condition,
-            stmt->per_type.while_.body_statements,
-            NULL,
-            ctx,
-            should_return
-        );
-        if (ex.excepted || ex.failed)
-            return ex;
-        return_value = ex.result;
-
-    } else if (s_type == ST_FOR_LOOP) {
-        ex = execute_expression(stmt->per_type.for_.init, ctx);
-        if (ex.excepted || ex.failed)
-            return ex;
-        ex = execute_statements_in_loop(
-            stmt->per_type.for_.condition,
-            stmt->per_type.for_.body_statements,
-            stmt->per_type.for_.next,
-            ctx,
-            should_return
-        );
-        if (ex.excepted || ex.failed)
-            return ex;
-        return_value = ex.result;
-
-    } else if (s_type == ST_EXPRESSION) {
-        ex = execute_expression(stmt->per_type.expr.expr, ctx);
-        if (ex.excepted || ex.failed)
-            return ex;
-        return_value = ex.result;
-
-    } else if (s_type == ST_BREAK) {
-        if (should_break != NULL)
-            *should_break = true;
-
-    } else if (s_type == ST_CONTINUE) {
-        if (should_continue != NULL)
-            *should_continue = true;
-
-    } else if (s_type == ST_RETURN) {
-        if (stmt->per_type.return_.value != NULL) {
-            ex = execute_expression(stmt->per_type.return_.value, ctx);
+            if (passed) {
+                ex = execute_statements_with_flow(stmt->per_type.if_.body_statements, ctx, should_break, should_continue, should_return);
+            } else if (stmt->per_type.if_.has_else) { 
+                ex = execute_statements_with_flow(stmt->per_type.if_.else_body_statements, ctx, should_break, should_continue, should_return);
+            } else {
+                ex = ok_outcome(ex.result);
+            }
             if (ex.excepted || ex.failed)
                 return ex;
             return_value = ex.result;
-        } else {
-            return_value = void_singleton;
-        }
-        if (should_return != NULL)
-            *should_return = true;
+            break;
 
-    } else if (s_type == ST_FUNCTION) {
-        // this is a statement function, hence a named one. Register to symbols
-        exec_context_register_symbol(ctx, stmt->per_type.function.name,
-            new_callable_variant(new_callable(
-                stmt->per_type.function.name,
-                statement_function_callable_executor,
-                stmt
-            ), NULL)
-        );
+        case ST_WHILE:
+            ex = execute_statements_in_loop(
+                stmt->per_type.while_.condition,
+                stmt->per_type.while_.body_statements,
+                NULL,
+                ctx,
+                should_return
+            );
+            if (ex.excepted || ex.failed)
+                return ex;
+            return_value = ex.result;
+            break;
 
-    } else if (s_type == ST_TRY_CATCH) {
-        ex = execute_statements_with_flow(stmt->per_type.try_catch.try_statements, ctx, should_break, should_continue, should_return);
-        if (ex.failed) return ex;
+        case ST_FOR_LOOP:
+            ex = execute_expression(stmt->per_type.for_.init, ctx);
+            if (ex.excepted || ex.failed)
+                return ex;
+            ex = execute_statements_in_loop(
+                stmt->per_type.for_.condition,
+                stmt->per_type.for_.body_statements,
+                stmt->per_type.for_.next,
+                ctx,
+                should_return
+            );
+            if (ex.excepted || ex.failed)
+                return ex;
+            return_value = ex.result;
+            break;
 
-        // save this for later, we may run a "finally" block
-        execution_outcome try_catch_outcome = ex;
+        case ST_EXPRESSION:
+            ex = execute_expression(stmt->per_type.expr.expr, ctx);
+            if (ex.excepted || ex.failed)
+                return ex;
+            return_value = ex.result;
+            break;
 
-        if (ex.excepted && stmt->per_type.try_catch.catch_statements != NULL) {
-            variant *exception = ex.exception_thrown;
+        case ST_BREAK:
+            if (should_break != NULL)
+                *should_break = true;
+            break;
 
-            if (stmt->per_type.try_catch.exception_identifier != NULL)
-                exec_context_register_symbol(ctx, stmt->per_type.try_catch.exception_identifier, exception);
-            ex = execute_statements_with_flow(stmt->per_type.try_catch.catch_statements, ctx, should_break, should_continue, should_return);
+        case ST_CONTINUE:
+            if (should_continue != NULL)
+                *should_continue = true;
+            break;
+
+        case ST_RETURN:
+            if (stmt->per_type.return_.value != NULL) {
+                ex = execute_expression(stmt->per_type.return_.value, ctx);
+                if (ex.excepted || ex.failed)
+                    return ex;
+                return_value = ex.result;
+            } else {
+                return_value = void_singleton;
+            }
+            if (should_return != NULL)
+                *should_return = true;
+            break;
+
+        case ST_FUNCTION:
+            // this is a statement function, hence a named one. Register to symbols
+            exec_context_register_symbol(ctx, stmt->per_type.function.name,
+                new_callable_variant(new_callable(
+                    stmt->per_type.function.name,
+                    statement_function_callable_executor,
+                    stmt
+                ), NULL)
+            );
+
+        case ST_TRY_CATCH:
+            ex = execute_statements_with_flow(stmt->per_type.try_catch.try_statements, ctx, should_break, should_continue, should_return);
             if (ex.failed) return ex;
-            if (stmt->per_type.try_catch.exception_identifier != NULL)
-                exec_context_unregister_symbol(ctx, stmt->per_type.try_catch.exception_identifier);
+
+            // save this for later, we may run a "finally" block
+            execution_outcome try_catch_outcome = ex;
+            if (ex.excepted && stmt->per_type.try_catch.catch_statements != NULL) {
+                variant *exception = ex.exception_thrown;
+
+                if (stmt->per_type.try_catch.exception_identifier != NULL)
+                    exec_context_register_symbol(ctx, stmt->per_type.try_catch.exception_identifier, exception);
+                ex = execute_statements_with_flow(stmt->per_type.try_catch.catch_statements, ctx, should_break, should_continue, should_return);
+                if (ex.failed) return ex;
+                if (stmt->per_type.try_catch.exception_identifier != NULL)
+                    exec_context_unregister_symbol(ctx, stmt->per_type.try_catch.exception_identifier);
+                
+                // if exception was successfully handled, we are ok
+                // if new exception was raised inside catch, save for post-finally
+                try_catch_outcome = ex;
+            }
+
+            // finally will run in any case, but will not influence the result.
+            if (stmt->per_type.try_catch.finally_statements != NULL) {
+                ex = execute_statements_with_flow(stmt->per_type.try_catch.finally_statements, ctx, should_break, should_continue, should_return);    
+                if (ex.excepted || ex.failed) return ex;
+            }
+            return try_catch_outcome;
+            break; // useless here.
+
+        case ST_THROW:
+            variant *str_result;
+            if (stmt->per_type.throw.exception == NULL) {
+                str_result = new_str_variant("");
+            } else {
+                ex = execute_expression(stmt->per_type.throw.exception, ctx);
+                if (ex.excepted || ex.failed) return ex;
+                str_result = variant_to_string(ex.result);
+            }
+            variant *exception = new_exception_variant_at(
+                stmt->token->filename, stmt->token->line_no, stmt->token->column_no, 
+                NULL, 
+                str_variant_as_str(str_result));
+            variant_drop_ref(str_result);
+            return exception_outcome(exception);
+            break; // useless
             
-            // if exception was successfully handled, we are ok
-            // if new exception was raised inside catch, save for post-finally
-            try_catch_outcome = ex;
-        }
+        case ST_BREAKPOINT:
+            // ignored in execution, bebugger entry is checked before executing a row.
+            break;
 
-        // finally will run in any case, but will not influence the result.
-        if (stmt->per_type.try_catch.finally_statements != NULL) {
-            ex = execute_statements_with_flow(stmt->per_type.try_catch.finally_statements, ctx, should_break, should_continue, should_return);    
-            if (ex.excepted || ex.failed) return ex;
-        }
-        
-        return try_catch_outcome;
+        case ST_CLASS:
+            register_class_in_exec_context(stmt, ctx);
+            break;
 
-    } else if (s_type == ST_THROW) {
-        variant *str_result;
-        if (stmt->per_type.throw.exception == NULL) {
-            str_result = new_str_variant("");
-        } else {
-            ex = execute_expression(stmt->per_type.throw.exception, ctx);
-            if (ex.excepted || ex.failed) return ex;
-            str_result = variant_to_string(ex.result);
-        }
-        variant *exception = new_exception_variant_at(
-            stmt->token->filename, stmt->token->line_no, stmt->token->column_no, 
-            NULL, 
-            str_variant_as_str(str_result));
-        variant_drop_ref(str_result);
-        
-        return exception_outcome(exception);
-        
-    } else if (s_type == ST_BREAKPOINT) {
-        // ignored in execution, bebugger entry is checked before executing a row.
-    } else {
-        str_builder *sb = new_str_builder();
-        statement_describe(stmt, sb);
-        return exception_outcome(new_exception_variant_at(
-            stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL,
-            "was expecting [ if, while, for, break, continue, expression, try, return, breakpoint ] but got %s", 
-            str_builder_charptr(sb)
-        ));
+        default:
+            str_builder *sb = new_str_builder();
+            statement_describe(stmt, sb);
+            return exception_outcome(new_exception_variant_at(
+                stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL,
+                "was expecting [ if, while, for, break, continue, expression, try, return, breakpoint ] but got %s", 
+                str_builder_charptr(sb)));
     }
 
     return ok_outcome(return_value);
@@ -229,6 +243,11 @@ static execution_outcome execute_statements_in_loop(expression *pre_condition, l
     }
 
     return ok_outcome(return_value);
+}
+
+static void register_class_in_exec_context(statement *statement, exec_context *ctx) {
+    variant_type *type = class_statement_create_variant_type(statement);
+    exec_context_register_constructable_type(ctx, type);
 }
 
 execution_outcome statement_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {

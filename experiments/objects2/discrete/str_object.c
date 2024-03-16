@@ -48,7 +48,7 @@ static struct variant_method_definition methods[] = {
 };
 
 static struct variant_attrib_definition attributes[] = {
-    { "length", NULL, NULL, offsetof(str, length), VAT_INT + VAT_READ_ONLY },
+    { "length", NULL, NULL, offsetof(str, length), VAF_INT + VAF_READ_ONLY },
     { NULL }
 };
 

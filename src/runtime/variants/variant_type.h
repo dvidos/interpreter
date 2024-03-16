@@ -34,12 +34,13 @@ typedef execution_outcome (*variant_method_handler_func)(variant *this, list *ar
 enum variant_method_flags {
     VMF_DEFAULT = 0,
     VMF_VARARGS = 1,
-    VMF_NOARGS  = 2
+    VMF_NOARGS  = 2,
+    VMF_PUBLIC  = 1024
 };
 typedef struct variant_method_definition {
     const char *name;
     variant_method_handler_func handler;
-    enum variant_method_flags tpf_flags;
+    enum variant_method_flags vmf_flags;
 } variant_method_definition;
 
 
@@ -48,20 +49,21 @@ typedef struct variant_method_definition {
 // they are defined in an array of this structure
 typedef execution_outcome variant_attrib_getter(variant *this, const char *name);
 typedef execution_outcome variant_attrib_setter(variant *this, const char *name, variant *value);
-enum variant_attrib_type {
-    VAT_DEFAULT = 0,
-    VAT_INT     = 1,
-    VAT_BOOL    = 2,
-    VAT_CONST_CHAR_PTR = 3,
-    VAT_VARIANT_PTR = 4,
-    VAT_READ_ONLY = 1024,
+enum variant_attrib_flags {
+    VAF_DEFAULT = 0,
+    VAF_INT     = 1,
+    VAF_BOOL    = 2,
+    VAF_CONST_CHAR_PTR = 3,
+    VAF_VARIANT_PTR = 4,
+    VAF_PUBLIC = 1024,
+    VAF_READ_ONLY = 2048,
 };
 typedef struct variant_attrib_definition {
     const char *name;
     variant_attrib_getter *getter; // optional, preferred if not null
     variant_attrib_setter *setter; // optional, preferred if not null
     int offset; // offsetof() the attribute in the variant structure
-    enum variant_attrib_type tat_flags;
+    enum variant_attrib_flags vaf_flags;
 } variant_attrib_definition;
 
 
@@ -77,6 +79,10 @@ struct variant_type {
     const char *name;
     int instance_size;
     struct variant_type *parent_type;
+
+    // the AST node that created this type.
+    // most probably a statement, maybe an expression in the future
+    void *ast_node;
 
     // class wide functions to define behavior of instances
     // e.g. to_string(), to_bool(), hash(), len(), call(), serialize(), iterator() etc
