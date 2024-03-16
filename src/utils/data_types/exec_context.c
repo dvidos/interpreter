@@ -68,6 +68,9 @@ variant *exec_context_resolve_symbol(exec_context *c, const char *name) {
     if (dict_has(c->built_in_symbols, name))
         return dict_get(c->built_in_symbols, name);
     
+    if (dict_has(c->constructable_variant_types, name))
+        return dict_get(c->constructable_variant_types, name);
+    
     return NULL;
 }
 
@@ -82,6 +85,9 @@ bool exec_context_symbol_exists(exec_context *c, const char *name) {
         return true;
     
     if (dict_has(c->built_in_symbols, name))
+        return true;
+
+    if (dict_has(c->constructable_variant_types, name))
         return true;
     
     return false;

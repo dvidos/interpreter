@@ -52,7 +52,7 @@ static execution_outcome method_call_handler(variant *this, variant_method_defin
 
 static variant_attrib_definition *prepare_attrib_definitions(statement *stmt) {
     int len = list_length(stmt->per_type.class.attributes);
-    variant_attrib_definition *attribs = malloc((len + 1) * sizeof(variant_attrib_definition *));
+    variant_attrib_definition *attribs = malloc((len + 1) * sizeof(variant_attrib_definition));
 
     int index = 0;
     int offset = BASE_VARIANT_FIRST_ATTRIBUTES_SIZE;
@@ -62,7 +62,9 @@ static variant_attrib_definition *prepare_attrib_definitions(statement *stmt) {
         if (ca->public)
             attribs[index].vaf_flags += VAF_PUBLIC;
         attribs[index].offset = offset;
+
         offset += sizeof(variant *);
+        index++;
     }
     attribs[index].name = NULL; // signal the last attribute
 
@@ -71,7 +73,7 @@ static variant_attrib_definition *prepare_attrib_definitions(statement *stmt) {
 
 static variant_method_definition *prepare_method_definitions(statement *stmt) {
     int len = list_length(stmt->per_type.class.methods);
-    variant_method_definition *methods = malloc((len + 1) * sizeof(variant_attrib_definition *));
+    variant_method_definition *methods = malloc((len + 1) * sizeof(variant_attrib_definition));
 
     int index = 0;
     for_list(stmt->per_type.class.methods, it, class_method, cm) {
@@ -81,6 +83,8 @@ static variant_method_definition *prepare_method_definitions(statement *stmt) {
         if (cm->public)
             methods[index].vmf_flags += VMF_PUBLIC;
         methods[index].ast_node = cm;
+
+        index++;
     }
     methods[index].name = NULL; // signal the last attribute
 

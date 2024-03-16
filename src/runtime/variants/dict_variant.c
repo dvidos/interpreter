@@ -131,6 +131,12 @@ variant *new_dict_variant_of(int entries_count, ...) {
     return (variant *)obj;
 }
 
+variant *new_dict_variant_owning(dict *dict) {
+    dict_instance *obj = (dict_instance *)new_dict_variant();
+    obj->dict = dict;
+    return (variant *)obj;
+}
+
 dict *dict_variant_as_dict(variant *v) {
     if (!variant_instance_of(v, dict_type))
         return NULL;

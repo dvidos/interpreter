@@ -106,8 +106,8 @@ struct variant_type {
 
     // array of attributes and methods of the instances
     // last element in array has a NULL name
-    struct variant_attrib_definition *attributes;
-    struct variant_method_definition *methods;
+    variant_attrib_definition *attributes;
+    variant_method_definition *methods;
 };
 
 

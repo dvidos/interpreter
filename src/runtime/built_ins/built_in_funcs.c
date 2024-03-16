@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "built_in_funcs.h"
+#include "../../utils/mem.h"
 #include "../../containers/_module.h"
 #include "../../utils/data_types/_module.h"
 #include "../../utils/str.h"
@@ -34,7 +35,9 @@ static dict *built_in_dict_methods = NULL;
 
 #define RET_STR(val)    ok_outcome(new_str_variant(val))
 #define RET_INT(val)    ok_outcome(new_int_variant(val))
+#define RET_VARNT(var)  ok_outcome(var)
 #define RET_VOID()      ok_outcome(void_singleton)
+
 
 #define BUILT_IN_METHOD(target_obj_type, name, function)  \
     dict_set(built_in_ ## target_obj_type ## _methods, \
@@ -44,6 +47,47 @@ static dict *built_in_dict_methods = NULL;
             NULL \
         ) \
     ) \
+
+BUILT_IN_CALLABLE(new) {
+    // first argument is type, rest are initialization args
+    // e.g. new(str, 'hello') will be split into:
+    //      - acquire and prepare a 'str' instance
+    //      - call the type initializer with the 'hello' as first argument
+
+    variant *v = VARNT_ARG(0);
+    if (v == NULL || v->_type != type_of_types)
+        return exception_outcome(new_exception_variant("new() requires a type as first argument"));
+    variant_type *type = (variant_type *)v;
+    
+    // we need to create a new slice of the args list, excluding the first argument.
+    list *args_slice = new_list(variant_item_info);
+    for (int i = 1; i < list_length(positional_args); i++)
+        list_add(args_slice, list_get(positional_args, i));
+    variant *initializer_positional_args = new_list_variant_owning(args_slice);
+    variant *initializer_named_args = new_dict_variant_owning(named_args);
+
+    variant *instance = malloc(type->instance_size);
+    instance->_type = type;
+    instance->_references_count = 1;
+    if (type->initializer != NULL)
+        type->initializer(instance, 
+            initializer_positional_args, initializer_named_args);
+
+    // we should improve the "clone()", to allow us to copy on write.
+    // variant_drop_ref(initializer_positional_args);
+    // variant_drop_ref(initializer_named_args);// but this will free the inter
+
+    return ok_outcome(instance);
+}
+
+BUILT_IN_CALLABLE(type) {
+    // first argument is an object, return it's type
+    variant *a = VARNT_ARG(0);
+    return RET_VARNT((variant *)a->_type);
+}
+
+
+
 
 BUILT_IN_CALLABLE(strlen) {
     const char *str = STR_ARG(0);
@@ -209,6 +253,9 @@ static inline void add_callable(callable *c) {
 void initialize_built_in_funcs_table() {
     built_in_funcs_list = new_list(callable_item_info);
     built_in_funcs_dict = new_dict(callable_item_info);
+
+    add_callable(built_in_new_callable());
+    add_callable(built_in_type_callable());
 
     add_callable(built_in_substr_callable());
     add_callable(built_in_strpos_callable());
