@@ -6,6 +6,7 @@
 #include "../../utils/str_builder.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
+#include "function_execution.h"
 #include "../built_ins/built_in_funcs.h"
 
 // used for pre/post increment/decrement
@@ -32,7 +33,7 @@ static execution_outcome retrieve_member(expression *object, expression *member,
 static execution_outcome store_member(expression *container_expr, expression *member_expr, variant *value, exec_context *ctx);
 static execution_outcome call_member(expression *container_expr, expression *member_expr, expression *args_expr, exec_context *ctx);
 
-static execution_outcome make_function_call(expression *callable_expr, expression *args_expr, exec_context *ctx);
+static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, const char *call_filename, int call_line_no, int call_column_no, exec_context *ctx);
 static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx);
 static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx);
 static execution_outcome calculate_comparison(expression *op_expr, enum comparison cmp, variant *v1, variant *v2);
@@ -160,7 +161,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
             } else if (op == OP_MEMBER) {
                 return retrieve_member(operand1, operand2, ctx);
             } else if (op == OP_FUNC_CALL) {
-                return make_function_call(operand1, operand2, ctx);
+                return make_function_call(operand1, operand2, e->token->filename, e->token->line_no, e->token->column_no, ctx);
             } else {
                 ex = execute_expression(operand1, ctx);
                 if (ex.excepted || ex.failed) return ex;
@@ -439,7 +440,8 @@ static execution_outcome call_member(expression *container_expr, expression *mem
     }
 }
 
-static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, exec_context *ctx) {
+static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, 
+    const char *call_filename, int call_line_no, int call_column_no, exec_context *ctx) {
 
     if (call_target_expr->op == OP_MEMBER) {
         // if calling a member of something, avoid promoting the method 
@@ -454,7 +456,7 @@ static execution_outcome make_function_call(expression *call_target_expr, expres
         variant *call_target = ex.result;
 
         if (args_expr->type != ET_LIST_DATA)
-            return exception_outcome(new_exception_variant("call requires identifier as right operand"));
+            return exception_outcome(new_exception_variant("call requires a list of expressions"));
         ex = retrieve_value(args_expr, ctx);
         if (ex.excepted || ex.failed) return ex;
         list *args = list_variant_as_list(ex.result);
@@ -671,7 +673,8 @@ static execution_outcome expression_function_callable_executor(
         ));
     }
 
-    stack_frame *frame = new_stack_frame(expr->per_type.func.name, NULL, expr);
+    stack_frame *frame = new_stack_frame(expr->per_type.func.name, 
+        expr->token->filename, expr->token->line_no, expr->token->column_no);
     stack_frame_initialization(frame, arg_names, positional_args, this_obj);
     exec_context_push_stack_frame(ctx, frame);
 

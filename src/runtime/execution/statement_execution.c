@@ -5,6 +5,7 @@
 #include "../../utils/data_types/_module.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
+#include "function_execution.h"
 #include "class_execution.h"
 
 
@@ -263,7 +264,8 @@ execution_outcome statement_function_callable_executor(list *positional_args, vo
         ));
     }
 
-    stack_frame *frame = new_stack_frame(stmt->per_type.function.name, stmt, NULL);
+    stack_frame *frame = new_stack_frame(stmt->per_type.function.name, 
+        stmt->token->filename, stmt->token->line_no, stmt->token->column_no);
     stack_frame_initialization(frame, arg_names, positional_args, NULL);
     exec_context_push_stack_frame(ctx, frame);
     
