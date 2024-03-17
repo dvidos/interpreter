@@ -15,9 +15,6 @@
 
 static list *built_in_funcs_list = NULL;
 static dict *built_in_funcs_dict = NULL;
-static dict *built_in_str_methods = NULL;
-static dict *built_in_list_methods = NULL;
-static dict *built_in_dict_methods = NULL;
 
 #define BUILT_IN_CALLABLE(name)  \
     static execution_outcome built_in_ ## name ## _body(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx); \
@@ -204,50 +201,6 @@ BUILT_IN_CALLABLE(int) {
 }
 
 
-static execution_outcome built_in_list_empty(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    list *l = list_variant_as_list(this_obj);
-    return ok_outcome(new_bool_variant(list_length(l) == 0));
-}
-static execution_outcome built_in_list_length(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    list *l = list_variant_as_list(this_obj);
-    return ok_outcome(new_int_variant(list_length(l)));
-}
-static execution_outcome built_in_list_add(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    list *l = list_variant_as_list(this_obj);
-    variant *item = list_get(positional_args, 0);
-    list_add(l, item);
-    return ok_outcome(void_singleton);
-}
-
-static execution_outcome built_in_dict_empty(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    dict *d = dict_variant_as_dict(this_obj);
-    return ok_outcome(new_bool_variant(dict_is_empty(d)));
-}
-static execution_outcome built_in_dict_length(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    dict *d = dict_variant_as_dict(this_obj);
-    return ok_outcome(new_int_variant(dict_count(d)));
-}
-static execution_outcome built_in_dict_keys(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    dict *d = dict_variant_as_dict(this_obj);
-    variant *result = new_list_variant();
-    for_dict(d, it, str, key) {
-        variant *item = new_str_variant("%s", key);
-        list_variant_append(result, item);
-        variant_drop_ref(item);
-    }
-    return ok_outcome(result);
-}
-static execution_outcome built_in_dict_values(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
-    dict *d = dict_variant_as_dict(this_obj);
-    variant *result = new_list_variant();
-    for_dict(d, it, str, key) {
-        variant *item = dict_get(d, key);
-        list_variant_append(result, item);
-        variant_drop_ref(item);
-    }
-    return ok_outcome(result);
-}
-
 
 
 static inline void add_callable(callable *c) {
@@ -273,32 +226,9 @@ void initialize_built_in_funcs_table() {
     add_callable(built_in_str_callable());
     add_callable(built_in_int_callable());
 
-    built_in_str_methods = new_dict(callable_item_info);
-    built_in_list_methods = new_dict(callable_item_info);
-    built_in_dict_methods = new_dict(callable_item_info);
-
-    BUILT_IN_METHOD(list, add, built_in_list_add);
-    BUILT_IN_METHOD(list, empty, built_in_list_empty);
-    BUILT_IN_METHOD(list, length, built_in_list_length);
-
-    BUILT_IN_METHOD(dict, empty, built_in_dict_empty);
-    BUILT_IN_METHOD(dict, length, built_in_dict_length);
-    BUILT_IN_METHOD(dict, keys, built_in_dict_keys);
-    BUILT_IN_METHOD(dict, values, built_in_dict_values);
-
     // TODO: now that we know they work... fill in the rest!
 }
 
 dict *get_built_in_funcs_table() {
     return built_in_funcs_dict;
 }
-dict *get_built_in_str_methods_dictionary() {
-    return built_in_str_methods;
-}
-dict *get_built_in_list_methods_dictionary() {
-    return built_in_list_methods;
-}
-dict *get_built_in_dict_methods_dictionary() {
-    return built_in_dict_methods;
-}
-
