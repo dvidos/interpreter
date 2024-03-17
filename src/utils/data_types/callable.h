@@ -23,8 +23,6 @@ callable *new_callable(const char *name, callable_handler *func, void *callable_
 
 const char *callable_name(callable *c);
 execution_outcome callable_call(callable *c, list *positional_args, variant *this_obj, exec_context *ctx);
-bool callables_are_equal(callable *a, callable *b);
-const void callable_describe(callable *c, str_builder *sb);
 
 extern item_info *callable_item_info;
 

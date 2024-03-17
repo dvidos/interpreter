@@ -23,13 +23,6 @@ typedef struct callable_instance {
     callable *callable_deprecated;
 } callable_instance;
 
-static execution_outcome initialize(callable_instance *obj, variant *args, exec_context *ctx) {
-    return ok_outcome(NULL);
-}
-
-static void destruct(callable_instance *obj) {
-}
-
 static variant *stringify(callable_instance *obj) {
     if (obj->callable_deprecated == NULL)
         return NULL;
@@ -40,17 +33,6 @@ static variant *stringify(callable_instance *obj) {
         return new_str_variant("%s()", obj->name);
     else
         return new_str_variant("(callable @ 0x%p", obj);
-}
-
-static unsigned hash(callable_instance *obj) {
-    // we could hash each item
-}
-
-static int compare(callable_instance *a, callable_instance *b) {
-}
-
-static bool are_equal(callable_instance *a, callable_instance *b) {
-    return callables_are_equal(a->callable_deprecated, b->callable_deprecated);
 }
 
 static execution_outcome call(variant *obj, list *args, exec_context *ctx) {
@@ -82,12 +64,7 @@ variant_type *callable_type = &(variant_type){
     .parent_type = NULL,
     .instance_size = sizeof(callable_instance),
 
-    .initializer = (initialize_func)initialize,
-    .destructor = (destruct_func)destruct,
     .stringifier = (stringifier_func)stringify,
-    .hasher = (hashing_func)hash,
-    .comparer = (compare_func)compare,
-    .equality_checker = (equals_func)are_equal,
     .call_handler = (call_handler_func)call,
 };
 

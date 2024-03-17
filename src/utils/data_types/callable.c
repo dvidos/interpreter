@@ -35,23 +35,6 @@ const char *callable_name(callable *c) {
     return c->name;
 }
 
-bool callables_are_equal(callable *a, callable *b) {
-    if (a == NULL && b == NULL) return true;
-    if ((a == NULL && b != NULL) || (a != NULL && b == NULL)) return false;
-    if (a == b) return true;
-
-    if (strcmp(a->name, b->name) != 0)
-        return false;
-    if (a->handler != b->handler)
-        return false;
-    
-    return true;
-}
-
-const void callable_describe(callable *c, str_builder *sb) {
-    str_builder_addf(sb, "callable(@x%p)", c->handler);
-}
-
 execution_outcome callable_call(callable *c, list *positional_args, variant *this_obj, exec_context *ctx) {
     if (ctx == NULL)
         return failed_outcome("callable_call(): execution context was not passed in");
@@ -62,7 +45,7 @@ execution_outcome callable_call(callable *c, list *positional_args, variant *thi
 item_info *callable_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "callable",
-    .are_equal = (items_equal_func)callables_are_equal,
-    .describe = (describe_item_func)callable_describe
+    .are_equal = NULL,
+    .describe = NULL,
 };
 
