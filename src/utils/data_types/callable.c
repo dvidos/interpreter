@@ -52,11 +52,11 @@ const void callable_describe(callable *c, str_builder *sb) {
     str_builder_addf(sb, "callable(@x%p)", c->handler);
 }
 
-execution_outcome callable_call(callable *c, list *positional_args, dict *named_args, variant *this_obj, exec_context *ctx) {
+execution_outcome callable_call(callable *c, list *positional_args, variant *this_obj, exec_context *ctx) {
     if (ctx == NULL)
         return failed_outcome("callable_call(): execution context was not passed in");
     
-    return c->handler(positional_args, named_args, c->callable_data, this_obj, ctx);
+    return c->handler(positional_args, c->callable_data, this_obj, ctx);
 }
 
 item_info *callable_item_info = &(item_info){

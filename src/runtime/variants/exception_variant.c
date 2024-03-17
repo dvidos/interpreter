@@ -13,7 +13,7 @@ typedef struct exception_instance {
     variant *inner;
 } exception_instance;
 
-static execution_outcome initialize(exception_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
+static execution_outcome initialize(exception_instance *obj, variant *args, exec_context *ctx) {
     obj->message = NULL;
     obj->file = NULL;
     obj->line = 0;
@@ -105,7 +105,7 @@ static char *format_message(const char *fmt, va_list args) {
 
 
 variant *new_exception_variant(const char *fmt, ...) {
-    execution_outcome ex = variant_create(exception_type, NULL, NULL, NULL);
+    execution_outcome ex = variant_create(exception_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     exception_instance *e = (exception_instance *)ex.result;
 
@@ -118,7 +118,7 @@ variant *new_exception_variant(const char *fmt, ...) {
 }
 
 variant *new_exception_variant_at(const char *filename, int line, int column, variant *inner, const char *fmt, ...) {
-    execution_outcome ex = variant_create(exception_type, NULL, NULL, NULL);
+    execution_outcome ex = variant_create(exception_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     exception_instance *e = (exception_instance *)ex.result;
 

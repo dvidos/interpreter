@@ -20,11 +20,11 @@ static dict *built_in_list_methods = NULL;
 static dict *built_in_dict_methods = NULL;
 
 #define BUILT_IN_CALLABLE(name)  \
-    static execution_outcome built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx); \
+    static execution_outcome built_in_ ## name ## _body(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx); \
     static inline callable *built_in_ ## name ## _callable() { \
         return new_callable(#name, built_in_ ## name ## _body, NULL); \
     } \
-    static execution_outcome built_in_ ## name ## _body(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx)
+    static execution_outcome built_in_ ## name ## _body(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx)
 
 #define STR_ARG(num)    (num >= list_length(positional_args)) ? NULL : str_variant_as_str(list_get(positional_args, num))
 #define INT_ARG(num)    (num >= list_length(positional_args)) ? 0 : int_variant_as_int(list_get(positional_args, num))
@@ -64,7 +64,6 @@ BUILT_IN_CALLABLE(new) {
     for (int i = 1; i < list_length(positional_args); i++)
         list_add(args_slice, list_get(positional_args, i));
     variant *initializer_positional_args = new_list_variant_owning(args_slice);
-    variant *initializer_named_args = new_dict_variant_owning(named_args);
 
     variant *instance = malloc(type->instance_size);
     instance->_type = type;
@@ -72,14 +71,13 @@ BUILT_IN_CALLABLE(new) {
 
     if (type->initializer != NULL) {
         execution_outcome ex;
-        ex = type->initializer(instance, initializer_positional_args, initializer_named_args, ctx);
+        ex = type->initializer(instance, initializer_positional_args, ctx);
         if (ex.failed || ex.excepted) return ex;
     }
 
     // we should improve the "clone()", to allow us to copy on write.
     // shouldn't drop object I did not create.
     // variant_drop_ref(initializer_positional_args);
-    // variant_drop_ref(initializer_named_args);// but this will free the inter
 
     return ok_outcome(instance);
 }
@@ -206,30 +204,30 @@ BUILT_IN_CALLABLE(int) {
 }
 
 
-static execution_outcome built_in_list_empty(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_empty(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = list_variant_as_list(this_obj);
     return ok_outcome(new_bool_variant(list_length(l) == 0));
 }
-static execution_outcome built_in_list_length(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_length(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = list_variant_as_list(this_obj);
     return ok_outcome(new_int_variant(list_length(l)));
 }
-static execution_outcome built_in_list_add(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_list_add(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     list *l = list_variant_as_list(this_obj);
     variant *item = list_get(positional_args, 0);
     list_add(l, item);
     return ok_outcome(void_singleton);
 }
 
-static execution_outcome built_in_dict_empty(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_dict_empty(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = dict_variant_as_dict(this_obj);
     return ok_outcome(new_bool_variant(dict_is_empty(d)));
 }
-static execution_outcome built_in_dict_length(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_dict_length(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = dict_variant_as_dict(this_obj);
     return ok_outcome(new_int_variant(dict_count(d)));
 }
-static execution_outcome built_in_dict_keys(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_dict_keys(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = dict_variant_as_dict(this_obj);
     variant *result = new_list_variant();
     for_dict(d, it, str, key) {
@@ -239,7 +237,7 @@ static execution_outcome built_in_dict_keys(list *positional_args, dict *named_a
     }
     return ok_outcome(result);
 }
-static execution_outcome built_in_dict_values(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+static execution_outcome built_in_dict_values(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
     dict *d = dict_variant_as_dict(this_obj);
     variant *result = new_list_variant();
     for_dict(d, it, str, key) {

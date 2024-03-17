@@ -36,7 +36,7 @@ static execution_outcome make_function_call(expression *callable_expr, expressio
 static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx);
 static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx);
 static execution_outcome calculate_comparison(expression *op_expr, enum comparison cmp, variant *v1, variant *v2);
-static execution_outcome expression_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx);
+static execution_outcome expression_function_callable_executor(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx);
 
 
 
@@ -424,14 +424,14 @@ static execution_outcome call_member(expression *container_expr, expression *mem
     list *args = list_variant_as_list(ex.result);
 
     if (variant_has_method(container, member)) {
-        return variant_call_method(container, member, args, NULL, ctx);
+        return variant_call_method(container, member, args, ctx);
 
     } else if (variant_has_attr(container, member)) {
         ex = variant_get_attr_value(container, member);
         if (ex.excepted || ex.failed) return ex;
 
         // could be a callable expression or an expression function etc.
-        return variant_call(ex.result, args, NULL, ctx);
+        return variant_call(ex.result, args, ctx);
 
     } else {
         return exception_outcome(new_exception_variant("no callable member '%s' found in object type '%s'",
@@ -459,7 +459,7 @@ static execution_outcome make_function_call(expression *call_target_expr, expres
         if (ex.excepted || ex.failed) return ex;
         list *args = list_variant_as_list(ex.result);
 
-        ex = variant_call(call_target, args, NULL, ctx);
+        ex = variant_call(call_target, args, ctx);
         if (ex.exception_thrown != NULL)
             exception_variant_set_source(ex.exception_thrown, call_target_expr->token->filename, call_target_expr->token->line_no, call_target_expr->token->column_no);
         return ex;
@@ -656,7 +656,6 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
 
 static execution_outcome expression_function_callable_executor(
     list *positional_args, 
-    dict *named_args, 
     void *callable_data, 
     variant *this_obj,
     exec_context *ctx
@@ -673,7 +672,7 @@ static execution_outcome expression_function_callable_executor(
     }
 
     stack_frame *frame = new_stack_frame(expr->per_type.func.name, NULL, expr);
-    stack_frame_initialization(frame, arg_names, positional_args, named_args, this_obj);
+    stack_frame_initialization(frame, arg_names, positional_args, this_obj);
     exec_context_push_stack_frame(ctx, frame);
 
     execution_outcome result = execute_statements(expr->per_type.func.statements, ctx);

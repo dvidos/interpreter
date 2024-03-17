@@ -18,7 +18,7 @@ void initialize_variants();
 
 
 // call this to create a new instance
-execution_outcome variant_create(variant_type *type, variant *args, variant *named_args, exec_context *ctx);
+execution_outcome variant_create(variant_type *type, variant *args, exec_context *ctx);
 
 // references count. if refs down to zero, variant is destroyed too.
 void variant_inc_ref(variant *obj);
@@ -35,7 +35,7 @@ execution_outcome variant_set_attr_value(variant *obj, const char *name, variant
 
 // call these to manipulate methods on an variant
 bool              variant_has_method(variant *obj, const char *name);
-execution_outcome variant_call_method(variant *obj, const char *name, list *args_list, dict *named_args, exec_context *ctx);
+execution_outcome variant_call_method(variant *obj, const char *name, list *args_list, exec_context *ctx);
 execution_outcome variant_get_bound_method(variant *obj, const char *name);
 
 // a few utilitiy methods without knowing the variant type
@@ -47,7 +47,7 @@ variant *         variant_clone(variant *obj);
 variant *         variant_get_iterator(variant *obj); // create & reset iterator to before first
 execution_outcome variant_iterator_next(variant *obj); // advance and get next, or return error
 
-execution_outcome variant_call(variant *obj, list *args, dict *named_args, exec_context *ctx);
+execution_outcome variant_call(variant *obj, list *args, exec_context *ctx);
 execution_outcome variant_get_element(variant *obj, variant *index);
 execution_outcome variant_set_element(variant *obj, variant *index, variant *value);
 

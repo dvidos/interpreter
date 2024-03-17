@@ -13,16 +13,11 @@ stack_frame *new_stack_frame(const char *func_name, statement *func_stmt, expres
     return f;
 }
 
-void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, dict *named_values, variant *this_obj) {
+void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, variant *this_obj) {
 
     if (arg_names != NULL && arg_values != NULL) {
         for (int i = 0; i < list_length(arg_names); i++)
             stack_frame_register_symbol(f, list_get(arg_names, i), list_get(arg_values, i));
-    }
-
-    if (named_values != NULL) {
-        for_dict(named_values, keys, str, key)
-            stack_frame_register_symbol(f, key, dict_get(named_values, key));
     }
 
     if (this_obj != NULL)

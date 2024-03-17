@@ -9,7 +9,7 @@ typedef struct float_instance {
     float value;
 } float_instance;
 
-static execution_outcome initialize(float_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
+static execution_outcome initialize(float_instance *obj, variant *args, exec_context *ctx) {
     obj->value = 0.0;
     return ok_outcome(NULL);
 }
@@ -57,7 +57,7 @@ variant_type *float_type = &(variant_type){
 };
 
 variant *new_float_variant(float value) {
-    execution_outcome ex = variant_create(float_type, NULL, NULL, NULL);
+    execution_outcome ex = variant_create(float_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     float_instance *i = (float_instance *)ex.result;
     i->value = value;

@@ -8,7 +8,7 @@ typedef struct int_instance {
     int value;
 } int_instance;
 
-static execution_outcome initialize(int_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
+static execution_outcome initialize(int_instance *obj, variant *args, exec_context *ctx) {
     obj->value = 0;
     return ok_outcome(NULL);
 }
@@ -56,7 +56,7 @@ variant_type *int_type = &(variant_type){
 };
 
 variant *new_int_variant(int value) {
-    execution_outcome ex = variant_create(int_type, NULL, NULL, NULL);
+    execution_outcome ex = variant_create(int_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     int_instance *i = (int_instance *)ex.result;
     i->value = value;

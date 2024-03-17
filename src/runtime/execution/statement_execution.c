@@ -14,7 +14,7 @@ static execution_outcome execute_statements_with_flow(list *statements, exec_con
 static execution_outcome execute_statements_in_loop(expression *condition, list *statements, expression *next, exec_context *ctx, bool *should_return);
 static void register_class_in_exec_context(statement *statement, exec_context *ctx);
 
-execution_outcome statement_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx);
+execution_outcome statement_function_callable_executor(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx);
 
 
 // public entry point
@@ -251,7 +251,7 @@ static void register_class_in_exec_context(statement *statement, exec_context *c
     exec_context_register_constructable_type(ctx, type);
 }
 
-execution_outcome statement_function_callable_executor(list *positional_args, dict *named_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+execution_outcome statement_function_callable_executor(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
 
     statement *stmt = (statement *)callable_data;
     list *arg_names = stmt->per_type.function.arg_names;
@@ -264,7 +264,7 @@ execution_outcome statement_function_callable_executor(list *positional_args, di
     }
 
     stack_frame *frame = new_stack_frame(stmt->per_type.function.name, stmt, NULL);
-    stack_frame_initialization(frame, arg_names, positional_args, named_args, NULL);
+    stack_frame_initialization(frame, arg_names, positional_args, NULL);
     exec_context_push_stack_frame(ctx, frame);
     
     execution_outcome result = execute_statements(stmt->per_type.function.statements, ctx);

@@ -21,7 +21,7 @@ static void ensure_capacity(str_instance *obj, int capacity) {
     obj->buffer = realloc(obj->buffer, obj->capacity);
 }
 
-static execution_outcome initialize(str_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
+static execution_outcome initialize(str_instance *obj, variant *args, exec_context *ctx) {
     obj->capacity = 16;
     obj->buffer = malloc(obj->capacity);
     obj->length = 0;
@@ -81,7 +81,7 @@ variant_type *str_type = &(variant_type){
 };
 
 variant *new_str_variant(const char *fmt, ...) {
-    execution_outcome ex = variant_create(str_type, NULL, NULL, NULL);
+    execution_outcome ex = variant_create(str_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     str_instance *s = (str_instance *)ex.result;
 

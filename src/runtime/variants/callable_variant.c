@@ -23,7 +23,7 @@ typedef struct callable_instance {
     callable *callable_deprecated;
 } callable_instance;
 
-static execution_outcome initialize(callable_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
+static execution_outcome initialize(callable_instance *obj, variant *args, exec_context *ctx) {
     return ok_outcome(NULL);
 }
 
@@ -53,7 +53,7 @@ static bool are_equal(callable_instance *a, callable_instance *b) {
     return callables_are_equal(a->callable_deprecated, b->callable_deprecated);
 }
 
-static execution_outcome call(variant *obj, list *args, dict *named_args, exec_context *ctx) {
+static execution_outcome call(variant *obj, list *args, exec_context *ctx) {
     // we may have captured 'this'
     // we may have captured variables of a lambda enrironment
     // we may have captured nothing e.g. in a time() method.
@@ -61,12 +61,11 @@ static execution_outcome call(variant *obj, list *args, dict *named_args, exec_c
     
     // is this an old callable or a new?
     if (c->callable_deprecated != NULL) {
-        return callable_call(c->callable_deprecated, args, named_args, NULL, ctx);
+        return callable_call(c->callable_deprecated, args, NULL, ctx);
     } else {
         // new
         return c->handler(
             args,
-            named_args,
             ctx,
             c->payload,
             c->this,
@@ -93,7 +92,7 @@ variant_type *callable_type = &(variant_type){
 };
 
 variant *new_callable_variant(callable *c, variant *member_container) {
-    execution_outcome ex = variant_create(callable_type, NULL, NULL, NULL);
+    execution_outcome ex = variant_create(callable_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     callable_instance *obj = (callable_instance *)ex.result;
     obj->callable_deprecated = c;

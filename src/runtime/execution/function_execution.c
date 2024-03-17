@@ -1,7 +1,12 @@
 #include "function_execution.h"
 
 
-execution_outcome execute_function(ast_node, args, ctx) {
+execution_outcome execute_function(
+    list *func_statements, 
+    list *args_declaration,
+    list *arg_expressions, 
+    variant *this_obj,
+    exec_context *ctx) {
     
     // we should be given the token where the call is placed.
     // it can be either a statement function or an expression function
@@ -26,11 +31,13 @@ execution_outcome execute_function(ast_node, args, ctx) {
     }
 
     stack_frame *frame = new_stack_frame(expr->per_type.func.name, NULL, expr);
-    stack_frame_initialization(frame, arg_names, positional_args, named_args, this_obj);
+    stack_frame_initialization(frame, arg_names, positional_args, this_obj);
     exec_context_push_stack_frame(ctx, frame);
 
     execution_outcome result = execute_statements(expr->per_type.func.statements, ctx);
     
+    // we could run local statistics or clean up local variables.
+
     // even if an exception was raised, we still must pop the stack frame
     exec_context_pop_stack_frame(ctx);
 

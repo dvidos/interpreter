@@ -9,7 +9,6 @@ typedef execution_outcome (*callable_variant_call_handler)(
 
     // passed along at call time
     list *positional_args,  // list of variants
-    dict *named_args,       // dictionary of variants
     exec_context *ctx,      // execution_context / interpreter_state etc.
 
     // captured at callable creation time.

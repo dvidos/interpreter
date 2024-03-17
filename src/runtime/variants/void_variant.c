@@ -7,7 +7,7 @@ typedef struct void_variant_instance {
     BASE_VARIANT_FIRST_ATTRIBUTES;
 } void_variant_instance;
 
-static execution_outcome initialize(void_variant_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
+static execution_outcome initialize(void_variant_instance *obj, variant *args, exec_context *ctx) {
     return ok_outcome(NULL);
 }
 
@@ -51,7 +51,7 @@ variant_type *void_type = &(variant_type){
 };
 
 variant *new_void_variant() {
-    execution_outcome ex = variant_create(void_type, NULL, NULL, NULL);
+    execution_outcome ex = variant_create(void_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     return ex.result;
 }

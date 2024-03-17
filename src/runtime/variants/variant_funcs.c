@@ -41,7 +41,7 @@ void initialize_variants() {
     iteration_finished_exception_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
 }
 
-execution_outcome variant_create(variant_type *type, variant *args, variant *named_args, exec_context *ctx) {
+execution_outcome variant_create(variant_type *type, variant *args, exec_context *ctx) {
     if (type == NULL || type->_type != type_of_types)
         return failed_outcome("variant_create() requires a type as first argument.");
     
@@ -50,7 +50,7 @@ execution_outcome variant_create(variant_type *type, variant *args, variant *nam
     p->_type = type;
     p->_references_count = 1; // the one we are going to return
     if (type->initializer != NULL) {
-        execution_outcome ex = type->initializer(p, args, named_args, ctx);
+        execution_outcome ex = type->initializer(p, args, ctx);
         if (ex.failed || ex.excepted) return ex;
     }
     return ok_outcome(p);
@@ -198,7 +198,7 @@ bool variant_has_method(variant *obj, const char *name) {
     return false;
 }
 
-execution_outcome variant_call_method(variant *obj, const char *name, list *args, dict *named_args, exec_context *ctx) {
+execution_outcome variant_call_method(variant *obj, const char *name, list *args, exec_context *ctx) {
 
     variant_type *type = obj->_type;
     if (type->methods == NULL)
@@ -209,7 +209,7 @@ execution_outcome variant_call_method(variant *obj, const char *name, list *args
             continue;
         
         variant_method_definition *method = &type->methods[i];
-        return method->handler(obj, method, args, named_args, ctx);
+        return method->handler(obj, method, args, ctx);
     }
     
     return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));
@@ -301,14 +301,14 @@ execution_outcome variant_iterator_next(variant *obj) { // advance and get next,
     return obj->_type->iterator_next_implementation(obj);
 }
 
-execution_outcome variant_call(variant *obj, list *args, dict *named_args, exec_context *ctx) {
+execution_outcome variant_call(variant *obj, list *args, exec_context *ctx) {
     if (obj == NULL || obj->_type == NULL)
         return failed_outcome("Expecting variant with a type, got null");
 
     if (obj->_type->call_handler == NULL)
         return exception_outcome(new_exception_variant("Type '%s' is not callable", obj->_type->name));
 
-    return obj->_type->call_handler(obj, args, named_args, ctx);
+    return obj->_type->call_handler(obj, args, ctx);
 }
 
 execution_outcome variant_get_element(variant *obj, variant *index) {

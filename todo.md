@@ -56,6 +56,15 @@ This should speed up runtime a ton.
 * try to see if we can make an edit-compile-run cycle in VSCode by using the intepreter!!
 
 
+* establish the built-in functions `in()`, `out()`, `log()` for input output,
+whose behavior will be controlled by the switches `-i`, `-o`-, `-l` respectively. This makes it processing flexible
+  * `in()` could be setup to return from stdin one char, one line, or all the text, rows from databases, or complex objects from yaml or json files.
+  * `out()` could take any type of objects and go to stdout, text files, json files, even queues and endpoints.
+  * `log()` similarly could go to stderr or files etc.
+
+
+
+
 ## later
 
 * Maybe have an interactive way to navigate the AST code and structures...

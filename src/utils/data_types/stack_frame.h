@@ -21,7 +21,7 @@ struct stack_frame {
 };
 
 stack_frame *new_stack_frame(const char *func_name, statement *func_stmt, expression *func_expr);
-void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, dict *named_values, variant *this_value);
+void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, variant *this_value);
 
 variant *stack_frame_resolve_symbol(stack_frame *f, const char *name);
 bool stack_frame_symbol_exists(stack_frame *f, const char *name);
