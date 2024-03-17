@@ -5,6 +5,7 @@
 #include <stddef.h> // for offsetof()
 #include <stdbool.h> // for bool
 
+#include "../../utils/origin.h"
 #include "../../containers/_module.h"
 
 #include "variant_base.h"
@@ -24,7 +25,7 @@ typedef int (*compare_func)(variant *a, variant *b);
 typedef bool (*equals_func)(variant *a, variant *b);
 
 typedef execution_outcome (*iterator_next_func)(variant *obj);
-typedef execution_outcome (*call_handler_func)(variant *obj, list *args, variant *this_obj, const char *call_filename, int call_line, int call_column, exec_context *ctx);
+typedef execution_outcome (*call_handler_func)(variant *obj, list *args, variant *this_obj, origin *call_origin, exec_context *ctx);
 typedef execution_outcome (*get_element_func)(variant *obj, variant *index);
 typedef execution_outcome (*set_element_func)(variant *obj, variant *index, variant *value);
 
@@ -32,7 +33,7 @@ typedef execution_outcome (*set_element_func)(variant *obj, variant *index, vari
 // each variant has zero or more methods. 
 // they are defined in an array of this structure
 typedef struct variant_method_definition variant_method_definition;
-typedef execution_outcome (*variant_method_handler_func)(variant *this, variant_method_definition *method, list *args, exec_context *ctx);
+typedef execution_outcome (*variant_method_handler_func)(variant *this, variant_method_definition *method, list *args, origin *call_origin, exec_context *ctx);
 enum variant_method_flags {
     VMF_DEFAULT = 0,
     VMF_VARARGS = 1,

@@ -11,10 +11,8 @@ execution_outcome execute_user_function(
     list *func_arg_names,
     list *arg_expressions, 
     variant *this_obj,
-    exec_context *ctx,
-    char *call_filename,
-    int call_line_no,
-    int call_column_no);
+    origin *call_origin,
+    exec_context *ctx);
 
 
 #endif

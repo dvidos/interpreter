@@ -22,7 +22,7 @@ static dict *built_in_funcs_dict = NULL;
     void *ast_node, \
     variant *this_obj, \
     dict *captured_values, \
-    const char *call_filename, int call_line, int call_column, \
+    origin *call_origin, \
     exec_context *ctx
 
 

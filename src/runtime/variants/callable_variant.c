@@ -32,11 +32,11 @@ static variant *instance_stringify(callable_instance *obj) {
         return new_str_variant("(callable @ 0x%p", obj);
 }
 
-static execution_outcome instance_call(variant *obj, list *args, variant *this_obj, const char *call_filename, int call_line, int call_column, exec_context *ctx) {
+static execution_outcome instance_call(variant *obj, list *args, variant *this_obj, origin *call_origin, exec_context *ctx) {
     callable_instance *c = (callable_instance *)obj;
     // TODO: add origin
     if (c->callable != NULL) {
-        return callable_call(c->callable, args, NULL, NULL, 0, 0, ctx);
+        return callable_call(c->callable, args, NULL, call_origin, ctx);
     }
 }
 

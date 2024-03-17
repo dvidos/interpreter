@@ -17,15 +17,11 @@ struct stack_frame {
     const char *func_name;
     statement *func_stmt;
     expression *func_expr;
-
-    const char *call_filename;
-    int call_line_no;
-    int call_column_no;
-
+    origin *call_origin;
     dict *symbols;
 };
 
-stack_frame *new_stack_frame(const char *func_name, const char *call_filename, int call_line_no, int call_column_no);
+stack_frame *new_stack_frame(const char *func_name, origin *call_origin);
 void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, variant *this_value);
 
 variant *stack_frame_resolve_symbol(stack_frame *f, const char *name);

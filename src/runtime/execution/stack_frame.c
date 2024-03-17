@@ -3,13 +3,11 @@
 #include "../../utils/str.h"
 
 
-stack_frame *new_stack_frame(const char *func_name, const char *call_filename, int call_line_no, int call_column_no) {
+stack_frame *new_stack_frame(const char *func_name, origin *call_origin) {
     stack_frame *f = malloc(sizeof(stack_frame));
     f->item_info = stack_frame_item_info;
     f->func_name = func_name;
-    f->call_filename = call_filename;
-    f->call_line_no = call_line_no;
-    f->call_column_no = call_column_no;
+    f->call_origin = call_origin;
     f->symbols = new_dict(variant_item_info);
     return f;
 }

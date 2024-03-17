@@ -48,7 +48,7 @@ execution_outcome callable_call(
     callable *c,
     list *arg_values,
     variant *this_obj,
-    const char *call_filename, int call_line, int call_column, // source of call
+    origin *call_origin,
     exec_context *ctx
 ) {
     if (ctx == NULL)
@@ -62,9 +62,7 @@ execution_outcome callable_call(
         c->callable_data,
         this_obj,
         c->captured_values,
-        call_filename,
-        call_line,
-        call_column,
+        call_origin,
         ctx
     );
 }

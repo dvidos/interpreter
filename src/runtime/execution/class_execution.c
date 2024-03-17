@@ -53,7 +53,7 @@ static execution_outcome instance_initializer(variant *instance, variant *args_l
     // then, if there is an explicit constructor, use it
     if (variant_has_method(instance, CONSTRUCTOR_METHOD_NAME)) {
         list *al = args_list == NULL ? NULL : list_variant_as_list(args_list);
-        variant_call_method(instance, CONSTRUCTOR_METHOD_NAME, al, ctx);
+        variant_call_method(instance, CONSTRUCTOR_METHOD_NAME, al, internal_origin(), ctx);
     }
 
     return ok_outcome(NULL);
@@ -66,7 +66,7 @@ static execution_outcome instance_to_string(variant *instance) {
     return ok_outcome(new_str_variant("(%s @ %p)", instance->_type->name, instance));
 }
 
-static execution_outcome method_call_handler(variant *this, variant_method_definition *method, list *args, exec_context *ctx) {
+static execution_outcome method_call_handler(variant *this, variant_method_definition *method, list *args, origin *call_origin, exec_context *ctx) {
     // this handler is called when a method of this class is called.
     statement *stmt = (statement *)method->ast_node;
     // run stmt->per_type.function.statements ...

@@ -10,17 +10,15 @@ execution_outcome execute_user_function(
     list *func_arg_names,
     list *arg_expressions, 
     variant *this_obj,
-    exec_context *ctx,
-    char *call_filename,
-    int call_line_no,
-    int call_column_no) {
+    origin *call_origin,
+    exec_context *ctx) {
     
     // here we have opportunity for improvements
     // named arguments, or default values, variadic args etc.
 
     if (list_length(arg_expressions) < list_length(func_arg_names)) {
         return exception_outcome(new_exception_variant_at(
-            call_filename, call_line_no, call_column_no, NULL, 
+            call_origin, NULL, 
             "%s() expected %d arguments, got %d", name, list_length(func_arg_names), list_length(arg_expressions)
         ));
     }
@@ -32,7 +30,7 @@ execution_outcome execute_user_function(
         list_add(arg_values, ex.result);
     }
 
-    stack_frame *frame = new_stack_frame(name, call_filename, call_line_no, call_column_no);
+    stack_frame *frame = new_stack_frame(name, call_origin);
     stack_frame_initialization(frame, func_arg_names, arg_values, this_obj);
     exec_context_push_stack_frame(ctx, frame);
 

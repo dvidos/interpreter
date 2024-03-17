@@ -198,7 +198,7 @@ bool variant_has_method(variant *obj, const char *name) {
     return false;
 }
 
-execution_outcome variant_call_method(variant *obj, const char *name, list *args, exec_context *ctx) {
+execution_outcome variant_call_method(variant *obj, const char *name, list *args, origin *call_origin, exec_context *ctx) {
 
     variant_type *type = obj->_type;
     if (type->methods == NULL)
@@ -209,7 +209,7 @@ execution_outcome variant_call_method(variant *obj, const char *name, list *args
             continue;
         
         variant_method_definition *method = &type->methods[i];
-        return method->handler(obj, method, args, ctx);
+        return method->handler(obj, method, args, call_origin, ctx);
     }
     
     return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));
@@ -300,16 +300,14 @@ execution_outcome variant_iterator_next(variant *obj) { // advance and get next,
     return obj->_type->iterator_next_implementation(obj);
 }
 
-// TODO: pass origin from caller's origin.
-execution_outcome variant_call(variant *obj, list *args, variant *this_obj, exec_context *ctx) {
+execution_outcome variant_call(variant *obj, list *args, variant *this_obj, origin *call_origin, exec_context *ctx) {
     if (obj == NULL || obj->_type == NULL)
         return failed_outcome("Expecting variant with a type, got null");
 
     if (obj->_type->call_handler == NULL)
         return exception_outcome(new_exception_variant("Type '%s' is not callable", obj->_type->name));
     
-    // TODO: add origin.
-    return obj->_type->call_handler(obj, args, this_obj, NULL, 0, 0, ctx);
+    return obj->_type->call_handler(obj, args, this_obj, call_origin, ctx);
 }
 
 execution_outcome variant_get_element(variant *obj, variant *index) {

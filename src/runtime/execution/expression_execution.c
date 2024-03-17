@@ -31,9 +31,9 @@ static execution_outcome store_element(expression *container_expr, expression *e
 
 static execution_outcome retrieve_member(expression *object, expression *member, exec_context *ctx);
 static execution_outcome store_member(expression *container_expr, expression *member_expr, variant *value, exec_context *ctx);
-static execution_outcome call_member(expression *container_expr, expression *member_expr, expression *args_expr, exec_context *ctx);
+static execution_outcome call_member(expression *container_expr, expression *member_expr, expression *args_expr, origin *call_origin, exec_context *ctx);
 
-static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, const char *call_filename, int call_line_no, int call_column_no, exec_context *ctx);
+static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, origin *call_origin, exec_context *ctx);
 static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx);
 static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx);
 static execution_outcome calculate_comparison(expression *op_expr, enum comparison cmp, variant *v1, variant *v2);
@@ -42,7 +42,7 @@ static execution_outcome expression_function_callable_executor(
     void *ast_node, 
     variant *this_obj,
     dict *captured_values, // optional for closures
-    const char *call_filename, int call_line, int call_column, // source of call
+    origin *call_origin, // source of call
     exec_context *ctx);
 
 
@@ -111,7 +111,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
         case ET_IDENTIFIER:
             variant *v = exec_context_resolve_symbol(ctx, data);
             if (v == NULL) {
-                return exception_outcome(new_exception_variant_at(e->token->origin->filename, e->token->origin->line_no, e->token->origin->column_no, NULL,
+                return exception_outcome(new_exception_variant_at(e->token->origin, NULL,
                     "identifier '%s' not found", data));
             }
             return ok_outcome(v);
@@ -167,7 +167,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
             } else if (op == OP_MEMBER) {
                 return retrieve_member(operand1, operand2, ctx);
             } else if (op == OP_FUNC_CALL) {
-                return make_function_call(operand1, operand2, e->token->origin->filename, e->token->origin->line_no, e->token->origin->column_no, ctx);
+                return make_function_call(operand1, operand2, e->token->origin, ctx);
             } else {
                 ex = execute_expression(operand1, ctx);
                 if (ex.excepted || ex.failed) return ex;
@@ -188,7 +188,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
                     e, NULL, NULL)));
     }
 
-    return exception_outcome(new_exception_variant_at(e->token->origin->filename, e->token->origin->line_no, e->token->origin->column_no, NULL,
+    return exception_outcome(new_exception_variant_at(e->token->origin, NULL,
         "Cannot retrieve value, unknown expression / operator type"));
 }
 
@@ -219,7 +219,7 @@ static execution_outcome modify_and_store(expression *lvalue, enum modify_and_st
         case MAS_MUL: result_int = original_int * operand_int; break;
         case MAS_DIV: 
             if (operand_int == 0)
-                return exception_outcome(new_exception_variant_at(rvalue->token->origin->filename, rvalue->token->origin->line_no, rvalue->token->origin->column_no, NULL,
+                return exception_outcome(new_exception_variant_at(rvalue->token->origin, NULL,
                     "division by zero not possible with integers"));
             result_int = original_int / operand_int;
             break;
@@ -259,14 +259,14 @@ static execution_outcome store_value(expression *lvalue, exec_context *ctx, vari
             return store_member(lvalue->per_type.operation.operand1, lvalue->per_type.operation.operand2, rvalue, ctx);
 
         } else {
-            return exception_outcome(new_exception_variant_at(lvalue->token->origin->filename, lvalue->token->origin->line_no, lvalue->token->origin->column_no, NULL,
+            return exception_outcome(new_exception_variant_at(lvalue->token->origin, NULL,
                 "operator type cannot be used as lvalue: %s", operator_type_name(op)));
         }
         
     } else {
         str_builder *sb = new_str_builder();
         expression_describe(lvalue, sb);
-        return exception_outcome(new_exception_variant_at(lvalue->token->origin->filename, lvalue->token->origin->line_no, lvalue->token->origin->column_no, NULL,
+        return exception_outcome(new_exception_variant_at(lvalue->token->origin, NULL,
             "expression cannot be used as lvalue: %s", str_builder_charptr(sb)));
     }
 }
@@ -324,7 +324,7 @@ static execution_outcome calculate_comparison(expression *op_expr, enum comparis
 
     variant *s1 = variant_to_string(v1);
     variant *s2 = variant_to_string(v2);
-    variant *exception = new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+    variant *exception = new_exception_variant_at(op_expr->token->origin, NULL,
         "cannot compare given operands: %s, %s",
         str_variant_as_str(s1), str_variant_as_str(s2));
     variant_drop_ref(s1);
@@ -344,9 +344,7 @@ static execution_outcome retrieve_element(expression *container_expr, expression
 
     ex = variant_get_element(container, element);
 
-    if (ex.exception_thrown != NULL)
-        exception_variant_set_source(ex.exception_thrown, container_expr->token->origin->filename, container_expr->token->origin->line_no, container_expr->token->origin->column_no);
-    else if (ex.result != NULL)
+    if (ex.result != NULL)
         variant_inc_ref(ex.result);
     
     return ex;
@@ -363,9 +361,6 @@ static execution_outcome store_element(expression *container_expr, expression *e
     variant *element = ex.result;
 
     ex = variant_set_element(container, element, value);
-
-    if (ex.exception_thrown != NULL)
-        exception_variant_set_source(ex.exception_thrown, container_expr->token->origin->filename, container_expr->token->origin->line_no, container_expr->token->origin->column_no);
     
     return ex;
 }
@@ -414,7 +409,7 @@ static execution_outcome store_member(expression *container_expr, expression *me
     return variant_set_attr_value(container, member, value);
 }
 
-static execution_outcome call_member(expression *container_expr, expression *member_expr, expression *args_expr, exec_context *ctx) {
+static execution_outcome call_member(expression *container_expr, expression *member_expr, expression *args_expr, origin *call_origin, exec_context *ctx) {
 
     execution_outcome ex = execute_expression(container_expr, ctx);
     if (ex.excepted || ex.failed) return ex;
@@ -432,14 +427,14 @@ static execution_outcome call_member(expression *container_expr, expression *mem
     list *args = list_variant_as_list(ex.result);
 
     if (variant_has_method(container, member)) {
-        return variant_call_method(container, member, args, ctx);
+        return variant_call_method(container, member, args, call_origin, ctx);
 
     } else if (variant_has_attr(container, member)) {
         ex = variant_get_attr_value(container, member);
         if (ex.excepted || ex.failed) return ex;
 
         // could be a callable expression or an expression function etc.
-        return variant_call(ex.result, args, NULL, ctx);
+        return variant_call(ex.result, args, NULL, call_origin, ctx);
 
     } else {
         return exception_outcome(new_exception_variant("no callable member '%s' found in object type '%s'",
@@ -447,14 +442,13 @@ static execution_outcome call_member(expression *container_expr, expression *mem
     }
 }
 
-static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, 
-    const char *call_filename, int call_line_no, int call_column_no, exec_context *ctx) {
+static execution_outcome make_function_call(expression *call_target_expr, expression *args_expr, origin *call_origin, exec_context *ctx) {
 
     if (call_target_expr->op == OP_MEMBER) {
         // if calling a member of something, avoid promoting the method 
         // to an instance, call on the object directly.
         // remember, object instances don't have func pointers, the class instance does.
-        return call_member(call_target_expr->per_type.operation.operand1, call_target_expr->per_type.operation.operand2, args_expr, ctx);
+        return call_member(call_target_expr->per_type.operation.operand1, call_target_expr->per_type.operation.operand2, args_expr, call_target_expr->token->origin, ctx);
 
     } else {
         // otherwise, derive the callable and call it.
@@ -468,9 +462,7 @@ static execution_outcome make_function_call(expression *call_target_expr, expres
         if (ex.excepted || ex.failed) return ex;
         list *args = list_variant_as_list(ex.result);
 
-        ex = variant_call(call_target, args, NULL, ctx);
-        if (ex.exception_thrown != NULL)
-            exception_variant_set_source(ex.exception_thrown, call_target_expr->token->origin->filename, call_target_expr->token->origin->line_no, call_target_expr->token->origin->column_no);
+        ex = variant_call(call_target, args, NULL, call_target_expr->token->origin, ctx);
         return ex;
     }
 }
@@ -481,7 +473,7 @@ static execution_outcome calculate_unary_expression(expression *op_expr, variant
             if (variant_instance_of(value, int_type) || variant_instance_of(value, float_type))
                 return ok_outcome(value);
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "positive num only works for int / float values"
             ));
 
@@ -491,7 +483,7 @@ static execution_outcome calculate_unary_expression(expression *op_expr, variant
             if (variant_instance_of(value, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(value) * -1));
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "negative num only works for int / float values"
             ));
 
@@ -500,7 +492,7 @@ static execution_outcome calculate_unary_expression(expression *op_expr, variant
             if (variant_instance_of(value, bool_type))
                 return ok_outcome(new_bool_variant(!bool_variant_as_bool(value)));
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "logical-not only works for bool values"
             ));
 
@@ -508,12 +500,12 @@ static execution_outcome calculate_unary_expression(expression *op_expr, variant
             if (variant_instance_of(value, int_type))
                 return ok_outcome(new_int_variant(~int_variant_as_int(value)));
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "bitwise-not only works for int values"
             ));
     }
 
-    return exception_outcome(new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+    return exception_outcome(new_exception_variant_at(op_expr->token->origin, NULL,
         "Unknown unary operator type %s", operator_type_name(op_expr->type)));
 }
 
@@ -531,7 +523,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
                 return ok_outcome(new_str_variant(str_builder_charptr(tmp)));
             }
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "multiplication is only supported in int/float types"
             ));
 
@@ -540,7 +532,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
                 int denominator = int_variant_as_int(v2);
                 if (denominator == 0)
                     return exception_outcome(new_exception_variant_at(
-                        op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                        op_expr->token->origin, NULL,
                         "division by zero not possible in integers"
                     ));
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) / denominator));
@@ -550,7 +542,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) / float_variant_as_float(v2)));
             }
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "division is only supported in int/float types"
             ));
 
@@ -558,7 +550,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) % int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "modulo is only supported in int types"
             ));
 
@@ -577,7 +569,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             }
             // how about adding items to a list???
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "addition is only supported in int, float, string types"
             ));
 
@@ -587,7 +579,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             if (variant_instance_of(v1, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) - float_variant_as_float(v2)));
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "subtraction is only supported in int/float types"
             ));
 
@@ -595,7 +587,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) << int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "left shift is only supported in int types"
             ));
 
@@ -603,7 +595,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) >> int_variant_as_int(v2)));
             return exception_outcome(new_exception_variant_at(
-                op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                op_expr->token->origin, NULL,
                 "right shift is only supported in int types"
             ));
 
@@ -617,38 +609,38 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
         case OP_BITWISE_AND:
             if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) & int_variant_as_int(v2)));
-            return exception_outcome(new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+            return exception_outcome(new_exception_variant_at(op_expr->token->origin, NULL,
                 "bitwise operations only supported in int types"));
 
         case OP_BITWISE_XOR:
             if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) ^ int_variant_as_int(v2)));
-            return exception_outcome(new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+            return exception_outcome(new_exception_variant_at(op_expr->token->origin, NULL,
                 "bitwise operations only supported in int types"));
 
         case OP_BITWISE_OR:
             if (variant_instance_of(v1, int_type))
                 return ok_outcome(new_int_variant(int_variant_as_int(v1) | int_variant_as_int(v2)));
-            return exception_outcome(new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+            return exception_outcome(new_exception_variant_at(op_expr->token->origin, NULL,
                 "bitwise operations only supported in int types"));
 
         case OP_LOGICAL_AND:
             // we could do shorthand here...
             if (variant_instance_of(v1, bool_type) && variant_instance_of(v2, bool_type))
                 return ok_outcome(new_bool_variant(bool_variant_as_bool(v1) && bool_variant_as_bool(v2)));
-            return exception_outcome(new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+            return exception_outcome(new_exception_variant_at(op_expr->token->origin, NULL,
                 "logical operations only supported in bool types"));
             
         case OP_LOGICAL_OR:
             // we could do shorthand here...
             if (variant_instance_of(v1, bool_type) && variant_instance_of(v2, bool_type))
                 return ok_outcome(new_bool_variant(bool_variant_as_bool(v1) || bool_variant_as_bool(v2)));
-            return exception_outcome(new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+            return exception_outcome(new_exception_variant_at(op_expr->token->origin, NULL,
                 "logical operations only supported in bool types"));
 
         case OP_SHORT_IF:
             if (!variant_instance_of(v1, bool_type))
-                return exception_outcome(new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+                return exception_outcome(new_exception_variant_at(op_expr->token->origin, NULL,
                     "shorthand-if operator_type requires boolean condition"));
             bool passed = bool_variant_as_bool(v1);
             if (!variant_instance_of(v2, list_type))
@@ -659,7 +651,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             return ok_outcome(list_get(values_pair, passed ? 0 : 1));
     }
 
-    return exception_outcome(new_exception_variant_at(op_expr->token->origin->filename, op_expr->token->origin->line_no, op_expr->token->origin->column_no, NULL,
+    return exception_outcome(new_exception_variant_at(op_expr->token->origin, NULL,
         "Unknown binary operator type %s", operator_type_name(op_expr->type)));
 }
 
@@ -668,7 +660,7 @@ static execution_outcome expression_function_callable_executor(
     void *ast_node, 
     variant *this_obj,
     dict *captured_values, // optional for closures
-    const char *call_filename, int call_line, int call_column, // source of call
+    origin *call_origin, // source of call
     exec_context *ctx
 ) {
     expression *expr = (expression *)ast_node;
@@ -677,13 +669,12 @@ static execution_outcome expression_function_callable_executor(
     if (list_length(arg_values) < list_length(arg_names)) {
         // we should report where the call was made, not where the function is
         return exception_outcome(new_exception_variant_at(
-            expr->token->origin->filename, expr->token->origin->line_no, expr->token->origin->column_no, NULL,
+            expr->token->origin, NULL,
             "%s() expected %d arguments, got %d", expr->per_type.func.name, list_length(arg_names), list_length(arg_values)
         ));
     }
 
-    stack_frame *frame = new_stack_frame(expr->per_type.func.name, 
-        expr->token->origin->filename, expr->token->origin->line_no, expr->token->origin->column_no);
+    stack_frame *frame = new_stack_frame(expr->per_type.func.name, expr->token->origin);
     stack_frame_initialization(frame, arg_names, arg_values, this_obj);
     exec_context_push_stack_frame(ctx, frame);
 

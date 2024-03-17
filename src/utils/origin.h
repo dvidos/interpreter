@@ -10,7 +10,7 @@ typedef struct origin {
 
 
 origin *new_origin(const char *filename, int line_no, int column_no);
-
+origin *internal_origin();
 
 
 #endif

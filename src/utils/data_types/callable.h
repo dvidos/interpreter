@@ -14,7 +14,7 @@ typedef execution_outcome callable_handler(
     void *ast_node, // used for AST nodes
     variant *this_obj,
     dict *captured_values, // optional for closures
-    const char *call_filename, int call_line, int call_column, // source of call
+    origin *call_origin, // source of call
     exec_context *ctx
 );
 
@@ -34,7 +34,7 @@ execution_outcome callable_call(
     callable *c, 
     list *arg_values,  // each item a variant
     variant *this_obj, // late binding,
-    const char *call_filename, int call_line, int call_column, // source of call
+    origin *call_origin,
     exec_context *ctx
 );
 
