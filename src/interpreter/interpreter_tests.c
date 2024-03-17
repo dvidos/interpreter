@@ -268,7 +268,7 @@ static void verify_classes_handling() {
     verify_execution("class T { public a1 = 313; }"
                      "c = new(T);"
                      "return c.a1;",
-                     NULL, EXP_EXCEPTION, NULL);
+                     NULL, EXP_INTEGER, 313);
 
     // simple class
     verify_execution("class T {"

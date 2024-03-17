@@ -138,6 +138,9 @@ execution_outcome variant_get_attr_value(variant *obj, const char *name) {
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
         
+        if (!(type->attributes[i].vaf_flags & VAF_PUBLIC))
+            return exception_outcome(new_exception_variant("attribute '%s' is not public in type '%s'", name, type->name));
+        
         variant_attrib_definition *attr = &type->attributes[i];
         if (attr->getter != NULL) {
             return attr->getter(obj, attr);
@@ -146,7 +149,6 @@ execution_outcome variant_get_attr_value(variant *obj, const char *name) {
             variant **var_ptr_ptr = (variant **)(((void *)obj) + attr->offset);
             variant_inc_ref(*var_ptr_ptr); // the one returned
             return ok_outcome(*var_ptr_ptr);
-
         }
     }
 
@@ -163,6 +165,8 @@ execution_outcome variant_set_attr_value(variant *obj, const char *name, variant
             continue;
 
         variant_attrib_definition *attr = &type->attributes[i];
+        if (!(attr->vaf_flags & VAF_PUBLIC))
+            return exception_outcome(new_exception_variant("attribute '%s' is not public in type '%s'", name, type->name));
         if (attr->vaf_flags & VAF_READ_ONLY)
             return exception_outcome(new_exception_variant("attribute '%s' is read only in type '%s'", name, type->name));
 
