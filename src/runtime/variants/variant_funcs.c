@@ -228,8 +228,7 @@ execution_outcome variant_get_bound_method(variant *obj, const char *name) {
         // we must make a class that is callable by design!!!!!
         // same thing could be used for an expression function that has captured variables.
         variant *bound_method = new_callable_variant(
-            NULL, // TODO: fix this.
-            obj
+            NULL // TODO: fix this.
         );
         // but we need the callable, no?
         return ok_outcome(bound_method);

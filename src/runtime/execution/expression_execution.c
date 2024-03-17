@@ -185,9 +185,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
                 new_callable(
                     "(user anonymous function)",
                     expression_function_callable_executor, 
-                    e, NULL, NULL),
-                NULL
-            ));
+                    e, NULL, NULL)));
     }
 
     return exception_outcome(new_exception_variant_at(e->token->filename, e->token->line_no, e->token->column_no, NULL,

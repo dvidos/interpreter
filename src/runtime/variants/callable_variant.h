@@ -30,7 +30,7 @@ variant *new_callable_variant2(
 
 
 // TODO: deprecate these!
-variant *new_callable_variant(callable *callable, variant *member_parent);
+variant *new_callable_variant(callable *callable);
 callable *callable_variant_as_callable(variant *v);
 
 

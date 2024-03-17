@@ -140,8 +140,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
                 new_callable_variant(new_callable(
                     stmt->per_type.function.name,
                     statement_function_callable_executor,
-                    stmt, NULL, NULL), NULL)
-            );
+                    stmt, NULL, NULL)));
             break;
 
         case ST_TRY_CATCH:

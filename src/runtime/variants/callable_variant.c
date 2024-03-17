@@ -53,7 +53,7 @@ variant_type *callable_type = &(variant_type){
 };
 
 // TODO: move member container into the old callable
-variant *new_callable_variant(callable *c, variant *member_container) {
+variant *new_callable_variant(callable *c) {
     execution_outcome ex = variant_create(callable_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     callable_instance *obj = (callable_instance *)ex.result;
