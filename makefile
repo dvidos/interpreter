@@ -4,8 +4,6 @@ FILES = \
 	src/utils/testing.c \
 	\
 	src/utils/data_types/callable.c \
-	src/utils/data_types/exec_context.c \
-	src/utils/data_types/stack_frame.c \
 	\
 	src/containers/dict.c \
 	src/containers/list.c \
@@ -54,6 +52,8 @@ FILES = \
 	src/runtime/variants/dict_variant.c \
 	src/runtime/variants/callable_variant.c \
 	\
+	src/runtime/execution/exec_context.c \
+	src/runtime/execution/stack_frame.c \
 	src/runtime/execution/expression_execution.c \
 	src/runtime/execution/statement_execution.c \
 	src/runtime/execution/class_execution.c \

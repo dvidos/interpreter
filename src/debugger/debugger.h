@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "../entities/statement.h"
 #include "../entities/expression.h"
-#include "../utils/data_types/exec_context.h"
+#include "../runtime/execution/exec_context.h"
 
 
 enum debugger_anticipation_mode {

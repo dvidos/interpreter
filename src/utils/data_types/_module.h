@@ -3,8 +3,6 @@
 
 #include <stdbool.h>
 #include "callable.h"
-#include "exec_context.h"
-#include "stack_frame.h"
 
 
 #endif

@@ -1,17 +1,20 @@
+
 #include "function_execution.h"
+#include "../"
 
-
-execution_outcome execute_function(
+execution_outcome execute_user_function(
+    const char *name,
     list *func_statements, 
-    list *args_declaration,
+    list *arg_names,
     list *arg_expressions, 
     variant *this_obj,
-    exec_context *ctx) {
+    exec_context *ctx,
+    char *call_filename,
+    int call_line_no,
+    int call_column_no) {
     
-    // we should be given the token where the call is placed.
     // it can be either a statement function or an expression function
-
-
+    // or a class method
     // prepare stack frame
     // set arguments as local variables
     // push stack frame
@@ -19,10 +22,7 @@ execution_outcome execute_function(
     // pop stack frame
     // cleanup etc.
 
-    expression *expr = (expression *)callable_data;
-
-    list *arg_names = expr->per_type.func.arg_names;
-    if (list_length(positional_args) < list_length(arg_names)) {
+    if (list_length(positional_args) < list_length(declared_args)) {
         // we should report where the call was made, not where the function is
         return exception_outcome(new_exception_variant_at(
             expr->token->filename, expr->token->line_no, expr->token->column_no, NULL,

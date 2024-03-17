@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "stack_frame.h"
-#include "../str.h"
+#include "../../utils/str.h"
 
 
 stack_frame *new_stack_frame(const char *func_name, statement *func_stmt, expression *func_expr) {

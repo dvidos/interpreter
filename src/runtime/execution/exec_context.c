@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
-#include "../str_builder.h"
-#include "../listing.h"
+#include "../../utils/str_builder.h"
+#include "../../utils/listing.h"
 #include "exec_context.h"
 #include "stack_frame.h"
 #include "../../debugger/breakpoint.h"

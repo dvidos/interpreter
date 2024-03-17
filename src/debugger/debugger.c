@@ -7,7 +7,6 @@
 #include "../interpreter/interpreter.h"
 #include "../entities/statement.h"
 #include "../entities/expression.h"
-#include "../utils/data_types/exec_context.h"
 #include "../utils/str.h"
 #include "../utils/str_builder.h"
 
