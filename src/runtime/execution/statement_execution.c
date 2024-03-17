@@ -37,7 +37,7 @@ static execution_outcome check_condition(expression *condition, exec_context *ct
     execution_outcome ex = execute_expression(condition, ctx);
     if (ex.excepted || ex.failed) return ex;
     if (!variant_instance_of(ex.result, bool_type))
-        return exception_outcome(new_exception_variant_at(condition->token->filename, condition->token->line_no, condition->token->column_no, NULL,
+        return exception_outcome(new_exception_variant_at(condition->token->origin->filename, condition->token->origin->line_no, condition->token->origin->column_no, NULL,
             "condition expressions must yield boolean result"));
     
     return ok_outcome(ex.result);
@@ -182,7 +182,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
                 str_result = variant_to_string(ex.result);
             }
             variant *exception = new_exception_variant_at(
-                stmt->token->filename, stmt->token->line_no, stmt->token->column_no, 
+                stmt->token->origin->filename, stmt->token->origin->line_no, stmt->token->origin->column_no, 
                 NULL, 
                 str_variant_as_str(str_result));
             variant_drop_ref(str_result);
@@ -201,7 +201,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
             str_builder *sb = new_str_builder();
             statement_describe(stmt, sb);
             return exception_outcome(new_exception_variant_at(
-                stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL,
+                stmt->token->origin->filename, stmt->token->origin->line_no, stmt->token->origin->column_no, NULL,
                 "was expecting [ if, while, for, break, continue, expression, try, return, breakpoint ] but got %s", 
                 str_builder_charptr(sb)));
     }
@@ -271,13 +271,13 @@ execution_outcome statement_function_callable_executor(
     if (list_length(arg_values) < list_length(arg_names)) {
         // we should report where the call was made, not where the function is
         return exception_outcome(new_exception_variant_at(
-            stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL,
+            stmt->token->origin->filename, stmt->token->origin->line_no, stmt->token->origin->column_no, NULL,
             "%s() expected %d arguments, got %d", stmt->per_type.function.name, list_length(arg_names), list_length(arg_values)
         ));
     }
 
     stack_frame *frame = new_stack_frame(stmt->per_type.function.name, 
-        stmt->token->filename, stmt->token->line_no, stmt->token->column_no);
+        stmt->token->origin->filename, stmt->token->origin->line_no, stmt->token->origin->column_no);
     stack_frame_initialization(frame, arg_names, arg_values, NULL);
     exec_context_push_stack_frame(ctx, frame);
     

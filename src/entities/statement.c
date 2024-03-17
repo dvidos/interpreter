@@ -105,8 +105,8 @@ class_method *new_class_method(bool public, const char *name, statement *functio
 
 bool statement_is_at(statement *s, const char *filename, int line_no) {
     return s->token != NULL &&
-        s->token->line_no == line_no &&
-        strcmp(s->token->filename, filename) == 0;
+        s->token->origin->line_no == line_no &&
+        strcmp(s->token->origin->filename, filename) == 0;
 }
 
 

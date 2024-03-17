@@ -18,9 +18,6 @@ token *new_token(token_type type, const char *filename, int line_no, int column_
     t->item_info = token_item_info;
     t->type = type;
     t->data = NULL;
-    t->filename = filename;
-    t->line_no = line_no;
-    t->column_no = column_no;
     t->origin = new_origin(filename, line_no, column_no);
     return t;
 }
@@ -30,9 +27,7 @@ token *new_data_token(token_type type, const char *data, const char *filename, i
     t->item_info = token_item_info;
     t->type = type;
     t->data = data;
-    t->filename = filename;
-    t->line_no = line_no;
-    t->column_no = column_no;
+    t->origin = new_origin(filename, line_no, column_no);
     return t;
 }
 

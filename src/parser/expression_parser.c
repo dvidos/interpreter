@@ -330,9 +330,9 @@ static failable parse_expression_on_want_operand(run_state *state, bool verbose)
     // nothing else should be expected here
     return failed(NULL, "Unexpected token type %s at %s:%d:%d, was expecting operand or similar value construct", 
         token_type_str(peek()->type),
-        peek()->filename,
-        peek()->line_no,
-        peek()->column_no
+        peek()->origin->filename,
+        peek()->origin->line_no,
+        peek()->origin->column_no
     );
 }
 
@@ -433,9 +433,9 @@ static failable parse_expression_on_have_operand(run_state *state, completion_mo
     // nothing else should be expected here
     return failed(NULL, "Unexpected token type %s at %s:%d:%d, was expecting operator_type or end", 
         token_type_str(peek()->type),
-        peek()->filename,
-        peek()->line_no,
-        peek()->column_no
+        peek()->origin->filename,
+        peek()->origin->line_no,
+        peek()->origin->column_no
     );
 }
 

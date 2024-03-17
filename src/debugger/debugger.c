@@ -11,10 +11,10 @@
 #include "../utils/str_builder.h"
 
 #define between(num, min, max)        ((num)<(min)?(min):((num)>(max)?(max):(num)))
-#define get_curr_filename(stmt, expr) ((stmt) != NULL ? (stmt)->token->filename : ( \
-                                       (expr) != NULL ? (expr)->token->filename : NULL))
-#define get_curr_line_no(stmt, expr)  ((stmt) != NULL ? (stmt)->token->line_no : ( \
-                                       (expr) != NULL ? (expr)->token->line_no : 0))
+#define get_curr_filename(stmt, expr) ((stmt) != NULL ? (stmt)->token->origin->filename : ( \
+                                       (expr) != NULL ? (expr)->token->origin->filename : NULL))
+#define get_curr_line_no(stmt, expr)  ((stmt) != NULL ? (stmt)->token->origin->line_no : ( \
+                                       (expr) != NULL ? (expr)->token->origin->line_no : 0))
 
 
 enum ast_task { AST_ADD_BREAKPOINT, AST_DEL_BREAKPOINT };
@@ -228,9 +228,9 @@ static void show_stack_trace(statement *curr_stmt, expression *curr_expr, exec_c
         printf("   %2d   %s(), at %s:%d:%d\n", 
             level--,
             f->func_name,
-            t == NULL ? "(unknown)" : t->filename,
-            t == NULL ? 0 : t->line_no,
-            t == NULL ? 0 : t->column_no
+            t == NULL ? "(unknown)" : t->origin->filename,
+            t == NULL ? 0 : t->origin->line_no,
+            t == NULL ? 0 : t->origin->column_no
         );
     }
     printf("   %2d   %s\n", 0, ctx->script_name);
