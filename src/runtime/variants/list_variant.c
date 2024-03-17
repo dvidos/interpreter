@@ -9,9 +9,10 @@ typedef struct list_instance {
     list *list;
 } list_instance;
 
-static void initialize(list_instance *obj, variant *args, variant *named_args) {
+static execution_outcome initialize(list_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
     // this list shall contain variants
     obj->list = new_list(variant_item_info);
+    return ok_outcome(NULL);
 }
 
 static void destruct(list_instance *obj) {
@@ -209,7 +210,9 @@ variant_type *list_type = &(variant_type){
 };
 
 variant *new_list_variant() {
-    return (variant *)variant_create(list_type, NULL, NULL);
+    execution_outcome ex = variant_create(list_type, NULL, NULL, NULL);
+    if (ex.failed || ex.excepted) return NULL;
+    return (variant *)ex.result;
 }
 
 variant *new_list_variant_of(int argc, ...) {

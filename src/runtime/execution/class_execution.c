@@ -3,6 +3,7 @@
 #include "../../utils/mem.h"
 #include "class_execution.h"
 #include "statement_execution.h"
+#include "expression_execution.h"
 
 /*  we do not create a strongly typed instance structure
     because the size of it depends on the number of attributes
@@ -17,25 +18,49 @@
 */
 
 // special method names
-#define CONSTRUCTOR_METHOD_NAME   'constructor'
-#define DESTRUCTOR_METHOD_NAME    'destructor'
-#define TO_STRING_METHOD_NAME     'toString'
-#define HASH_METHOD_NAME          'hash'
+#define CONSTRUCTOR_METHOD_NAME   "constructor"
+#define DESTRUCTOR_METHOD_NAME    "destructor"
+#define TO_STRING_METHOD_NAME     "toString"
+#define HASH_METHOD_NAME          "hash"
 
 
+#define ADDRESS_OF_ATTRIBUTE(instance, index)  \
+    (variant **)(                              \
+        ((void *)instance)                     \
+        + BASE_VARIANT_FIRST_ATTRIBUTES_SIZE   \
+        + ((index) * sizeof(void *))           \
+    )
 
 
-static void class_initializer(variant *instance, variant *args_list, variant *named_args) {
+static execution_outcome instance_initializer(variant *instance, variant *args_list, variant *named_args, exec_context *ctx) {
     struct statement_class_info *ci = &((statement *)instance->_type->ast_node)->per_type.class;
+    execution_outcome ex;
 
     // first set all variables to eiter result of expression, or to void variant.
-    
-    // when we implement inherited classes, maybe call parent constructor?
+    int index = 0;
+    for_list(ci->attributes, it, class_attribute, ca) {
+        variant **attr_ptr = ADDRESS_OF_ATTRIBUTE(instance, index);
 
+        if (ca->init_value == NULL) {
+            *attr_ptr = void_singleton;
+        } else {
+            ex = execute_expression(ca->init_value, ctx);
+            if (ex.failed || ex.excepted) return ex;
+            *attr_ptr = ex.result;
+        }
+    }
+    
     // then, if there is an explicit constructor, use it
+    if (variant_has_method(instance, CONSTRUCTOR_METHOD_NAME)) {
+        list *al = args_list == NULL ? NULL : list_variant_as_list(args_list);
+        dict *na = named_args == NULL ? NULL : dict_variant_as_dict(named_args);
+        variant_call_method(instance, CONSTRUCTOR_METHOD_NAME, al, na, ctx);
+    }
+
+    return ok_outcome(NULL);
 }
 
-static execution_outcome class_to_string(variant *instance) {
+static execution_outcome instance_to_string(variant *instance) {
     struct statement_class_info *ci = &((statement *)instance->_type->ast_node)->per_type.class;
 
     // if there is a specific toString method, call it.
@@ -107,8 +132,8 @@ variant_type *class_statement_create_variant_type(statement *stmt) {
     
     t->attributes = prepare_attrib_definitions(stmt);
     t->methods = prepare_method_definitions(stmt);
-    t->initializer = (initialize_func)class_initializer;
-    t->stringifier = (stringifier_func)class_to_string;
+    t->initializer = (initialize_func)instance_initializer;
+    t->stringifier = (stringifier_func)instance_to_string;
     
     // find special methods, if any.
     // then...

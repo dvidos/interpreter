@@ -69,11 +69,15 @@ BUILT_IN_CALLABLE(new) {
     variant *instance = malloc(type->instance_size);
     instance->_type = type;
     instance->_references_count = 1;
-    if (type->initializer != NULL)
-        type->initializer(instance, 
-            initializer_positional_args, initializer_named_args);
+
+    if (type->initializer != NULL) {
+        execution_outcome ex;
+        ex = type->initializer(instance, initializer_positional_args, initializer_named_args, ctx);
+        if (ex.failed || ex.excepted) return ex;
+    }
 
     // we should improve the "clone()", to allow us to copy on write.
+    // shouldn't drop object I did not create.
     // variant_drop_ref(initializer_positional_args);
     // variant_drop_ref(initializer_named_args);// but this will free the inter
 
@@ -83,6 +87,9 @@ BUILT_IN_CALLABLE(new) {
 BUILT_IN_CALLABLE(type) {
     // first argument is an object, return it's type
     variant *a = VARNT_ARG(0);
+    if (a == NULL)
+        return RET_VARNT(void_singleton);
+    
     return RET_VARNT((variant *)a->_type);
 }
 

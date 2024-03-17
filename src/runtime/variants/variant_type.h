@@ -14,7 +14,7 @@
 typedef struct exec_context exec_context;
 
 // some specific function types, used in types
-typedef void (*initialize_func)(variant *obj, variant *args, variant *named_args);
+typedef execution_outcome (*initialize_func)(variant *obj, variant *args, variant *named_args, exec_context *ctx);
 typedef void (*destruct_func)(variant *obj);
 typedef void (*copy_initializer_func)(variant *obj, variant *original);
 typedef variant *(*return_obj_func)(variant *obj);

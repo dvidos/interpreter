@@ -13,12 +13,13 @@ typedef struct exception_instance {
     variant *inner;
 } exception_instance;
 
-static void initialize(exception_instance *obj, variant *args, variant *named_args) {
+static execution_outcome initialize(exception_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
     obj->message = NULL;
     obj->file = NULL;
     obj->line = 0;
     obj->column = 0;
     obj->inner = NULL;
+    return ok_outcome(NULL);
 }
 
 static void destruct(exception_instance *obj) {
@@ -104,7 +105,9 @@ static char *format_message(const char *fmt, va_list args) {
 
 
 variant *new_exception_variant(const char *fmt, ...) {
-    exception_instance *e = (exception_instance *)variant_create(exception_type, NULL, NULL);
+    execution_outcome ex = variant_create(exception_type, NULL, NULL, NULL);
+    if (ex.failed || ex.excepted) return NULL;
+    exception_instance *e = (exception_instance *)ex.result;
 
     va_list args;
     va_start(args, fmt);
@@ -115,7 +118,9 @@ variant *new_exception_variant(const char *fmt, ...) {
 }
 
 variant *new_exception_variant_at(const char *filename, int line, int column, variant *inner, const char *fmt, ...) {
-    exception_instance *e = (exception_instance *)variant_create(exception_type, NULL, NULL);
+    execution_outcome ex = variant_create(exception_type, NULL, NULL, NULL);
+    if (ex.failed || ex.excepted) return NULL;
+    exception_instance *e = (exception_instance *)ex.result;
 
     va_list args;
     va_start(args, fmt);

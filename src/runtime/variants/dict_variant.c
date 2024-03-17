@@ -9,9 +9,10 @@ typedef struct dict_instance {
     dict *dict;
 } dict_instance;
 
-static void initialize(dict_instance *obj, variant *args, variant *named_args) {
+static execution_outcome initialize(dict_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
     // this dict shall contain variants
     obj->dict = new_dict(variant_item_info);
+    return ok_outcome(NULL);
 }
 
 static void destruct(dict_instance *obj) {
@@ -115,7 +116,9 @@ variant_type *dict_type = &(variant_type){
 };
 
 variant *new_dict_variant() {
-    return (variant *)variant_create(dict_type, NULL, NULL);
+    execution_outcome ex = variant_create(dict_type, NULL, NULL, NULL);
+    if (ex.failed || ex.excepted) return NULL;
+    return (variant *)ex.result;
 }
 
 variant *new_dict_variant_of(int entries_count, ...) {

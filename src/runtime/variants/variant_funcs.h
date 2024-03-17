@@ -18,7 +18,7 @@ void initialize_variants();
 
 
 // call this to create a new instance
-variant *variant_create(variant_type *type, variant *args, variant *named_args);
+execution_outcome variant_create(variant_type *type, variant *args, variant *named_args, exec_context *ctx);
 
 // references count. if refs down to zero, variant is destroyed too.
 void variant_inc_ref(variant *obj);

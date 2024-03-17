@@ -8,8 +8,9 @@ typedef struct bool_instance {
     bool value;
 } bool_instance;
 
-static void initialize(bool_instance *obj, variant *args, variant *named_args) {
+static execution_outcome initialize(bool_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
     obj->value = false;
+    return ok_outcome(NULL);
 }
 
 static void destruct(bool_instance *obj) {
@@ -53,7 +54,9 @@ variant_type *bool_type = &(variant_type){
 };
 
 variant *new_bool_variant(bool value) {
-    bool_instance *i = (bool_instance *)variant_create(bool_type, NULL, NULL);
+    execution_outcome ex = variant_create(bool_type, NULL, NULL, NULL);
+    if (ex.failed || ex.excepted) return NULL;
+    bool_instance *i = (bool_instance *)ex.result;
     i->value = value;
     return (variant *)i;
 }

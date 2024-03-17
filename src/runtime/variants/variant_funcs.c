@@ -22,6 +22,9 @@ void initialize_variants() {
     bool_type->_type = type_of_types;
     float_type->_type = type_of_types;
     exception_type->_type = type_of_types;
+    list_type->_type = type_of_types;
+    dict_type->_type = type_of_types;
+    callable_type->_type = type_of_types;
 
     void_singleton = new_void_variant();
     true_instance = new_bool_variant(true);
@@ -38,18 +41,19 @@ void initialize_variants() {
     iteration_finished_exception_instance->_references_count = VARIANT_STATICALLY_ALLOCATED;
 }
 
-variant *variant_create(variant_type *type, variant *args, variant *named_args) {
-    if (type == NULL)
-        return NULL;
+execution_outcome variant_create(variant_type *type, variant *args, variant *named_args, exec_context *ctx) {
+    if (type == NULL || type->_type != type_of_types)
+        return failed_outcome("variant_create() requires a type as first argument.");
     
     variant *p = malloc(type->instance_size);
     memset(p, 0, type->instance_size);
     p->_type = type;
     p->_references_count = 1; // the one we are going to return
     if (type->initializer != NULL) {
-        type->initializer(p, args, named_args);
+        execution_outcome ex = type->initializer(p, args, named_args, ctx);
+        if (ex.failed || ex.excepted) return ex;
     }
-    return p;
+    return ok_outcome(p);
 }
 
 variant *variant_clone(variant *obj) {

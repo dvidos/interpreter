@@ -9,8 +9,9 @@ typedef struct float_instance {
     float value;
 } float_instance;
 
-static void initialize(float_instance *obj, variant *args, variant *named_args) {
+static execution_outcome initialize(float_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
     obj->value = 0.0;
+    return ok_outcome(NULL);
 }
 
 static void destruct(float_instance *obj) {
@@ -56,7 +57,9 @@ variant_type *float_type = &(variant_type){
 };
 
 variant *new_float_variant(float value) {
-    float_instance *i = (float_instance *)variant_create(float_type, NULL, NULL);
+    execution_outcome ex = variant_create(float_type, NULL, NULL, NULL);
+    if (ex.failed || ex.excepted) return NULL;
+    float_instance *i = (float_instance *)ex.result;
     i->value = value;
     return (variant *)i;
 }

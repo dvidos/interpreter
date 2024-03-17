@@ -23,7 +23,8 @@ typedef struct callable_instance {
     callable *callable_deprecated;
 } callable_instance;
 
-static void initialize(callable_instance *obj, variant *args, variant *named_args) {
+static execution_outcome initialize(callable_instance *obj, variant *args, variant *named_args, exec_context *ctx) {
+    return ok_outcome(NULL);
 }
 
 static void destruct(callable_instance *obj) {
@@ -92,7 +93,9 @@ variant_type *callable_type = &(variant_type){
 };
 
 variant *new_callable_variant(callable *c, variant *member_container) {
-    callable_instance *obj = (callable_instance *)variant_create(callable_type, NULL, NULL);
+    execution_outcome ex = variant_create(callable_type, NULL, NULL, NULL);
+    if (ex.failed || ex.excepted) return NULL;
+    callable_instance *obj = (callable_instance *)ex.result;
     obj->callable_deprecated = c;
     return (variant *)obj;
 }
