@@ -37,7 +37,13 @@ static execution_outcome make_function_call(expression *call_target_expr, expres
 static execution_outcome calculate_unary_expression(expression *op_expr, variant *value, exec_context *ctx);
 static execution_outcome calculate_binary_expression(expression *op_expr, variant *v1, variant *v2, exec_context *ctx);
 static execution_outcome calculate_comparison(expression *op_expr, enum comparison cmp, variant *v1, variant *v2);
-static execution_outcome expression_function_callable_executor(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx);
+static execution_outcome expression_function_callable_executor(
+    list *arg_values, 
+    void *ast_node, 
+    variant *this_obj,
+    dict *captured_values, // optional for closures
+    const char *call_filename, int call_line, int call_column, // source of call
+    exec_context *ctx);
 
 
 
@@ -175,10 +181,13 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
         
         case ET_FUNC_DECL:
             // "retrieving" a `function () { ...}` expression merely creates and returns a callable variant
-            return ok_outcome(new_callable_variant(new_callable(
-                "(user anonymous expression function)",
-                expression_function_callable_executor, e
-            ), NULL));
+            return ok_outcome(new_callable_variant(
+                new_callable(
+                    "(user anonymous function)",
+                    expression_function_callable_executor, 
+                    e, NULL, NULL),
+                NULL
+            ));
     }
 
     return exception_outcome(new_exception_variant_at(e->token->filename, e->token->line_no, e->token->column_no, NULL,
@@ -432,7 +441,7 @@ static execution_outcome call_member(expression *container_expr, expression *mem
         if (ex.excepted || ex.failed) return ex;
 
         // could be a callable expression or an expression function etc.
-        return variant_call(ex.result, args, ctx);
+        return variant_call(ex.result, args, NULL, ctx);
 
     } else {
         return exception_outcome(new_exception_variant("no callable member '%s' found in object type '%s'",
@@ -461,7 +470,7 @@ static execution_outcome make_function_call(expression *call_target_expr, expres
         if (ex.excepted || ex.failed) return ex;
         list *args = list_variant_as_list(ex.result);
 
-        ex = variant_call(call_target, args, ctx);
+        ex = variant_call(call_target, args, NULL, ctx);
         if (ex.exception_thrown != NULL)
             exception_variant_set_source(ex.exception_thrown, call_target_expr->token->filename, call_target_expr->token->line_no, call_target_expr->token->column_no);
         return ex;
@@ -657,25 +666,27 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
 }
 
 static execution_outcome expression_function_callable_executor(
-    list *positional_args, 
-    void *callable_data, 
+    list *arg_values, 
+    void *ast_node, 
     variant *this_obj,
+    dict *captured_values, // optional for closures
+    const char *call_filename, int call_line, int call_column, // source of call
     exec_context *ctx
 ) {
-    expression *expr = (expression *)callable_data;
+    expression *expr = (expression *)ast_node;
 
     list *arg_names = expr->per_type.func.arg_names;
-    if (list_length(positional_args) < list_length(arg_names)) {
+    if (list_length(arg_values) < list_length(arg_names)) {
         // we should report where the call was made, not where the function is
         return exception_outcome(new_exception_variant_at(
             expr->token->filename, expr->token->line_no, expr->token->column_no, NULL,
-            "%s() expected %d arguments, got %d", expr->per_type.func.name, list_length(arg_names), list_length(positional_args)
+            "%s() expected %d arguments, got %d", expr->per_type.func.name, list_length(arg_names), list_length(arg_values)
         ));
     }
 
     stack_frame *frame = new_stack_frame(expr->per_type.func.name, 
         expr->token->filename, expr->token->line_no, expr->token->column_no);
-    stack_frame_initialization(frame, arg_names, positional_args, this_obj);
+    stack_frame_initialization(frame, arg_names, arg_values, this_obj);
     exec_context_push_stack_frame(ctx, frame);
 
     execution_outcome result = execute_statements(expr->per_type.func.statements, ctx);

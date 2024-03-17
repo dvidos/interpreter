@@ -24,7 +24,7 @@ typedef int (*compare_func)(variant *a, variant *b);
 typedef bool (*equals_func)(variant *a, variant *b);
 
 typedef execution_outcome (*iterator_next_func)(variant *obj);
-typedef execution_outcome (*call_handler_func)(variant *obj, list *args, exec_context *ctx);
+typedef execution_outcome (*call_handler_func)(variant *obj, list *args, variant *this_obj, const char *call_filename, int call_line, int call_column, exec_context *ctx);
 typedef execution_outcome (*get_element_func)(variant *obj, variant *index);
 typedef execution_outcome (*set_element_func)(variant *obj, variant *index, variant *value);
 

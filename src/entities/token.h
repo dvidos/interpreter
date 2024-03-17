@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "../utils/failable.h"
+#include "../utils/origin.h"
 #include "../containers/_module.h"
 #include "token_type.h"
 
@@ -17,6 +18,7 @@ struct token {
     const char *filename;
     int line_no;
     int column_no;
+    origin *origin;
 };
 
 

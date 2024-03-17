@@ -15,7 +15,14 @@ static execution_outcome execute_statements_with_flow(list *statements, exec_con
 static execution_outcome execute_statements_in_loop(expression *condition, list *statements, expression *next, exec_context *ctx, bool *should_return);
 static void register_class_in_exec_context(statement *statement, exec_context *ctx);
 
-execution_outcome statement_function_callable_executor(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx);
+execution_outcome statement_function_callable_executor(
+    list *arg_values, 
+    void *ast_node, 
+    variant *this_obj, 
+    dict *captured_values, // optional for closures
+    const char *call_filename, int call_line, int call_column, // source of call
+    exec_context *ctx
+);
 
 
 // public entry point
@@ -133,8 +140,7 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
                 new_callable_variant(new_callable(
                     stmt->per_type.function.name,
                     statement_function_callable_executor,
-                    stmt
-                ), NULL)
+                    stmt, NULL, NULL), NULL)
             );
             break;
 
@@ -252,21 +258,28 @@ static void register_class_in_exec_context(statement *statement, exec_context *c
     exec_context_register_constructable_type(ctx, type);
 }
 
-execution_outcome statement_function_callable_executor(list *positional_args, void *callable_data, variant *this_obj, exec_context *ctx) {
+execution_outcome statement_function_callable_executor(
+    list *arg_values, 
+    void *ast_node, 
+    variant *this_obj, 
+    dict *captured_values, // optional for closures
+    const char *call_filename, int call_line, int call_column, // source of call
+    exec_context *ctx
+) {
 
-    statement *stmt = (statement *)callable_data;
+    statement *stmt = (statement *)ast_node;
     list *arg_names = stmt->per_type.function.arg_names;
-    if (list_length(positional_args) < list_length(arg_names)) {
+    if (list_length(arg_values) < list_length(arg_names)) {
         // we should report where the call was made, not where the function is
         return exception_outcome(new_exception_variant_at(
             stmt->token->filename, stmt->token->line_no, stmt->token->column_no, NULL,
-            "%s() expected %d arguments, got %d", stmt->per_type.function.name, list_length(arg_names), list_length(positional_args)
+            "%s() expected %d arguments, got %d", stmt->per_type.function.name, list_length(arg_names), list_length(arg_values)
         ));
     }
 
     stack_frame *frame = new_stack_frame(stmt->per_type.function.name, 
         stmt->token->filename, stmt->token->line_no, stmt->token->column_no);
-    stack_frame_initialization(frame, arg_names, positional_args, NULL);
+    stack_frame_initialization(frame, arg_names, arg_values, NULL);
     exec_context_push_stack_frame(ctx, frame);
     
     execution_outcome result = execute_statements(stmt->per_type.function.statements, ctx);

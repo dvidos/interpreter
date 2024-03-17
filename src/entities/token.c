@@ -21,6 +21,7 @@ token *new_token(token_type type, const char *filename, int line_no, int column_
     t->filename = filename;
     t->line_no = line_no;
     t->column_no = column_no;
+    t->origin = new_origin(filename, line_no, column_no);
     return t;
 }
 

@@ -59,14 +59,14 @@ that is allowed to be stored, passed and returned to functions etc.
 A callable is essentially the address of a call handler, along
 with various data, including:
 
-At callable creation time, the following are provided:
+At callable **creation time**, the following are provided:
 
 * which C function pointer to call (built-in method or an AST call handler),
 * payload to pass in (e.g. the AST node, statement or expression)
 * optional captured variables, in cases of closures
 * optional function owner, the value of `this` in the execution
 
-At call time, the following are provided:
+At **call time**, the following are provided:
 
 * arguments to pass to the function
 * origin of the call (filename, line, column)

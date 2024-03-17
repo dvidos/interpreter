@@ -120,7 +120,7 @@ static execution_outcome method_filter(list_instance *this, variant_method_defin
     
     for_list(this->list, it, variant, item) {
         list *func_args = list_of(variant_item_info, 3, item, new_int_variant(index), this);
-        execution_outcome ex = variant_call(func, func_args, ctx);
+        execution_outcome ex = variant_call(func, func_args, NULL, ctx);
         list_free(func_args);
 
         if (ex.excepted || ex.failed) return ex;
@@ -147,7 +147,7 @@ static execution_outcome method_map(list_instance *this, variant_method_definiti
     
     for_list(this->list, it, variant, item) {
         list *func_args = list_of(variant_item_info, 3, item, new_int_variant(index), this);
-        execution_outcome ex = variant_call(func, func_args, ctx);
+        execution_outcome ex = variant_call(func, func_args, NULL, ctx);
         list_free(func_args);
 
         if (ex.excepted || ex.failed) return ex;
@@ -167,7 +167,7 @@ static execution_outcome method_reduce(list_instance *this, variant_method_defin
     
     for_list(this->list, it, variant, item) {
         list *func_args = list_of(variant_item_info, 4, value, item, new_int_variant(index), this);
-        execution_outcome ex = variant_call(aggregator, func_args, ctx);
+        execution_outcome ex = variant_call(aggregator, func_args, NULL, ctx);
         list_free(func_args);
 
         if (ex.excepted || ex.failed) return ex;

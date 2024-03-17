@@ -301,14 +301,16 @@ execution_outcome variant_iterator_next(variant *obj) { // advance and get next,
     return obj->_type->iterator_next_implementation(obj);
 }
 
-execution_outcome variant_call(variant *obj, list *args, exec_context *ctx) {
+// TODO: pass origin from caller's origin.
+execution_outcome variant_call(variant *obj, list *args, variant *this_obj, exec_context *ctx) {
     if (obj == NULL || obj->_type == NULL)
         return failed_outcome("Expecting variant with a type, got null");
 
     if (obj->_type->call_handler == NULL)
         return exception_outcome(new_exception_variant("Type '%s' is not callable", obj->_type->name));
-
-    return obj->_type->call_handler(obj, args, ctx);
+    
+    // TODO: add origin.
+    return obj->_type->call_handler(obj, args, this_obj, NULL, 0, 0, ctx);
 }
 
 execution_outcome variant_get_element(variant *obj, variant *index) {

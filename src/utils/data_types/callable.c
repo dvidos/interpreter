@@ -17,17 +17,26 @@
 struct callable {
     item_info *item_info;
     const char *name;
-    const char *description;
     callable_handler *handler;
-    void *callable_data;
+    void *callable_data;       // used for AST nodes
+    variant *this_obj;         // optional for object methods
+    dict *captured_values;     // optional for closures
 };
 
-callable *new_callable(const char *name, callable_handler *handler, void *callable_data) {
+callable *new_callable(
+    const char *name,
+    callable_handler *handler,
+    void *callable_data,
+    variant *this_obj,
+    dict *captured_values
+) {
     callable *c = malloc(sizeof(callable));
     c->item_info = callable_item_info;
     c->name = name;
     c->handler = handler;
     c->callable_data = callable_data;
+    c->this_obj = this_obj;
+    c->captured_values = captured_values;
     return c;
 }
 
@@ -35,17 +44,40 @@ const char *callable_name(callable *c) {
     return c->name;
 }
 
-execution_outcome callable_call(callable *c, list *positional_args, variant *this_obj, exec_context *ctx) {
+execution_outcome callable_call(
+    callable *c,
+    list *arg_values,
+    variant *this_obj,
+    const char *call_filename, int call_line, int call_column, // source of call
+    exec_context *ctx
+) {
     if (ctx == NULL)
         return failed_outcome("callable_call(): execution context was not passed in");
     
-    return c->handler(positional_args, c->callable_data, this_obj, ctx);
+    if (this_obj == NULL && c->this_obj != NULL)
+        this_obj = c->this_obj;
+
+    return c->handler(
+        arg_values,
+        c->callable_data,
+        this_obj,
+        c->captured_values,
+        call_filename,
+        call_line,
+        call_column,
+        ctx
+    );
+}
+
+
+static void describe_callable(void *pointer, str_builder *sb) {
+    callable *c = (callable *)pointer;
+    str_builder_addf(sb, "%s()", c->name);
 }
 
 item_info *callable_item_info = &(item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "callable",
     .are_equal = NULL,
-    .describe = NULL,
+    .describe = describe_callable,
 };
-

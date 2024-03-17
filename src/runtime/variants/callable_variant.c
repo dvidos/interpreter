@@ -17,14 +17,11 @@ typedef struct callable_instance {
     variant *this;          // optional, in case of a method call (captured or direct)
     dict *captured_values;  // optional, captured values in case of lambdas
 
-    callable_variant_call_handler handler;
-
-    // TODO: remove this
-    callable *callable_deprecated;
+    callable *callable;
 } callable_instance;
 
-static variant *stringify(callable_instance *obj) {
-    if (obj->callable_deprecated == NULL)
+static variant *instance_stringify(callable_instance *obj) {
+    if (obj->callable == NULL)
         return NULL;
     
     if (obj->this != NULL)
@@ -35,24 +32,11 @@ static variant *stringify(callable_instance *obj) {
         return new_str_variant("(callable @ 0x%p", obj);
 }
 
-static execution_outcome call(variant *obj, list *args, exec_context *ctx) {
-    // we may have captured 'this'
-    // we may have captured variables of a lambda enrironment
-    // we may have captured nothing e.g. in a time() method.
+static execution_outcome instance_call(variant *obj, list *args, variant *this_obj, const char *call_filename, int call_line, int call_column, exec_context *ctx) {
     callable_instance *c = (callable_instance *)obj;
-    
-    // is this an old callable or a new?
-    if (c->callable_deprecated != NULL) {
-        return callable_call(c->callable_deprecated, args, NULL, ctx);
-    } else {
-        // new
-        return c->handler(
-            args,
-            ctx,
-            c->payload,
-            c->this,
-            c->captured_values
-        );
+    // TODO: add origin
+    if (c->callable != NULL) {
+        return callable_call(c->callable, args, NULL, NULL, 0, 0, ctx);
     }
 }
 
@@ -64,20 +48,21 @@ variant_type *callable_type = &(variant_type){
     .parent_type = NULL,
     .instance_size = sizeof(callable_instance),
 
-    .stringifier = (stringifier_func)stringify,
-    .call_handler = (call_handler_func)call,
+    .stringifier = (stringifier_func)instance_stringify,
+    .call_handler = instance_call, // don't cast, so that we get warnings when handler arguments change.
 };
 
+// TODO: move member container into the old callable
 variant *new_callable_variant(callable *c, variant *member_container) {
     execution_outcome ex = variant_create(callable_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;
     callable_instance *obj = (callable_instance *)ex.result;
-    obj->callable_deprecated = c;
+    obj->callable = c;
     return (variant *)obj;
 }
 
 callable *callable_variant_as_callable(variant *v) {
     if (!variant_instance_of(v, callable_type))
         return NULL;
-    return ((callable_instance *)v)->callable_deprecated;
+    return ((callable_instance *)v)->callable;
 }

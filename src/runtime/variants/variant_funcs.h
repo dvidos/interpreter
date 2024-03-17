@@ -47,7 +47,7 @@ variant *         variant_clone(variant *obj);
 variant *         variant_get_iterator(variant *obj); // create & reset iterator to before first
 execution_outcome variant_iterator_next(variant *obj); // advance and get next, or return error
 
-execution_outcome variant_call(variant *obj, list *args, exec_context *ctx);
+execution_outcome variant_call(variant *obj, list *args, variant *this_obj, exec_context *ctx);
 execution_outcome variant_get_element(variant *obj, variant *index);
 execution_outcome variant_set_element(variant *obj, variant *index, variant *value);
 

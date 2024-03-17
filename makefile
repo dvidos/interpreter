@@ -21,6 +21,7 @@ FILES = \
 	src/utils/mem.c \
 	src/utils/error.c \
 	src/utils/hash.c \
+	src/utils/origin.c \
 	\
 	src/entities/operator_type.c \
 	src/entities/expression.c \
