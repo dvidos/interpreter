@@ -9,6 +9,7 @@ stack_frame *new_stack_frame(const char *func_name, origin *call_origin) {
     f->func_name = func_name;
     f->call_origin = call_origin;
     f->symbols = new_dict(variant_item_info);
+    f->method_owning_class = NULL;
     return f;
 }
 
@@ -20,8 +21,11 @@ void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_value
         }
     }
 
-    if (this_obj != NULL)
+    if (this_obj != NULL) {
         stack_frame_register_symbol(f, "this", this_obj);
+        f->method_owning_class = this_obj->_type;
+    }
+
 }
 
 
@@ -56,7 +60,14 @@ failable stack_frame_unregister_symbol(stack_frame *f, const char *name) {
     return ok();
 }
 
+bool stack_frame_is_method_owned_by(stack_frame *f, variant_type *class_type) {
+    if (f->method_owning_class == NULL || class_type == NULL)
+        return false;
 
+    // if we consider subclasses, we implement the "protected" access level here
+    return (class_type == f->method_owning_class)
+        || variants_are_equal((variant *)class_type, (variant *)f->method_owning_class);
+}
 
 const void stack_frame_describe(stack_frame *f, str_builder *sb) {
     str_builder_add(sb, "stack_frame");

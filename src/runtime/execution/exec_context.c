@@ -134,6 +134,18 @@ failable exec_context_unregister_symbol(exec_context *c, const char *name) {
     return ok();
 }
 
+bool exec_context_is_curr_method_owned_by(exec_context *c, variant_type *class_type) {
+    if (stack_empty(c->stack_frames))
+        return false;
+
+    stack_frame *f = stack_peek(c->stack_frames);
+    if (f == NULL)
+        return false;
+
+    return stack_frame_is_method_owned_by(f, class_type);
+}
+
+
 failable exec_context_register_constructable_type(exec_context *c, variant_type *type) {
     if (dict_has(c->constructable_variant_types, type->name))
         return failed(NULL, "type '%s' already registered", type->name);

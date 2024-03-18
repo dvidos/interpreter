@@ -8,7 +8,7 @@ execution_outcome execute_user_function(
     const char *name,
     list *func_statements, 
     list *func_arg_names,
-    list *arg_expressions, 
+    list *arg_values, 
     variant *this_obj,
     origin *call_origin,
     exec_context *ctx) {
@@ -16,18 +16,11 @@ execution_outcome execute_user_function(
     // here we have opportunity for improvements
     // named arguments, or default values, variadic args etc.
 
-    if (list_length(arg_expressions) < list_length(func_arg_names)) {
+    if (list_length(arg_values) < list_length(func_arg_names)) {
         return exception_outcome(new_exception_variant_at(
             call_origin, NULL, 
-            "%s() expected %d arguments, got %d", name, list_length(func_arg_names), list_length(arg_expressions)
+            "%s() expected %d arguments, got %d", name, list_length(func_arg_names), list_length(arg_values)
         ));
-    }
-
-    list *arg_values = new_list(variant_item_info);
-    for_list(arg_expressions, it, expression, e) {
-        execution_outcome ex = execute_expression(e, ctx);
-        if (ex.failed || ex.excepted) return ex;
-        list_add(arg_values, ex.result);
     }
 
     stack_frame *frame = new_stack_frame(name, call_origin);

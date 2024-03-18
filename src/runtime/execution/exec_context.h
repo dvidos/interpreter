@@ -46,6 +46,7 @@ bool exec_context_symbol_exists(exec_context *c, const char *name);
 failable exec_context_register_symbol(exec_context *c, const char *name, variant *v);
 failable exec_context_update_symbol(exec_context *c, const char *name, variant *v);
 failable exec_context_unregister_symbol(exec_context *c, const char *name);
+bool exec_context_is_curr_method_owned_by(exec_context *c, variant_type *class_type);
 
 failable exec_context_register_constructable_type(exec_context *c, variant_type *type);
 variant_type *exec_context_get_constructable_type(exec_context *c, const char *name);

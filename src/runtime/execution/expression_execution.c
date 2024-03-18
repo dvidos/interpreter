@@ -363,20 +363,23 @@ static execution_outcome retrieve_member(expression *container_expr, expression 
     if (ex.excepted || ex.failed) return ex;
     variant *container = ex.result;
 
+    visibility vis = exec_context_is_curr_method_owned_by(ctx, container->_type) ?
+        VIS_SAME_CLASS_CODE : VIS_PUBLIC_CODE;
+
     if (member_expr->type != ET_IDENTIFIER)
         return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
     const char *member = member_expr->per_type.terminal_data;
 
-    if (variant_has_attr(container, member)) {
-        ex = variant_get_attr_value(container, member);
+    if (variant_has_attr(container, member, vis)) {
+        ex = variant_get_attr_value(container, member, vis);
         if (ex.excepted || ex.failed) return ex;
         variant *value = ex.result;
         variant_inc_ref(value);
         return ok_outcome(value);
 
-    } else if (variant_has_method(container, member)) {
+    } else if (variant_has_method(container, member, vis)) {
         // promote a function to an instance, capturing the container as 'this'
-        return variant_get_bound_method(container, member);
+        return variant_get_bound_method(container, member, vis);
 
     } else {
         return exception_outcome(new_exception_variant("member '%s' not found in object type '%s'",
@@ -390,15 +393,18 @@ static execution_outcome store_member(expression *container_expr, expression *me
     if (ex.excepted || ex.failed) return ex;
     variant *container = ex.result;
 
+    visibility vis = exec_context_is_curr_method_owned_by(ctx, container->_type) ?
+        VIS_SAME_CLASS_CODE : VIS_PUBLIC_CODE;
+
     if (member_expr->type != ET_IDENTIFIER)
         return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
     const char *member = member_expr->per_type.terminal_data;
 
-    if (!variant_has_attr(container, member))
+    if (!variant_has_attr(container, member, vis))
         return exception_outcome(new_exception_variant("attribute '%s' not found in object type '%s'",
             member, container->_type->name));
 
-    return variant_set_attr_value(container, member, value);
+    return variant_set_attr_value(container, member, vis, value);
 }
 
 static execution_outcome call_member(expression *container_expr, expression *member_expr, expression *args_expr, origin *call_origin, exec_context *ctx) {
@@ -407,25 +413,29 @@ static execution_outcome call_member(expression *container_expr, expression *mem
     if (ex.excepted || ex.failed) return ex;
     variant *container = ex.result;
 
+    visibility vis = exec_context_is_curr_method_owned_by(ctx, container->_type) ?
+        VIS_SAME_CLASS_CODE : VIS_PUBLIC_CODE;
+
     if (member_expr->type != ET_IDENTIFIER)
         return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
     const char *member = member_expr->per_type.terminal_data;
 
     // arguments is a list of expressions, evaluating to a list of values
     if (args_expr->type != ET_LIST_DATA)
-        return exception_outcome(new_exception_variant("MEMBER_OF requires identifier as right operand"));
+        return exception_outcome(new_exception_variant("function call requires a list of args"));
+    
     ex = retrieve_value(args_expr, ctx);
     if (ex.excepted || ex.failed) return ex;
     list *args = list_variant_as_list(ex.result);
 
-    if (variant_has_method(container, member)) {
-        return variant_call_method(container, member, args, call_origin, ctx);
+    if (variant_has_method(container, member, vis)) {
+        return variant_call_method(container, member, vis, args, call_origin, ctx);
 
-    } else if (variant_has_attr(container, member)) {
-        ex = variant_get_attr_value(container, member);
+    } else if (variant_has_attr(container, member, vis)) {
+        ex = variant_get_attr_value(container, member, vis);
         if (ex.excepted || ex.failed) return ex;
 
-        // could be a callable expression or an expression function etc.
+        // attribute could be an expression function or callable.
         return variant_call(ex.result, args, NULL, call_origin, ctx);
 
     } else {

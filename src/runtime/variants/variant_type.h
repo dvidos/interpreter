@@ -15,7 +15,7 @@
 typedef struct exec_context exec_context;
 
 // some specific function types, used in types
-typedef execution_outcome (*initialize_func)(variant *obj, variant *args, exec_context *ctx);
+typedef execution_outcome (*initialize_func)(variant *obj, variant *arg_values, exec_context *ctx);
 typedef void (*destruct_func)(variant *obj);
 typedef void (*copy_initializer_func)(variant *obj, variant *original);
 typedef variant *(*return_obj_func)(variant *obj);
@@ -25,7 +25,7 @@ typedef int (*compare_func)(variant *a, variant *b);
 typedef bool (*equals_func)(variant *a, variant *b);
 
 typedef execution_outcome (*iterator_next_func)(variant *obj);
-typedef execution_outcome (*call_handler_func)(variant *obj, list *args, variant *this_obj, origin *call_origin, exec_context *ctx);
+typedef execution_outcome (*call_handler_func)(variant *obj, list *arg_values, variant *this_obj, origin *call_origin, exec_context *ctx);
 typedef execution_outcome (*get_element_func)(variant *obj, variant *index);
 typedef execution_outcome (*set_element_func)(variant *obj, variant *index, variant *value);
 
@@ -33,7 +33,7 @@ typedef execution_outcome (*set_element_func)(variant *obj, variant *index, vari
 // each variant has zero or more methods. 
 // they are defined in an array of this structure
 typedef struct variant_method_definition variant_method_definition;
-typedef execution_outcome (*variant_method_handler_func)(variant *this, variant_method_definition *method, list *args, origin *call_origin, exec_context *ctx);
+typedef execution_outcome (*variant_method_handler_func)(variant *this, variant_method_definition *method, list *arg_values, origin *call_origin, exec_context *ctx);
 enum variant_method_flags {
     VMF_DEFAULT = 0,
     VMF_VARARGS = 1,

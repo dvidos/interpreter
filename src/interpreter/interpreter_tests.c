@@ -270,10 +270,19 @@ static void verify_classes_handling() {
                      "return c.a1;",
                      NULL, EXP_INTEGER, 313);
 
-    // simple class
+    // likewise, methods are private by default
     verify_execution("class T {"
                      "    a1 = 313;"
                      "    function giveme() { return this.a1; }"
+                     "}"
+                     "c = new(T);"
+                     "return c.giveme();",
+                     NULL, EXP_EXCEPTION, NULL);
+
+    // but public methods access private data
+    verify_execution("class T {"
+                     "    a1 = 313;"
+                     "    public function giveme() { return this.a1; }"
                      "}"
                      "c = new(T);"
                      "return c.giveme();",
@@ -282,7 +291,7 @@ static void verify_classes_handling() {
     // uninitialized attribute
     verify_execution("class T {"
                      "    a1;"
-                     "    function giveme() { return this.a1; }"
+                     "    public function giveme() { return this.a1; }"
                      "}"
                      "c = new(T);"
                      "return c.giveme();",
@@ -292,7 +301,7 @@ static void verify_classes_handling() {
     verify_execution("class T {"
                      "    a1 = 313;"
                      "    function construct(num) { this.a1 = num; }"
-                     "    function giveme() { return this.a1; }"
+                     "    public function giveme() { return this.a1; }"
                      "}"
                      "c = new(T, 626);"
                      "return c.giveme();",

@@ -180,12 +180,12 @@ static execution_outcome method_reduce(list_instance *this, variant_method_defin
 
 static variant_method_definition methods[] = {
     // insert, delete, contains, sort, foreach, anymatch, nomatch, ...
-    { "empty",    (variant_method_handler_func)method_empty, VMF_DEFAULT },
-    { "length",   (variant_method_handler_func)method_legth, VMF_DEFAULT },
-    { "add",      (variant_method_handler_func)method_add, VMF_DEFAULT },
-    { "filter",   (variant_method_handler_func)method_filter, VMF_DEFAULT },
-    { "map",      (variant_method_handler_func)method_map, VMF_DEFAULT },
-    { "reduce",   (variant_method_handler_func)method_reduce, VMF_DEFAULT },
+    { "empty",    (variant_method_handler_func)method_empty, VMF_PUBLIC },
+    { "length",   (variant_method_handler_func)method_legth, VMF_PUBLIC },
+    { "add",      (variant_method_handler_func)method_add, VMF_PUBLIC },
+    { "filter",   (variant_method_handler_func)method_filter, VMF_PUBLIC },
+    { "map",      (variant_method_handler_func)method_map, VMF_PUBLIC },
+    { "reduce",   (variant_method_handler_func)method_reduce, VMF_PUBLIC },
     { NULL }
 };
 

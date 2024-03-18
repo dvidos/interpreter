@@ -1,10 +1,34 @@
 #include <stdbool.h>
 #include <string.h>
 #include "variant_type.h"
+#include "str_variant.h"
 
+
+variant *type_to_string(variant *obj) {
+    variant_type *t = (variant_type *)obj;
+    return new_str_variant("%s", t->name);
+}
+
+bool types_are_equal(variant *a, variant *b) {
+    variant_type *ta = (variant_type *)a;
+    variant_type *tb = (variant_type *)b;
+
+    // this method very important, as class visibility depends on it.
+
+    if (ta == tb) return true;
+    if (ta == NULL && tb != NULL) return false;
+    if (ta != NULL && tb == NULL) return false;
+
+    if (ta->parent_type != tb->parent_type) return false;
+    if (strcmp(ta->name, tb->name) != 0) return false;
+
+    return true;
+}
 
 variant_type *type_of_types = &(variant_type){
     .name = "type",
+    .stringifier = type_to_string,
+    .equality_checker = types_are_equal
 };
 
 // a dictionary of registered types

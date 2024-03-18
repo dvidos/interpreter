@@ -200,7 +200,6 @@ Extra functionality here as well:
 ```c
 iterator *stack_iterator(stack *s);
 const char *stack_describe(stack *s, const char *separator);
-// stacks_are_equal() not implemented yet
 ```
 
 ### Iterator

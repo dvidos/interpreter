@@ -4,6 +4,7 @@
 #include "class_execution.h"
 #include "statement_execution.h"
 #include "expression_execution.h"
+#include "function_execution.h"
 
 /*  we do not create a strongly typed instance structure
     because the size of it depends on the number of attributes
@@ -18,8 +19,8 @@
 */
 
 // special method names
-#define CONSTRUCTOR_METHOD_NAME   "constructor"
-#define DESTRUCTOR_METHOD_NAME    "destructor"
+#define CONSTRUCTOR_METHOD_NAME   "construct"
+#define DESTRUCTOR_METHOD_NAME    "destruct"
 #define TO_STRING_METHOD_NAME     "toString"
 #define HASH_METHOD_NAME          "hash"
 
@@ -51,9 +52,10 @@ static execution_outcome instance_initializer(variant *instance, variant *args_l
     }
     
     // then, if there is an explicit constructor, use it
-    if (variant_has_method(instance, CONSTRUCTOR_METHOD_NAME)) {
+    // actually, if constructor was not public, maybe we could forbid instantiation
+    if (variant_has_method(instance, CONSTRUCTOR_METHOD_NAME, VIS_SAME_CLASS_CODE)) {
         list *al = args_list == NULL ? NULL : list_variant_as_list(args_list);
-        variant_call_method(instance, CONSTRUCTOR_METHOD_NAME, al, internal_origin(), ctx);
+        variant_call_method(instance, CONSTRUCTOR_METHOD_NAME, VIS_SAME_CLASS_CODE, al, internal_origin(), ctx);
     }
 
     return ok_outcome(NULL);
@@ -66,13 +68,19 @@ static execution_outcome instance_to_string(variant *instance) {
     return ok_outcome(new_str_variant("(%s @ %p)", instance->_type->name, instance));
 }
 
-static execution_outcome method_call_handler(variant *this, variant_method_definition *method, list *args, origin *call_origin, exec_context *ctx) {
+static execution_outcome method_call_handler(variant *this, variant_method_definition *method, list *arg_values, origin *call_origin, exec_context *ctx) {
     // this handler is called when a method of this class is called.
     statement *stmt = (statement *)method->ast_node;
-    // run stmt->per_type.function.statements ...
-    return failed_outcome("Not implemented yet!");
-}
 
+    return execute_user_function(
+        method->name,
+        stmt->per_type.function.statements,
+        stmt->per_type.function.arg_names,
+        arg_values,
+        this,
+        call_origin,
+        ctx);
+}
 
 static variant_attrib_definition *prepare_attrib_definitions(statement *stmt) {
     int len = list_length(stmt->per_type.class.attributes);
@@ -106,7 +114,7 @@ static variant_method_definition *prepare_method_definitions(statement *stmt) {
         methods[index].handler = method_call_handler;
         if (cm->public)
             methods[index].vmf_flags += VMF_PUBLIC;
-        methods[index].ast_node = cm;
+        methods[index].ast_node = cm->function;
 
         index++;
     }

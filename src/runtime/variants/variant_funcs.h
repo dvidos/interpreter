@@ -14,6 +14,10 @@ extern variant *iteration_finished_exception_instance;
 
 void initialize_variants();
 
+typedef enum visibility {
+    VIS_SAME_CLASS_CODE,
+    VIS_PUBLIC_CODE,
+} visibility;
 
 
 
@@ -29,14 +33,14 @@ bool variant_instance_of(variant *obj, variant_type *type);          // type or 
 bool variant_is_exactly(variant *obj, variant_type *type);
 
 // call these to manipulate properties on an variant
-bool              variant_has_attr(variant *obj, const char *name);
-execution_outcome variant_get_attr_value(variant *obj, const char *name);
-execution_outcome variant_set_attr_value(variant *obj, const char *name, variant *value);
+bool              variant_has_attr(variant *obj, const char *name, visibility vis);
+execution_outcome variant_get_attr_value(variant *obj, const char *name, visibility vis);
+execution_outcome variant_set_attr_value(variant *obj, const char *name, visibility vis, variant *value);
 
 // call these to manipulate methods on an variant
-bool              variant_has_method(variant *obj, const char *name);
-execution_outcome variant_call_method(variant *obj, const char *name, list *args_list, origin *call_origin, exec_context *ctx);
-execution_outcome variant_get_bound_method(variant *obj, const char *name);
+bool              variant_has_method(variant *obj, const char *name, visibility vis);
+execution_outcome variant_call_method(variant *obj, const char *name, visibility vis, list *args_list, origin *call_origin, exec_context *ctx);
+execution_outcome variant_get_bound_method(variant *obj, const char *name, visibility vis);
 
 // a few utilitiy methods without knowing the variant type
 variant *         variant_to_string(variant *obj);

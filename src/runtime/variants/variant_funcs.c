@@ -118,10 +118,13 @@ bool variant_is_exactly(variant *obj, variant_type *type) {
     return obj->_type == type;
 }
 
-bool variant_has_attr(variant *obj, const char *name) {
+bool variant_has_attr(variant *obj, const char *name, visibility vis) {
     variant_type *t = obj->_type;
     if (t->attributes == NULL) return false;
     for (int i = 0; t->attributes[i].name != NULL; i++) {
+        if (vis != VIS_SAME_CLASS_CODE && !(t->attributes[i].vaf_flags & VAF_PUBLIC))
+            continue;
+        
         if (strcmp(t->attributes[i].name, name) == 0) {
             return true;
         }
@@ -129,7 +132,7 @@ bool variant_has_attr(variant *obj, const char *name) {
     return false;
 }
 
-execution_outcome variant_get_attr_value(variant *obj, const char *name) {
+execution_outcome variant_get_attr_value(variant *obj, const char *name, visibility vis) {
     variant_type *type = obj->_type;
     if (type->attributes == NULL)
         return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
@@ -138,7 +141,7 @@ execution_outcome variant_get_attr_value(variant *obj, const char *name) {
         if (strcmp(type->attributes[i].name, name) != 0)
             continue;
         
-        if (!(type->attributes[i].vaf_flags & VAF_PUBLIC))
+        if (vis != VIS_SAME_CLASS_CODE && !(type->attributes[i].vaf_flags & VAF_PUBLIC))
             return exception_outcome(new_exception_variant("attribute '%s' is not public in type '%s'", name, type->name));
         
         variant_attrib_definition *attr = &type->attributes[i];
@@ -155,7 +158,7 @@ execution_outcome variant_get_attr_value(variant *obj, const char *name) {
     return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
 }
 
-execution_outcome variant_set_attr_value(variant *obj, const char *name, variant *value) {
+execution_outcome variant_set_attr_value(variant *obj, const char *name, visibility vis, variant *value) {
     variant_type *type = obj->_type;
     if (type->attributes == NULL)
         return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
@@ -165,7 +168,7 @@ execution_outcome variant_set_attr_value(variant *obj, const char *name, variant
             continue;
 
         variant_attrib_definition *attr = &type->attributes[i];
-        if (!(attr->vaf_flags & VAF_PUBLIC))
+        if (vis != VIS_SAME_CLASS_CODE && !(attr->vaf_flags & VAF_PUBLIC))
             return exception_outcome(new_exception_variant("attribute '%s' is not public in type '%s'", name, type->name));
         if (attr->vaf_flags & VAF_READ_ONLY)
             return exception_outcome(new_exception_variant("attribute '%s' is read only in type '%s'", name, type->name));
@@ -184,12 +187,15 @@ execution_outcome variant_set_attr_value(variant *obj, const char *name, variant
     return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
 }
 
-bool variant_has_method(variant *obj, const char *name) {
+bool variant_has_method(variant *obj, const char *name, visibility vis) {
     variant_type *type = obj->_type;
     if (type->methods == NULL)
         return false;
     
     for (int i = 0; type->methods[i].name != NULL; i++) {
+        if (vis != VIS_SAME_CLASS_CODE && !(type->methods[i].vmf_flags & VAF_PUBLIC))
+            continue;
+        
         if (strcmp(type->methods[i].name, name) == 0) {
             return true;
         }
@@ -198,7 +204,7 @@ bool variant_has_method(variant *obj, const char *name) {
     return false;
 }
 
-execution_outcome variant_call_method(variant *obj, const char *name, list *args, origin *call_origin, exec_context *ctx) {
+execution_outcome variant_call_method(variant *obj, const char *name, visibility vis, list *arg_values, origin *call_origin, exec_context *ctx) {
 
     variant_type *type = obj->_type;
     if (type->methods == NULL)
@@ -208,14 +214,17 @@ execution_outcome variant_call_method(variant *obj, const char *name, list *args
         if (strcmp(type->methods[i].name, name) != 0)
             continue;
         
+        if (vis != VIS_SAME_CLASS_CODE && !(type->methods[i].vmf_flags & VAF_PUBLIC))
+            return exception_outcome(new_exception_variant("method '%s()' is not public in type '%s'", name, type->name));
+        
         variant_method_definition *method = &type->methods[i];
-        return method->handler(obj, method, args, call_origin, ctx);
+        return method->handler(obj, method, arg_values, call_origin, ctx);
     }
     
     return exception_outcome(new_exception_variant("method '%s()' not found in type '%s'", name, type->name));
 }
 
-execution_outcome variant_get_bound_method(variant *obj, const char *name) {
+execution_outcome variant_get_bound_method(variant *obj, const char *name, visibility vis) {
 
     variant_type *type = obj->_type;
     if (type->methods == NULL)
@@ -224,6 +233,9 @@ execution_outcome variant_get_bound_method(variant *obj, const char *name) {
     for (int i = 0; type->methods[i].name != NULL; i++) {
         if (strcmp(type->methods[i].name, name) != 0)
             continue;
+        
+        if (vis != VIS_SAME_CLASS_CODE && !(type->methods[i].vmf_flags & VAF_PUBLIC))
+            return exception_outcome(new_exception_variant("method '%s()' is not public in type '%s'", name, type->name));
         
         // we must make a class that is callable by design!!!!!
         // same thing could be used for an expression function that has captured variables.
@@ -300,14 +312,14 @@ execution_outcome variant_iterator_next(variant *obj) { // advance and get next,
     return obj->_type->iterator_next_implementation(obj);
 }
 
-execution_outcome variant_call(variant *obj, list *args, variant *this_obj, origin *call_origin, exec_context *ctx) {
+execution_outcome variant_call(variant *obj, list *arg_values, variant *this_obj, origin *call_origin, exec_context *ctx) {
     if (obj == NULL || obj->_type == NULL)
         return failed_outcome("Expecting variant with a type, got null");
 
     if (obj->_type->call_handler == NULL)
         return exception_outcome(new_exception_variant("Type '%s' is not callable", obj->_type->name));
     
-    return obj->_type->call_handler(obj, args, this_obj, call_origin, ctx);
+    return obj->_type->call_handler(obj, arg_values, this_obj, call_origin, ctx);
 }
 
 execution_outcome variant_get_element(variant *obj, variant *index) {
