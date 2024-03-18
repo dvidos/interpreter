@@ -20,16 +20,6 @@ typedef execution_outcome (*callable_variant_call_handler)(
 
 typedef struct callable callable; // to avoid cyclical header inclusion
 
-variant *new_callable_variant2(
-    const char *name,           // for debugging purposes
-    callable_variant_call_handler handler,
-    void *payload,
-    variant *this,              // when detaching a method from an instance
-    dict *captured_variables    // when creating a closure
-);
-
-
-// TODO: deprecate these!
 variant *new_callable_variant(callable *callable);
 callable *callable_variant_as_callable(variant *v);
 

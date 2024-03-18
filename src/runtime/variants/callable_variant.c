@@ -34,10 +34,10 @@ static variant *instance_stringify(callable_instance *obj) {
 
 static execution_outcome instance_call(variant *obj, list *args, variant *this_obj, origin *call_origin, exec_context *ctx) {
     callable_instance *c = (callable_instance *)obj;
-    // TODO: add origin
-    if (c->callable != NULL) {
-        return callable_call(c->callable, args, NULL, call_origin, ctx);
-    }
+    if (c->callable == NULL)
+        return failed_outcome("Callable variant was not correctly setup");
+    
+    return callable_call(c->callable, args, NULL, call_origin, ctx);
 }
 
 variant_type *callable_type = &(variant_type){
@@ -52,7 +52,6 @@ variant_type *callable_type = &(variant_type){
     .call_handler = instance_call, // don't cast, so that we get warnings when handler arguments change.
 };
 
-// TODO: move member container into the old callable
 variant *new_callable_variant(callable *c) {
     execution_outcome ex = variant_create(callable_type, NULL, NULL);
     if (ex.failed || ex.excepted) return NULL;

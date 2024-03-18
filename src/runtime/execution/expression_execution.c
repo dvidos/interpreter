@@ -124,32 +124,24 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
 
         case ET_LIST_DATA:
             list *expressions_list = e->per_type.list_;
-            variant *values_list = new_list_variant();
+            list *values_list = new_list(variant_item_info);
             for_list(expressions_list, list_iter, expression, list_exp) {
                 ex = execute_expression(list_exp, ctx);
                 if (ex.excepted || ex.failed) return ex;
-                variant *item = ex.result;
-                // TODO: fix this, remove this method.
-                list_variant_append(values_list, item);
-                variant_drop_ref(item);
+                list_add(values_list, ex.result);
             }
-            return ok_outcome(values_list);
+            return ok_outcome(new_list_variant_owning(values_list));
 
         case ET_DICT_DATA:
             dict *expressions_dict = e->per_type.dict_;
-            variant *values_dict = new_dict_variant();
+            dict *values_dict = new_dict(variant_item_info);
             iterator *keys_it = dict_keys_iterator(expressions_dict);
             for_iterator(keys_it, str, key) {
                 ex = execute_expression(dict_get(expressions_dict, key), ctx);
                 if (ex.excepted || ex.failed) return ex;
-                variant *vkey = new_str_variant(key);
-                variant *vitem = ex.result;
-                // TODO: no, no, no, fix this, remove this method.
-                dict_variant_set(values_dict, vkey, vitem);
-                variant_drop_ref(vkey);
-                variant_drop_ref(vitem);
+                dict_set(values_dict, key, ex.result);
             }
-            return ok_outcome(values_dict);
+            return ok_outcome(new_dict_variant_owning(values_dict));
 
         case ET_UNARY_OP:
             operand1 = e->per_type.operation.operand1;

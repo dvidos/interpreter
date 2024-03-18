@@ -239,11 +239,3 @@ list *list_variant_as_list(variant *v) {
     return ((list_instance *)v)->list;
 }
 
-void list_variant_append(variant *v, variant *item) {
-    if (!variant_instance_of(v, list_type))
-        return;
-    list_instance *li = (list_instance *)v;
-
-    list_add(li->list, item);
-    variant_inc_ref(item);
-}
