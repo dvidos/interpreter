@@ -250,7 +250,7 @@ bool statements_are_equal(statement *a, statement *b) {
     return true;
 }
 
-item_info *statement_item_info = &(item_info){
+contained_item_info *statement_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "statement",
     .describe = (describe_item_func)statement_describe,
@@ -288,14 +288,14 @@ static bool class_method_are_equal(class_method *a, class_method *b) {
     return true;
 }
 
-item_info *class_attribute_item_info = &(item_info) {
+contained_item_info *class_attribute_item_info = &(contained_item_info) {
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "class_attribute",
     .describe = (describe_item_func)class_attribute_describe,
     .are_equal = (items_equal_func)class_attributes_are_equal
 };
 
-item_info *class_method_item_info = &(item_info) {
+contained_item_info *class_method_item_info = &(contained_item_info) {
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "class_method",
     .describe = (describe_item_func)class_method_describe,

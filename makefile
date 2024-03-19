@@ -5,6 +5,7 @@ FILES = \
 	\
 	src/utils/data_types/callable.c \
 	\
+	src/containers/contained_item_info.c \
 	src/containers/dict.c \
 	src/containers/list.c \
 	src/containers/stack.c \
@@ -12,7 +13,6 @@ FILES = \
 	src/containers/pair.c \
 	src/containers/containers_tests.c \
 	\
-	src/utils/item_info.c \
 	src/utils/str.c \
 	src/utils/str_builder.c \
 	src/utils/failable.c \

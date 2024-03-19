@@ -130,7 +130,7 @@ bool operator_types_are_equal(operator_type a, operator_type b) {
     return a == b;
 }
 
-item_info *operator_type_item_info = &(item_info){
+contained_item_info *operator_type_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "operator_type",
     .are_equal = (items_equal_func)operator_types_are_equal,

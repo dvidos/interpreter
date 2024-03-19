@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/item_info.h"
+#include "contained_item_info.h"
 #include "../utils/str_builder.h"
 #include "stack.h"
 
@@ -13,11 +13,11 @@ typedef struct stack_entry {
 typedef struct stack {
     int length;
     stack_entry *head;
-    item_info *item_info;
+    contained_item_info *item_info;
 } stack;
 
 
-stack *new_stack(item_info *item_info) {
+stack *new_stack(contained_item_info *item_info) {
     stack *s = malloc(sizeof(stack));
     s->item_info = stack_item_info;
     s->length = 0;
@@ -121,7 +121,7 @@ static void stack_describe_default(stack *s, const char *separator, str_builder 
     stack_describe(s, ", ", sb);
 }
 
-item_info *stack_item_info = &(item_info){
+contained_item_info *stack_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "stack",
     .describe = (describe_item_func)stack_describe_default,

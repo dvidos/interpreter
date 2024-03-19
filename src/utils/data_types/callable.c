@@ -15,7 +15,7 @@
 
 
 struct callable {
-    item_info *item_info;
+    contained_item_info *item_info;
     const char *name;
     callable_handler *handler;
     void *callable_data;       // used for AST nodes
@@ -73,7 +73,7 @@ static void describe_callable(void *pointer, str_builder *sb) {
     str_builder_addf(sb, "%s()", c->name);
 }
 
-item_info *callable_item_info = &(item_info){
+contained_item_info *callable_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "callable",
     .are_equal = NULL,

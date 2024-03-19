@@ -5,7 +5,7 @@
 #include "../../containers/_module.h"
 
 
-extern item_info *variant_item_info;
+extern contained_item_info *variant_item_info;
 
 
 

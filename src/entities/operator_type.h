@@ -81,6 +81,6 @@ bool operator_type_is_unary(operator_type op);
 const char *operator_type_name(operator_type op);
 const void operator_type_describe(operator_type op, str_builder *sb);
 
-extern item_info *operator_type_item_info;
+extern contained_item_info *operator_type_item_info;
 
 #endif

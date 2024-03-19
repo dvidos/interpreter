@@ -5,7 +5,7 @@
 #include "../utils/str_builder.h"
 
 
-item_info *token_item_info = &(item_info){
+contained_item_info *token_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "token",
     .are_equal = (items_equal_func)tokens_are_equal,

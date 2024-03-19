@@ -2,7 +2,7 @@
 #define _CONTAINERS_MODULE_H
 
 
-#include "../utils/item_info.h"
+#include "contained_item_info.h"
 #include "list.h"
 #include "dict.h"
 #include "stack.h"

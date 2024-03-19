@@ -10,7 +10,7 @@
 
 typedef struct statement statement;
 struct statement {
-    item_info *item_info;
+    contained_item_info *item_info;
     statement_type type;
     union {
         struct expr {
@@ -71,9 +71,9 @@ typedef struct class_method {
 } class_method;
 
 
-extern item_info *statement_item_info;
-extern item_info *class_attribute_item_info;
-extern item_info *class_method_item_info;
+extern contained_item_info *statement_item_info;
+extern contained_item_info *class_attribute_item_info;
+extern contained_item_info *class_method_item_info;
 
 
 statement *new_expression_statement(expression *expr);

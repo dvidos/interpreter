@@ -9,10 +9,10 @@
 
 
 typedef struct token token;
-extern item_info *token_item_info;
+extern contained_item_info *token_item_info;
 
 struct token {
-    item_info *item_info;
+    contained_item_info *item_info;
     token_type type;
     const char *data; // e.g. identifier or number
     const char *filename;

@@ -22,7 +22,7 @@ static bool item_info_are_equal(variant *a, variant *b) {
     return variants_are_equal(a, b);
 }
 
-item_info *variant_item_info = &(item_info){
+contained_item_info *variant_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "variant",
     .are_equal = (items_equal_func)item_info_are_equal,

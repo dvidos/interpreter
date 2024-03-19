@@ -10,10 +10,10 @@ typedef struct statement statement;
 typedef struct expression expression;
 
 typedef struct stack_frame stack_frame;
-extern item_info *stack_frame_item_info;
+extern contained_item_info *stack_frame_item_info;
 
 struct stack_frame {
-    item_info *item_info;
+    contained_item_info *item_info;
     const char *func_name;
     statement *func_stmt;
     expression *func_expr;
@@ -35,7 +35,7 @@ bool stack_frame_is_method_owned_by(stack_frame *f, variant_type *class_type);
 const void stack_frame_describe(stack_frame *f, str_builder *sb);
 bool stack_frames_are_equal(stack_frame *a, stack_frame *b);
 
-extern item_info *stack_frame_item_info;
+extern contained_item_info *stack_frame_item_info;
 
 
 

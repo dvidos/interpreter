@@ -6,7 +6,7 @@
 #include "../utils/str_builder.h"
 #include "expression.h"
 
-item_info *expression_item_info = &(item_info){
+contained_item_info *expression_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "expression",
     .are_equal = (items_equal_func)expressions_are_equal,

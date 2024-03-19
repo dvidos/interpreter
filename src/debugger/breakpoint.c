@@ -3,7 +3,7 @@
 #include "breakpoint.h"
 
 
-item_info *breakpoint_item_info = &(item_info){
+contained_item_info *breakpoint_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "breakpoint",
     .are_equal = NULL,

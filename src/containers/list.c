@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "../utils/mem.h"
-#include "../utils/item_info.h"
+#include "contained_item_info.h"
 #include "../utils/str_builder.h"
 #include "list.h"
 
@@ -15,11 +15,11 @@ typedef struct list {
     int length;
     list_entry *head;
     list_entry *tail;
-    item_info *item_info;
+    contained_item_info *item_info;
 } list;
 
 
-list *new_list(item_info *item_info) {
+list *new_list(contained_item_info *item_info) {
     list *l = malloc(sizeof(list));
     l->length = 0;
     l->head = NULL;
@@ -28,7 +28,7 @@ list *new_list(item_info *item_info) {
     return l;
 }
 
-list *list_of(item_info *item_info, int items_count, ...) {
+list *list_of(contained_item_info *item_info, int items_count, ...) {
     list *l = new_list(item_info);
     va_list args;
     va_start(args, items_count);
@@ -38,7 +38,7 @@ list *list_of(item_info *item_info, int items_count, ...) {
     return l;
 }
 
-item_info *list_contained_item(list *l) {
+contained_item_info *list_contained_item(list *l) {
     return l->item_info;
 }
 
@@ -233,7 +233,7 @@ void list_free(list *l) {
     free(l);
 }
 
-item_info *list_item_info = &(item_info){
+contained_item_info *list_item_info = &(contained_item_info){
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "list",
     .are_equal = (items_equal_func)lists_are_equal,

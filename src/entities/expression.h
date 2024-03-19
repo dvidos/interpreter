@@ -9,10 +9,10 @@
 #include "expression_type.h"
 
 typedef struct expression expression;
-extern item_info *expression_item_info;
+extern contained_item_info *expression_item_info;
 
 struct expression {
-    item_info *item_info;
+    contained_item_info *item_info;
     expression_type type;
     token *token;
     operator_type op;

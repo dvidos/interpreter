@@ -38,6 +38,6 @@ execution_outcome callable_call(
     exec_context *ctx
 );
 
-extern item_info *callable_item_info;
+extern contained_item_info *callable_item_info;
 
 #endif

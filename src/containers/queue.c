@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/item_info.h"
+#include "contained_item_info.h"
 #include "../utils/str_builder.h"
 #include "queue.h"
 
@@ -14,10 +14,10 @@ typedef struct queue {
     int length;
     queue_entry *entrance;
     queue_entry *exit;
-    item_info *item_info;
+    contained_item_info *item_info;
 } queue;
 
-queue *new_queue(item_info *item_info) {
+queue *new_queue(contained_item_info *item_info) {
     queue *q = malloc(sizeof(queue));
     q->item_info = queue_item_info;
     q->length = 0;
@@ -133,7 +133,7 @@ void queue_describe_default(queue *q, str_builder *sb) {
     queue_describe(q, ", ", sb);
 }
 
-item_info *queue_item_info = &(item_info) {
+contained_item_info *queue_item_info = &(contained_item_info) {
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "queue",
     .describe = (describe_item_func)queue_describe_default,

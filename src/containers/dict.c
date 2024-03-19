@@ -14,13 +14,13 @@ typedef struct dict_entry {
 } dict_entry;
 
 typedef struct dict {
-    item_info *item_info;
+    contained_item_info *item_info;
     dict_entry **entries_array;
     int capacity;
     int count;
 } dict;
 
-dict *new_dict(item_info *item_info) {
+dict *new_dict(contained_item_info *item_info) {
     dict *d = malloc(sizeof(dict));
     d->item_info = dict_item_info;
     d->capacity = 32;
@@ -31,7 +31,7 @@ dict *new_dict(item_info *item_info) {
     return d;
 }
 
-dict *dict_of(item_info *item_info, int pairs_count, ...) {
+dict *dict_of(contained_item_info *item_info, int pairs_count, ...) {
     dict *d = new_dict(item_info);
     va_list args;
     va_start(args, pairs_count);
@@ -294,7 +294,7 @@ void dict_free(dict *d) {
 
 
 
-item_info *dict_item_info = &(item_info) {
+contained_item_info *dict_item_info = &(contained_item_info) {
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "dict",
     .are_equal = (items_equal_func)dicts_are_equal,

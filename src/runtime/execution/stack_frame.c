@@ -86,7 +86,7 @@ bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {
     return true;
 }
 
-item_info *stack_frame_item_info = &(item_info) {
+contained_item_info *stack_frame_item_info = &(contained_item_info) {
     .item_info_magic = ITEM_INFO_MAGIC,
     .type_name = "stack_frame",
     .describe = (describe_item_func)stack_frame_describe,
