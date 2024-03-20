@@ -78,6 +78,4 @@ $(OUTPUT): $(FILES)
 gccdeps: $(FILES)
 	gcc -MM $(FILES)
 
-pngdeps:
-	./dep.sh -o dep.png . && xdg-open dep.png
 
