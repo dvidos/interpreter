@@ -146,15 +146,21 @@ static void show_help() {
     printf("  p expresion -- evaluate and print expression\n");
 }
 
-static void show_curr_code_line(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {
+static void show_curr_code_line(statement *curr_stmt, expression *curr_expr, exec_context *ctx, int extra_lines) {
     const char *filename = get_curr_filename(curr_stmt, curr_expr);
     int line_no = get_curr_line_no(curr_stmt, curr_expr);
-    fprintf(stdout, "%3d %c  %s   %s\n",
-        line_no, 
-        is_breakpoint_at_line(filename, line_no, ctx) ? 'B' : ' ',
-        "-->",
-        listing_get_line(ctx->code_listing, line_no)
-    );
+    int lines_count = listing_lines_count(ctx->code_listing);
+    int min_line_to_show = between(line_no - extra_lines, 1, lines_count);
+    int max_line_to_show = between(line_no + extra_lines, 1, lines_count);
+
+    for (int n = min_line_to_show; n <= max_line_to_show; n++) {
+        fprintf(stdout, "%3d %c  %s   %s\n",
+            n, 
+            is_breakpoint_at_line(filename, n, ctx) ? 'B' : ' ',
+            n == line_no ? "-->" : "   ",
+            listing_get_line(ctx->code_listing, n)
+        );
+    }
 }
 
 static void list_code(statement *curr_stmt, expression *curr_expr, exec_context *ctx, char *cmd_arg) {
@@ -362,7 +368,7 @@ failable run_debugger(statement *curr_stmt, expression *curr_expr, exec_context 
     char buffer[128];
 
     printf("Inline debugger. Enter 'h' for help.\n");
-    show_curr_code_line(curr_stmt, curr_expr, ctx);
+    show_curr_code_line(curr_stmt, curr_expr, ctx, 1);
 
     bool should_resume;
     bool should_quit;

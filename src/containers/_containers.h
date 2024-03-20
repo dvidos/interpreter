@@ -9,6 +9,7 @@
 #include "queue.h"
 #include "pair.h"
 
+#include "iterator.h"
 #include "containers_tests.h"
 
 
