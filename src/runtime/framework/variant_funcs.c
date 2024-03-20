@@ -1,7 +1,7 @@
 #include <string.h>
 #include "variant_funcs.h"
+#include "../variants/_module.h"
 #include "../../utils/error.h"
-
 
 
 variant *void_singleton;
@@ -10,7 +10,6 @@ variant *false_instance;
 variant *zero_instance;
 variant *one_instance;
 variant *iteration_finished_exception_instance;
-
 
 void initialize_variants() {
     // the following cannot be initialized statically
@@ -237,10 +236,8 @@ execution_outcome variant_get_bound_method(variant *obj, const char *name, visib
         if (vis != VIS_SAME_CLASS_CODE && !(type->methods[i].vmf_flags & VAF_PUBLIC))
             return exception_outcome(new_exception_variant("method '%s()' is not public in type '%s'", name, type->name));
         
-        // we must make a class that is callable by design!!!!!
-        // same thing could be used for an expression function that has captured variables.
         variant *bound_method = new_callable_variant(
-            NULL // TODO: fix this.
+            NULL // TODO: travel the tree to find var references and capture
         );
         // but we need the callable, no?
         return ok_outcome(bound_method);

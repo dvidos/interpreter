@@ -319,7 +319,7 @@ static void verify_function_creation_and_calling() {
                      "return increaser(1);",
                      NULL, EXP_INTEGER, 2);
                     
-    // TODO: implement support for capturing env variables in closures.
+    // TODO: implement support for capturing external variables for closures.
     // // closure captures env values
     // verify_execution("function make_reminder(number) {"
     //                  "    return function() { return number; };"

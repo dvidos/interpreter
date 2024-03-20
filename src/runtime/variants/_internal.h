@@ -13,13 +13,6 @@ typedef struct variant_type variant_type;
 #include "../../utils/mem.h"
 #include "../../utils/error.h"
 
-#include "variant_base.h" 
-#include "execution_outcome.h"
-#include "variant_type.h" 
-#include "variant_funcs.h"
-#include "variant_item_info.h"
-
-
 #include "void_variant.h"
 #include "str_variant.h"
 #include "int_variant.h"

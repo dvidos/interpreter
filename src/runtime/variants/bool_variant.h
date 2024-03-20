@@ -1,7 +1,7 @@
 #ifndef _BOOL_VARIANT_H
 #define _BOOL_VARIANT_H
 
-#include "variant_type.h"
+#include "../framework/_module.h"
 
 extern variant_type *bool_type;
 

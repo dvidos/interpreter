@@ -30,14 +30,15 @@ static variant *stringify(dict_instance *obj) {
     variant *result = new_str_variant("");
 
     bool first = true;
-    for_dict(obj->dict, it, variant, key) {
+    for_dict(obj->dict, it, const_char, key) {
         if (!first)
             str_variant_append(result, entries_separator);
 
-        str_variant_append(result, key);
+        variant *key_var = new_str_variant(key);
+        str_variant_append(result, key_var);
         str_variant_append(result, key_separator);
 
-        variant *item = dict_get(obj->dict, str_variant_as_str(key));
+        variant *item = dict_get(obj->dict, key);
         variant *item_str = variant_to_string(item);
         str_variant_append(result, item_str);
         variant_drop_ref(item_str);

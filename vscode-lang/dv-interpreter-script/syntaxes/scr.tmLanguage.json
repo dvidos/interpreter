@@ -47,6 +47,10 @@
 			"name": "keyword.control.scr",
 			"match": "\\b(if|else|while|for|break|continue|return|breakpoint|try|catch|finally|throw)\\b"
 		},
+		"keywords": {
+			"name": "keyword.other.scr",
+			"match": "\\b(class|function|public|initialize|toString)\\b"
+		},
 		"function-definition": {
 			"name": "meta.function.definition.scr",
 			"match": "\\b(function)\\s+([_a-zA-Z0-9]+)\\s*\\(",

@@ -2,7 +2,9 @@
 #define _EXECUTION_OUTCOME_H
 
 #include <stdbool.h>
-#include "variant_base.h"
+
+// forward declaration
+typedef struct variant variant;
 
 // any function can instantiate and return an exception
 // so we need an alternative way to signal a "thrown" exception

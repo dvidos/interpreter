@@ -5,6 +5,7 @@
 #include "../../runtime/variants/_module.h"
 #include "../../containers/_module.h"
 
+
 typedef struct callable callable;
 
 
@@ -29,7 +30,7 @@ callable *new_callable(
 
 const char *callable_name(callable *c);
 
-// defined at callable creation time
+// passed in at callable call time
 execution_outcome callable_call(
     callable *c, 
     list *arg_values,  // each item a variant

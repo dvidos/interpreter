@@ -6,10 +6,10 @@
 #include <stdbool.h> // for bool
 
 #include "../../utils/origin.h"
+#include "../../utils/execution_outcome.h"
 #include "../../containers/_module.h"
 
 #include "variant_base.h"
-#include "execution_outcome.h"
 
 
 typedef struct exec_context exec_context;

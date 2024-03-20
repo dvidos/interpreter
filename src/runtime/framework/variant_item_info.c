@@ -6,11 +6,6 @@
 #include "variant_item_info.h"
 #include "../../utils/data_types/callable.h"
 
-#include "int_variant.h"
-#include "str_variant.h"
-#include "bool_variant.h"
-#include "float_variant.h"
-
 
 static const void item_info_variant_describe(variant *v, str_builder *sb) {
     variant *s = variant_to_string(v);

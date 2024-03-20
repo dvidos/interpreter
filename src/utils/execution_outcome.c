@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+// TODO: make these inline
+
 execution_outcome ok_outcome(variant *result) {
     return (execution_outcome){
         .result = result,

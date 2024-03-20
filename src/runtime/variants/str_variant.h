@@ -1,7 +1,7 @@
 #ifndef _STR_VARIANT_H
 #define _STR_VARIANT_H
 
-#include "variant_type.h"
+#include "../framework/_module.h"
 
 extern variant_type *str_type;
 

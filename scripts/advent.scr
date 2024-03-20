@@ -1,100 +1,109 @@
 /*
     Trying to build a minimal thing like the Colossal Cave Adventure,
-    to test drive my interpreter, and have some fun along the way.
+    to test drive the interpreter, and have some fun along the way.
 */
 
-maze = {
-    rooms: [],
-};
+class Maze {
+    public startRoom;
 
-function make_room() {
-    descriptions = ["big", "huge", "tall", "enormous", "narrow", "low-ceiling"];
-    nouns = ["room", "hall", "corridor", "passage"];
-    descr = descriptions[rand() % 6] + " " + nouns[rand() % 4];
-    exits = [
-        rand() & 1 > 0,
-        rand() & 1 > 0,
-        rand() & 1 > 0,
-        rand() & 1 > 0
-    ];
-    room = {descr:descr, exits:exits};
-    output("Room is:", room);
-    return room;
-}
-function make_maze() {
-    num_rooms = rand() % 20;
-    for (i = 0; i < num_rooms; i++) {
-        room = make_room();
-        maze.rooms.add(room);
-        // recursively connect exits to other rooms
-        // how to add to a list? 
-        // how to add to a dict?
-        // how to walk a dict?
-        // how to see if a key exists in a dictionary
+    public function print() {
+    }
+    public function makeRoom() {
+        descriptions = ["big", "huge", "tall", "enormous", "narrow", "low-ceiling"];
+        nouns = ["room", "hall", "corridor", "passage"];
+        descr = descriptions[rand() % descriptions.length] 
+                + " " 
+                + nouns[rand() % nouns.length];
+        
+        exits = [
+            rand() & 1 > 0,
+            rand() & 1 > 0,
+            rand() & 1 > 0,
+            rand() & 1 > 0
+        ];
+        room = new(Room, descr, exits);
+        output("Room is:", room);
+        return room;
     }
 }
 
-// -----------------------------
+class Room {
+    size = 'small'; // tiny, roomy, big, enormous. etc
+    type = 'cave'; // hall, corridor, passage, etc.
+    exits = [];
+    items = [];
 
-function print_maze() {
-}
-function present_room() {
-    // must have current room, describe it.
-}
-
-function get_command() {
-    output("Enter command, 'h' for help, or 'q' to quit");
-    x = input();
-    return x;
-}
-
-function do_help() {
-    output("Enter various commands in semi natural language. Usual format is <verb> <noun>. Good luck!");
-}
-function do_debug() {
-    output("maze:");
-    output(maze);
-}
-
-function handle_command(cmd) {
-    if (cmd == "help" || cmd == "h") {
-        do_help();
-    } else if (cmd == "debug") {
-        do_debug();
-    } else if (cmd == "rand") {
-        output("A random number is", rand());
-    } else {
-        output("I don't know this");
+    function initialize() {
+    }
+    public function toString() {
+    }
+    public function description() {
     }
 }
 
-function establish_seed() {
-    output("Enter seed for specific game, or press enter for random game");
-    s = input();
-    if (strlen(s) == 0) {
-        srand(0);
-        s = str(rand() % 10000);
-    }
-    
-    seed = int(s);
-    output("Using " + str(seed) + " as a seed");
-    srand(int(s));
+class Item {
+    name = '';
+    needsItem = '';
 }
 
-function main() {
-    establish_seed();
-    output("Preparing game...");
-    make_maze();
-    
-    while (true) {
-        present_room();
-        cmd = get_command();
-        if (cmd == "q" || cmd == "quit")
-            break;
-        handle_command(cmd);
+class Player {
+    inventory = [];
+    public function print() {
     }
+    public function pick(item) {
+    }
+    public function drop(item) {
+    }
+    public function use(item) {
 
-    return 0;
+    }
 }
 
-main();
+class Game {
+    maze;
+    player;
+    currentRoom;
+
+    function prepare() {
+        this.maze = new(Maze);
+        this.player = new(Player);
+        this.currentRoom = this.maze.startRoom;
+    }
+    function getCommand() {
+        output("Enter command, 'h' for help, or 'q' to quit");
+        return input();
+    }
+
+    function doHelp() {
+        output("Enter various commands in semi natural language. Usual format is <verb> <noun>. Good luck!");
+    }
+
+    function handleCommand(cmd) {
+        if (cmd == "help" || cmd == "h") {
+            this.doHelp();
+        } else if (cmd == "debug") {
+            output("maze:");
+            output(maze);
+        } else if (cmd == "rand") {
+            output("A random number is", rand());
+        } else {
+            output("I don't know this");
+        }
+    }
+
+    public function run() {
+        srand(0); // set to non-zero for specific seed
+        this.prepare();
+
+        while (true) {
+            this.presentRoom();
+            cmd = this.getCommand();
+            if (cmd == "q" || cmd == "quit")
+                break;
+            this.handleCommand(cmd);
+        }
+
+    }
+}
+
+new(Game).run();

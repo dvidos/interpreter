@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "variant_type.h"
-#include "str_variant.h"
+#include "../variants/str_variant.h"
 
 
 variant *type_to_string(variant *obj) {

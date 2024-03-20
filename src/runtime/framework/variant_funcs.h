@@ -1,8 +1,19 @@
 #ifndef _VARIANTS_FUNCS_H
 #define _VARIANTS_FUNCS_H
 
-#include "_internal.h"
+#include "_module.h"
 
+
+// built-in defined types
+extern variant_type *void_type;
+extern variant_type *int_type;
+extern variant_type *str_type;
+extern variant_type *bool_type;
+extern variant_type *float_type;
+extern variant_type *exception_type;
+extern variant_type *list_type;
+extern variant_type *dict_type;
+extern variant_type *callable_type;
 
 // predefined reusable read only instances
 extern variant *true_instance;
@@ -14,12 +25,11 @@ extern variant *iteration_finished_exception_instance;
 
 void initialize_variants();
 
+
 typedef enum visibility {
     VIS_SAME_CLASS_CODE,
     VIS_PUBLIC_CODE,
 } visibility;
-
-
 
 // call this to create a new instance
 execution_outcome variant_create(variant_type *type, variant *args, exec_context *ctx);
