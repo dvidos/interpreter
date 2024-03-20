@@ -4,10 +4,14 @@
 #include <time.h>
 #include "built_in_funcs.h"
 #include "../../utils/mem.h"
-#include "../../containers/_module.h"
-#include "../../utils/data_types/_module.h"
+#include "../../utils/execution_outcome.h"
+#include "../../containers/_containers.h"
 #include "../../utils/str.h"
 #include "../../utils/str_builder.h"
+#include "../../utils/origin.h"
+#include "../../utils/data_types/callable.h"
+#include "../execution/exec_context.h"
+
 
 #define at_least(value, threshold)   ((value) >= (threshold) ? (value) : (threshold))
 #define at_most(value, threshold)    ((value) <= (threshold) ? (value) : (threshold))

@@ -1,7 +1,7 @@
 #ifndef _EXCEPTION_VARIANT_H
 #define _EXCEPTION_VARIANT_H
 
-#include "../framework/_module.h"
+#include "../framework/_framework.h"
 
 extern variant_type *exception_type;
 

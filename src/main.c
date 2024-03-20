@@ -3,15 +3,14 @@
 #include <string.h>
 #include "utils/testing.h"
 #include "utils/file.h"
-#include "containers/_module.h"
-#include "utils/data_types/_module.h"
-#include "lexer/_module.h"
+#include "containers/_containers.h"
+#include "lexer/_lexer.h"
 #include "parser/expression_parser_tests.h"
 #include "parser/statement_parser_tests.h"
 #include "interpreter/interpreter_tests.h"
 #include "interpreter/interpreter.h"
-#include "runtime/_module.h"
-#include "runtime/variants/_module.h"
+#include "runtime/_runtime.h"
+#include "runtime/variants/_variants.h"
 
 /*
     The core of the functionality is the "interpret_and_execute()" function.

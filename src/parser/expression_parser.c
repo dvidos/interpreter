@@ -4,10 +4,10 @@
 #include "../utils/str.h"
 #include "../utils/str_builder.h"
 #include "../utils/failable.h"
-#include "../containers/_module.h"
+#include "../containers/_containers.h"
 #include "expression_parser.h"
 #include "statement_parser.h"
-#include "../lexer/_module.h"
+#include "../lexer/_lexer.h"
 
 /*
     The shunting yard algorithm, for parsing operators according to precedence,

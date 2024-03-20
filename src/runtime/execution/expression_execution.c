@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include "../variants/_module.h"
+#include "../variants/_variants.h"
 #include "../../debugger/debugger.h"
+#include "../../utils/data_types/callable.h"
 #include "../../utils/str.h"
 #include "../../utils/str_builder.h"
 #include "expression_execution.h"

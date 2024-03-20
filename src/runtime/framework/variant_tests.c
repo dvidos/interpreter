@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include "variant_item_info.h"
 #include "../../utils/testing.h"
-#include "_module.h"
-#include "../variants/_module.h"
+#include "_framework.h"
+#include "../variants/_variants.h"
 
 
 void variant_self_diagnostics(bool verbose) {

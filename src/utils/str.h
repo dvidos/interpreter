@@ -1,8 +1,8 @@
 #ifndef _STR_H
 #define _STR_H
 
-#include "../containers/_module.h"
-#include "../containers/_module.h"
+#include "../containers/_containers.h"
+#include "../containers/_containers.h"
 
 
 typedef const char str;

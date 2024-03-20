@@ -1,7 +1,7 @@
 #ifndef _VARIANTS_FUNCS_H
 #define _VARIANTS_FUNCS_H
 
-#include "_module.h"
+#include "_framework.h"
 
 
 // built-in defined types

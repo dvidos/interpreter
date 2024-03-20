@@ -2,8 +2,8 @@
 #define _CALLABLE_H
 
 #include "../../runtime/execution/exec_context.h"
-#include "../../runtime/variants/_module.h"
-#include "../../containers/_module.h"
+#include "../../runtime/variants/_variants.h"
+#include "../../containers/_containers.h"
 
 
 typedef struct callable callable;

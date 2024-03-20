@@ -1,8 +1,8 @@
 #ifndef _STATEMENT_PARSER_H
 #define _STATEMENT_PARSER_H
 
-#include "../containers/_module.h"
-#include "../entities/_module.h"
+#include "../containers/_containers.h"
+#include "../entities/_entities.h"
 
 
 typedef enum statement_parsing_mode statement_parsing_mode;

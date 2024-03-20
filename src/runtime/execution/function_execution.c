@@ -2,7 +2,8 @@
 #include "function_execution.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
-
+#include "exec_context.h"
+#include "stack_frame.h"
 
 execution_outcome execute_user_function(
     const char *name,

@@ -1,6 +1,6 @@
 #include <string.h>
 #include "../utils/str.h"
-#include "../lexer/_module.h"
+#include "../lexer/_lexer.h"
 #include "expression_parser.h"
 #include "statement_parser.h"
 #include "../entities/statement.h"

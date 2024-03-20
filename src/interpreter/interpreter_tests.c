@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include "../utils/testing.h"
 #include "../utils/failable.h"
-#include "../containers/_module.h"
-#include "../entities/_module.h"
-#include "../lexer/_module.h"
-#include "../parser/_module.h"
-#include "../runtime/_module.h"
+#include "../containers/_containers.h"
+#include "../entities/_entities.h"
+#include "../lexer/_lexer.h"
+#include "../parser/_parser.h"
+#include "../runtime/_runtime.h"
 #include "interpreter.h"
 
 typedef enum expected_outcome {

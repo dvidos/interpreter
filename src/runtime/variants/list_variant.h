@@ -1,7 +1,7 @@
 #ifndef _LIST_VARIANT_H
 #define _LIST_VARIANT_H
 
-#include "../framework/_module.h"
+#include "../framework/_framework.h"
 
 extern variant_type *list_type;
 

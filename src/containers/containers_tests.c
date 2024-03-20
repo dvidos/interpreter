@@ -7,7 +7,7 @@
 #include "stack.h"
 #include "../utils/testing.h"
 
-#include "../runtime/variants/_module.h"
+#include "../runtime/variants/_variants.h"
 
 
 

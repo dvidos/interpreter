@@ -1,7 +1,7 @@
 #ifndef _DICT_VARIANT_H
 #define _DICT_VARIANT_H
 
-#include "../framework/_module.h"
+#include "../framework/_framework.h"
 
 extern variant_type *dict_type;
 

@@ -2,8 +2,8 @@
 #define _EXPRESSION_PARSER_H
 
 #include <stdbool.h>
-#include "../containers/_module.h"
-#include "../entities/_module.h"
+#include "../containers/_containers.h"
+#include "../entities/_entities.h"
 
 typedef enum completion_mode {
     CM_END_OF_TEXT,         // till end of tokens

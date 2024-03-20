@@ -1,8 +1,8 @@
 #ifndef _TOKENIZATION_H
 #define _TOKENIZATION_H
 
-#include "../containers/_module.h"
-#include "../entities/_module.h"
+#include "../containers/_containers.h"
+#include "../entities/_entities.h"
 
 void initialize_lexer();
 

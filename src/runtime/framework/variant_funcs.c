@@ -1,6 +1,6 @@
 #include <string.h>
 #include "variant_funcs.h"
-#include "../variants/_module.h"
+#include "../variants/_variants.h"
 #include "../../utils/error.h"
 
 
