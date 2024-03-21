@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include "str_builder.h"
+#include "str.h"
 
 // all instances have a pointer to an instance below
 typedef struct struct_info struct_info;

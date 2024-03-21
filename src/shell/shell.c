@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "../interpreter/interpreter.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 
 static bool get_command(char *buffer, int buffer_size) {
     // would be nice to have even a single line of history...

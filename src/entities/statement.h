@@ -97,6 +97,6 @@ STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(statement);
 
 bool statement_is_at(statement *s, const char *filename, int line_no);
 bool statements_are_equal(statement *a, statement *b);
-void statement_describe(statement *s, str_builder *sb);
+void statement_describe(statement *s, str *str);
 
 #endif

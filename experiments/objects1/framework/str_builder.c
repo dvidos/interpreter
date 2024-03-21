@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include "str_builder.h"
+#include "str.h"
 
 struct str_builder {
     char *buffer;

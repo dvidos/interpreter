@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "contained_item_info.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "stack.h"
 
 typedef struct stack_entry {
@@ -102,23 +102,23 @@ iterator *stack_iterator(stack *s) {
 
 
 
-void stack_describe(stack *s, const char *separator, str_builder *sb) {
+void stack_describe(stack *s, const char *separator, str *str) {
     stack_entry *e = s->head;
     while (e != NULL) {
         if (e != s->head)
-            str_builder_add(sb, separator);
+            str_add(str, separator);
         
         if (s->item_info != NULL && s->item_info->describe != NULL)
-            s->item_info->describe(e->item, sb);
+            s->item_info->describe(e->item, str);
         else
-            str_builder_addf(sb, "@0x%p", e->item);
+            str_addf(str, "@0x%p", e->item);
         
         e = e->next;
     }
 }
 
-static void stack_describe_default(stack *s, const char *separator, str_builder *sb) {
-    stack_describe(s, ", ", sb);
+static void stack_describe_default(stack *s, const char *separator, str *str) {
+    stack_describe(s, ", ", str);
 }
 
 contained_item_info *stack_item_info = &(contained_item_info){

@@ -2,6 +2,7 @@
 #define _TESTING_H
 
 #include <stdbool.h>
+#include "str.h"
 
 #ifdef assert
 #undef assert
@@ -55,40 +56,40 @@ bool testing_outcome();
     }
 
 
-#define assert_str_builder_equals(sb, expected_string, extra)   \
-    if (strcmp(str_builder_charptr(sb), expected_string) == 0) { \
+#define assert_str_equals(str, expected_cstr, extra)   \
+    if (strcmp(str_cstr(str), expected_cstr) == 0) { \
         __testing_passed(); \
     } else { \
-        __testing_failed("str_builder content not expected", extra, __FILE__, __LINE__);  \
-        printf("    Expected: %s\n", expected_string);  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb));  \
+        __testing_failed("str content not expected", extra, __FILE__, __LINE__);  \
+        printf("    Expected: %s\n", expected_cstr);  \
+        printf("    Actual  : %s\n", str_cstr(str));  \
     }
 
-
-#define assert_lists_are_equal_fl(actual, expected, extra, file, line)  \
-    if (lists_are_equal(actual, expected)) {  \
-        __testing_passed(); \
-    } else { \
-        __testing_failed("Lists are not equal", extra, file, line);  \
-        str_builder *sb_e = new_str_builder();  \
-        str_builder *sb_a = new_str_builder();  \
-        list_describe(expected, ", ", sb_e);  \
-        list_describe(actual, ", ", sb_a);  \
-        printf("    Expected: %s\n", str_builder_charptr(sb_e));  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb_a));  \
-    }
 
 #define assert_dicts_are_equal(actual, expected, extra) \
     if (dicts_are_equal(actual, expected)) {  \
         __testing_passed(); \
     } else { \
         __testing_failed("Dictionaries are not equal", extra, __FILE__, __LINE__);  \
-        str_builder *sb_e = new_str_builder();  \
-        str_builder *sb_a = new_str_builder();  \
-        dict_describe(expected, sb_e);  \
-        dict_describe(actual, sb_a);  \
-        printf("    Expected: %s\n", str_builder_charptr(sb_e));  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb_a));  \
+        str *str_exp = new_str();  \
+        str *str_act = new_str();  \
+        dict_describe(expected, str_exp);  \
+        dict_describe(actual, str_act);  \
+        printf("    Expected: %s\n", str_cstr(str_exp));  \
+        printf("    Actual  : %s\n", str_cstr(str_act));  \
+    }
+
+#define assert_lists_are_equal_fl(actual, expected, extra, file, line)  \
+    if (lists_are_equal(actual, expected)) {  \
+        __testing_passed(); \
+    } else { \
+        __testing_failed("Lists are not equal", extra, file, line);  \
+        str *str_exp = new_str();  \
+        str *str_act = new_str();  \
+        list_describe(expected, ", ", str_exp);  \
+        list_describe(actual,   ", ", str_act);  \
+        printf("    Expected: %s\n", str_cstr(str_exp));  \
+        printf("    Actual  : %s\n", str_cstr(str_act));  \
     }
 
 #define assert_variant_is_of_type_fl(actual_variant, expected_type, extra, file, line) \
@@ -123,12 +124,12 @@ bool testing_outcome();
         __testing_passed(); \
     } else { \
         __testing_failed("Tokens are not equal", extra, __FILE__, __LINE__);  \
-        str_builder *sb_e = new_str_builder();  \
-        str_builder *sb_a = new_str_builder();  \
-        token_describe(expected, sb_e);  \
-        token_describe(actual, sb_a);  \
-        printf("    Expected: %s\n", str_builder_charptr(sb_e));  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb_a));  \
+        str *str_exp = new_str();  \
+        str *str_act = new_str();  \
+        token_describe(expected, str_exp);  \
+        token_describe(actual, str_act);  \
+        printf("    Expected: %s\n", str_cstr(str_exp));  \
+        printf("    Actual  : %s\n", str_cstr(str_act));  \
     }
 
 #define assert_expressions_are_equal(actual, expected, extra) \
@@ -136,12 +137,12 @@ bool testing_outcome();
         __testing_passed(); \
     } else { \
         __testing_failed("Expressions are not equal", extra, __FILE__, __LINE__);  \
-        str_builder *sb_e = new_str_builder();  \
-        str_builder *sb_a = new_str_builder();  \
-        expression_describe(expected, sb_e);  \
-        expression_describe(actual, sb_a);  \
-        printf("    Expected: %s\n", str_builder_charptr(sb_e));  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb_a));  \
+        str *str_exp = new_str();  \
+        str *str_act = new_str();  \
+        expression_describe(expected, str_exp);  \
+        expression_describe(actual, str_act);  \
+        printf("    Expected: %s\n", str_cstr(str_exp));  \
+        printf("    Actual  : %s\n", str_cstr(str_act));  \
     }
 
 #define assert_statements_are_equal(actual, expected, extra) \
@@ -149,12 +150,12 @@ bool testing_outcome();
         __testing_passed(); \
     } else { \
         __testing_failed("Statements are not equal", extra, __FILE__, __LINE__);  \
-        str_builder *sb_e = new_str_builder();  \
-        str_builder *sb_a = new_str_builder();  \
-        statement_describe(expected, sb_e);  \
-        statement_describe(actual, sb_a);  \
-        printf("    Expected: %s\n", str_builder_charptr(sb_e));  \
-        printf("    Actual  : %s\n", str_builder_charptr(sb_a));  \
+        str *str_exp = new_str();  \
+        str *str_act = new_str();  \
+        statement_describe(expected, str_exp);  \
+        statement_describe(actual, str_act);  \
+        printf("    Expected: %s\n", str_cstr(str_exp));  \
+        printf("    Actual  : %s\n", str_cstr(str_act));  \
     }
 
 

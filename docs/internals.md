@@ -18,7 +18,7 @@ General support objects
 * `stack` - a stack of items, with push, peek & pop operations
 * `queue` - a queue of items, with put, peek & get operations
 * `item_info` - item information for containers. Facilitates comparison and debugging
-* `str_builder` - an expandable zero-terminated string buffer
+* `str` - an expandable zero-terminated string buffer
 
 ## memory 
 
@@ -303,10 +303,10 @@ for adding to a string, without caring about buffer size: it auto expands
 to always have sufficient capacity. Functions include:
 
 ```c
-str_builder *new_str_builder();
-void str_builder_cat(str_builder *sb, const char *str);
-void str_builder_catc(str_builder *sb, char chr);
-void str_builder_catf(str_builder *sb, char *fmt, ...);
-
-const char *str_builder_charptr(str_builder *sb); // get a strz pointer
+str *new_str();
+void str_clear(str *s);
+void str_add(str *s, const char *str);
+void str_addc(str *s, char chr);
+void str_addf(str *s, char *fmt, ...);
+const char *str_cstr(str *s); // get a strz pointer
 ```

@@ -28,7 +28,7 @@ void initialize_interpreter() {
 
 
 execution_outcome interpret_and_execute(const char *code, const char *filename, dict *external_values, bool verbose, bool enable_debugger, bool start_with_debugger) {
-    str_builder *sb = new_str_builder();
+    str *str = new_str();
 
     listing *code_listing = new_listing(code);
 
@@ -38,9 +38,9 @@ execution_outcome interpret_and_execute(const char *code, const char *filename, 
         return failed_outcome("Tokenization failed");
     }
     if (verbose) {
-        str_builder_clear(sb);
-        list_describe(tokenization.result, ", ", sb);
-        printf("------------- parsed tokens -------------\n%s\n", str_builder_charptr(sb));
+        str_clear(str);
+        list_describe(tokenization.result, ", ", str);
+        printf("------------- parsed tokens -------------\n%s\n", str_cstr(str));
     }
 
     iterator *tokens_it = list_iterator(tokenization.result);
@@ -51,9 +51,9 @@ execution_outcome interpret_and_execute(const char *code, const char *filename, 
         return failed_outcome("Statement parsing failed");
     }
     if (verbose) {
-        str_builder_clear(sb);
-        list_describe(parsing.result, "\n", sb);
-        printf("------------- parsed statements -------------\n%s\n", str_builder_charptr(sb));
+        str_clear(str);
+        list_describe(parsing.result, "\n", str);
+        printf("------------- parsed statements -------------\n%s\n", str_cstr(str));
     }
 
     exec_context *ctx = new_exec_context(filename, code_listing, parsing.result, external_values, verbose, enable_debugger, start_with_debugger);

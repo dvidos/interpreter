@@ -69,9 +69,9 @@ execution_outcome callable_call(
 }
 
 
-static void describe_callable(void *pointer, str_builder *sb) {
+static void describe_callable(void *pointer, str *str) {
     callable *c = (callable *)pointer;
-    str_builder_addf(sb, "%s()", c->name);
+    str_addf(str, "%s()", c->name);
 }
 
 contained_item_info *callable_item_info = &(contained_item_info){

@@ -366,7 +366,7 @@ void interpreter_self_diagnostics() {
 }
 
 static void __verify_execution(const char *file, int line, char *code, variant *var_a_value, expected_outcome expect_outcome, ...) {
-    str_builder *sb = new_str_builder();
+    str *s = new_str();
     dict *values = new_dict(variant_item_info);
     if (var_a_value != NULL)
         dict_set(values, "a", var_a_value);
@@ -388,13 +388,13 @@ static void __verify_execution(const char *file, int line, char *code, variant *
     // we expect some good result from now on       
 
     if (ex.failed) {
-        str_builder_addf(sb, "Execution failed: %s", ex.failure_message);
-        __testing_failed(str_builder_charptr(sb), code, file, line);
+        str_addf(s, "Execution failed: %s", ex.failure_message);
+        __testing_failed(str_cstr(s), code, file, line);
         return;
     }
     if (ex.excepted) {
-        str_builder_addf(sb, "Uncaught exception: %s", str_variant_as_str(variant_to_string(ex.exception_thrown)));
-        __testing_failed(str_builder_charptr(sb), code, file, line);
+        str_addf(s, "Uncaught exception: %s", str_variant_as_str(variant_to_string(ex.exception_thrown)));
+        __testing_failed(str_cstr(s), code, file, line);
         return;
     }
 
@@ -420,8 +420,8 @@ static void __verify_execution(const char *file, int line, char *code, variant *
 
     } else if (expect_outcome == EXP_LIST) {
         if (!variant_instance_of(actual_result, list_type)) {
-            str_builder_addf(sb, "Was expecting a list result, got '%s'", actual_result->_type->name);
-            __testing_failed(str_builder_charptr(sb), code, file, line);
+            str_addf(s, "Was expecting a list result, got '%s'", actual_result->_type->name);
+            __testing_failed(str_cstr(s), code, file, line);
         } else {
             list *expected_contents = va_arg(args, list *);
             assert_lists_are_equal_fl(list_variant_as_list(actual_result), expected_contents, code, file, line);

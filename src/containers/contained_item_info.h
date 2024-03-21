@@ -2,12 +2,12 @@
 #define _CONTAINED_ITEM_INFO_H
 
 #include <stdbool.h>
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 
 #define ITEM_INFO_MAGIC  0xC1A55DEF
 
 typedef bool (*items_equal_func)(void *pointer_a, void *pointer_b);
-typedef void (*describe_item_func)(void *pointer, str_builder *sb);
+typedef void (*describe_item_func)(void *pointer, str *s);
 typedef unsigned long *(*hash_item_func)(void *pointer);
 
 typedef struct contained_item_info {

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../utils/testing.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "../utils/failable.h"
 #include "../containers/_containers.h"
 #include "../lexer/_lexer.h"

@@ -8,7 +8,7 @@
 #include "../entities/statement.h"
 #include "../entities/expression.h"
 #include "../utils/cstr.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 
 #define between(num, min, max)        ((num)<(min)?(min):((num)>(max)?(max):(num)))
 #define get_curr_filename(stmt, expr) ((stmt) != NULL ? (stmt)->token->origin->filename : ( \
@@ -243,22 +243,22 @@ static void show_stack_trace(statement *curr_stmt, expression *curr_expr, exec_c
 }
 
 static void show_values_of_symbols_of(dict *symbols) {
-    str_builder *sb = new_str_builder();
+    str *s = new_str();
     for_dict(symbols, sit, cstr, name) {
-        str_builder_clear(sb);
+        str_clear(s);
         variant *v = dict_get(symbols, name);
         if (v == NULL)
-            str_builder_add(sb, "(null)");
+            str_add(s, "(null)");
         else if (variant_instance_of(v, callable_type))
-            str_builder_add(sb, "(callable)");
+            str_add(s, "(callable)");
         else {
-            variant *s = variant_to_string(v);
-            str_builder_add(sb, str_variant_as_str(s));
-            variant_drop_ref(s);
+            variant *to_string = variant_to_string(v);
+            str_add(s, str_variant_as_str(to_string));
+            variant_drop_ref(to_string);
         }
-        printf("   %s: %s\n", name, str_builder_charptr(sb));
+        printf("   %s: %s\n", name, str_cstr(s));
     }
-    str_builder_free(sb);
+    str_free(s);
 }
 
 static void show_args_and_values(statement *curr_stmt, expression *curr_expr, exec_context *ctx) {

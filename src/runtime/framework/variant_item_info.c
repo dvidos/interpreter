@@ -7,9 +7,9 @@
 #include "../../utils/data_types/callable.h"
 
 
-static const void item_info_variant_describe(variant *v, str_builder *sb) {
+static const void item_info_variant_describe(variant *v, str *str) {
     variant *s = variant_to_string(v);
-    str_builder_add(sb, str_variant_as_str(s));
+    str_add(str, str_variant_as_str(s));
     variant_drop_ref(s);
 }
 

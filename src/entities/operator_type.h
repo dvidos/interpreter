@@ -79,7 +79,7 @@ op_type_position operator_type_position(operator_type op);
 op_type_associativity operator_type_associativity(operator_type op);
 bool operator_type_is_unary(operator_type op);
 const char *operator_type_name(operator_type op);
-const void operator_type_describe(operator_type op, str_builder *sb);
+const void operator_type_describe(operator_type op, str *str);
 
 extern contained_item_info *operator_type_item_info;
 

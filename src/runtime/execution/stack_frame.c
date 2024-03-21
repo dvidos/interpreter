@@ -70,8 +70,8 @@ bool stack_frame_is_method_owned_by(stack_frame *f, variant_type *class_type) {
         || variants_are_equal((variant *)class_type, (variant *)f->method_owning_class);
 }
 
-const void stack_frame_describe(stack_frame *f, str_builder *sb) {
-    str_builder_add(sb, "stack_frame");
+const void stack_frame_describe(stack_frame *f, str *str) {
+    str_add(str, "stack_frame");
 }
 
 bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {

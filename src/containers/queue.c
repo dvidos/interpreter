@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "contained_item_info.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "queue.h"
 
 typedef struct queue_entry {
@@ -114,23 +114,23 @@ iterator *queue_iterator(queue *q) {
 
 
 
-void queue_describe(queue *q, const char *separator, str_builder *sb) {
+void queue_describe(queue *q, const char *separator, str *str) {
     queue_entry *e = q->exit;
     while (e != NULL) {
         if (e != q->exit)
-            str_builder_add(sb, separator);
+            str_add(str, separator);
         
         if (q->item_info != NULL && q->item_info->describe != NULL)
-            q->item_info->describe(e->item, sb);
+            q->item_info->describe(e->item, str);
         else
-            str_builder_addf(sb, "@0x%p", e->item);
+            str_addf(str, "@0x%p", e->item);
         
         e = e->next;
     }
 }
 
-void queue_describe_default(queue *q, str_builder *sb) {
-    queue_describe(q, ", ", sb);
+void queue_describe_default(queue *q, str *str) {
+    queue_describe(q, ", ", str);
 }
 
 contained_item_info *queue_item_info = &(contained_item_info) {

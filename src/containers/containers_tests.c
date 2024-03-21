@@ -12,7 +12,7 @@
 
 
 static void test_list() {
-    str_builder *sb = new_str_builder();
+    str *s = new_str();
 
     list *l = new_list(variant_item_info);
     assert(list_empty(l));
@@ -24,25 +24,25 @@ static void test_list() {
     assert(list_length(l) == 3);
     assert(strcmp(str_variant_as_str(variant_to_string(list_get(l, 2))), "c") == 0);
 
-    str_builder_clear(sb);
-    list_describe(l, "|", sb);
-    assert(strcmp(str_builder_charptr(sb), "a|b|c") == 0);
+    str_clear(s);
+    list_describe(l, "|", s);
+    assert(strcmp(str_cstr(s), "a|b|c") == 0);
 
     list_insert(l, 0, new_str_variant("h"));
-    str_builder_clear(sb);
-    list_describe(l, "|", sb);
-    assert(strcmp(str_builder_charptr(sb), "h|a|b|c") == 0);
+    str_clear(s);
+    list_describe(l, "|", s);
+    assert(strcmp(str_cstr(s), "h|a|b|c") == 0);
 
     list_insert(l, 2, new_str_variant("v"));
-    str_builder_clear(sb);
-    list_describe(l, "|", sb);
-    assert(strcmp(str_builder_charptr(sb), "h|a|v|b|c") == 0);
+    str_clear(s);
+    list_describe(l, "|", s);
+    assert(strcmp(str_cstr(s), "h|a|v|b|c") == 0);
 
     list_remove(l, 0);
     list_remove(l, 2);
-    str_builder_clear(sb);
-    list_describe(l, "|", sb);
-    assert(strcmp(str_builder_charptr(sb), "a|v|c") == 0);
+    str_clear(s);
+    list_describe(l, "|", s);
+    assert(strcmp(str_cstr(s), "a|v|c") == 0);
 }
 
 static void test_dict() {
@@ -50,31 +50,31 @@ static void test_dict() {
 }
 
 static void test_stack() {
-    str_builder *sb = new_str_builder();
+    str *s = new_str();
 
-    stack *s = new_stack(variant_item_info);
-    assert(stack_empty(s));
-    assert(stack_length(s) == 0);
-    stack_push(s, new_str_variant("a"));
-    stack_push(s, new_str_variant("b"));
-    stack_push(s, new_str_variant("c"));
-    assert(!stack_empty(s));
-    assert(stack_length(s) == 3);
-    assert(strcmp(str_variant_as_str(variant_to_string(stack_peek(s))), "c") == 0);
+    stack *stk = new_stack(variant_item_info);
+    assert(stack_empty(stk));
+    assert(stack_length(stk) == 0);
+    stack_push(stk, new_str_variant("a"));
+    stack_push(stk, new_str_variant("b"));
+    stack_push(stk, new_str_variant("c"));
+    assert(!stack_empty(stk));
+    assert(stack_length(stk) == 3);
+    assert(strcmp(str_variant_as_str(variant_to_string(stack_peek(stk))), "c") == 0);
 
-    str_builder_clear(sb);
-    stack_describe(s, "|", sb);
-    assert(strcmp(str_builder_charptr(sb), "c|b|a") == 0);
+    str_clear(s);
+    stack_describe(stk, "|", s);
+    assert(strcmp(str_cstr(s), "c|b|a") == 0);
     
-    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(s))), "c") == 0);
-    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(s))), "b") == 0);
-    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(s))), "a") == 0);
-    assert(stack_empty(s));
-    assert(stack_length(s) == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(stk))), "c") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(stk))), "b") == 0);
+    assert(strcmp(str_variant_as_str(variant_to_string(stack_pop(stk))), "a") == 0);
+    assert(stack_empty(stk));
+    assert(stack_length(stk) == 0);
 }
 
 static void test_queue() {
-    str_builder *sb = new_str_builder();
+    str *s = new_str();
 
     queue *q = new_queue(variant_item_info);
     assert(queue_empty(q));
@@ -85,9 +85,9 @@ static void test_queue() {
     assert(!queue_empty(q));
     assert(queue_length(q) == 3);
 
-    str_builder_clear(sb);
-    queue_describe(q, "|", sb);
-    assert(strcmp(str_builder_charptr(sb), "a|b|c") == 0);
+    str_clear(s);
+    queue_describe(q, "|", s);
+    assert(strcmp(str_cstr(s), "a|b|c") == 0);
     
     assert(strcmp(str_variant_as_str(variant_to_string(queue_get(q))), "a") == 0);
     assert(strcmp(str_variant_as_str(variant_to_string(queue_get(q))), "b") == 0);

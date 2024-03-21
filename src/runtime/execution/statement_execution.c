@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../debugger/debugger.h"
-#include "../../utils/str_builder.h"
+#include "../../utils/str.h"
 #include "../../utils/data_types/callable.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
@@ -198,12 +198,12 @@ static execution_outcome execute_single_statement(statement *stmt, exec_context 
             break;
 
         default:
-            str_builder *sb = new_str_builder();
-            statement_describe(stmt, sb);
+            str *str = new_str();
+            statement_describe(stmt, str);
             return exception_outcome(new_exception_variant_at(
                 stmt->token->origin, NULL,
                 "was expecting [ if, while, for, break, continue, expression, try, return, breakpoint ] but got %s", 
-                str_builder_charptr(sb)));
+                str_cstr(str)));
     }
 
     return ok_outcome(return_value);

@@ -32,7 +32,7 @@ failable stack_frame_update_symbol(stack_frame *f, const char *name, variant *v)
 failable stack_frame_unregister_symbol(stack_frame *f, const char *name);
 bool stack_frame_is_method_owned_by(stack_frame *f, variant_type *class_type);
 
-const void stack_frame_describe(stack_frame *f, str_builder *sb);
+const void stack_frame_describe(stack_frame *f, str *str);
 bool stack_frames_are_equal(stack_frame *a, stack_frame *b);
 
 extern contained_item_info *stack_frame_item_info;

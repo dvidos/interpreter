@@ -4,7 +4,7 @@
 #include "../../debugger/debugger.h"
 #include "../../utils/data_types/callable.h"
 #include "../../utils/cstr.h"
-#include "../../utils/str_builder.h"
+#include "../../utils/str.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
 #include "function_execution.h"
@@ -257,10 +257,10 @@ static execution_outcome store_value(expression *lvalue, exec_context *ctx, vari
         }
         
     } else {
-        str_builder *sb = new_str_builder();
-        expression_describe(lvalue, sb);
+        str *str = new_str();
+        expression_describe(lvalue, str);
         return exception_outcome(new_exception_variant_at(lvalue->token->origin, NULL,
-            "expression cannot be used as lvalue: %s", str_builder_charptr(sb)));
+            "expression cannot be used as lvalue: %s", str_cstr(str)));
     }
 }
 
@@ -520,10 +520,10 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             if (variant_instance_of(v1, float_type) && variant_instance_of(v2, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) * float_variant_as_float(v2)));
             if (variant_instance_of(v1, str_type) && variant_instance_of(v2, int_type)) {
-                str_builder *tmp = new_str_builder();
+                str *tmp = new_str();
                 for (int i = 0; i < int_variant_as_int(v2); i++)
-                    str_builder_add(tmp, str_variant_as_str(v1));
-                return ok_outcome(new_str_variant(str_builder_charptr(tmp)));
+                    str_add(tmp, str_variant_as_str(v1));
+                return ok_outcome(new_str_variant(str_cstr(tmp)));
             }
             return exception_outcome(new_exception_variant_at(
                 op_expr->token->origin, NULL,
@@ -563,11 +563,11 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             if (variant_instance_of(v1, float_type) && variant_instance_of(v2, float_type))
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) + float_variant_as_float(v2)));
             if (variant_instance_of(v1, str_type) && variant_instance_of(v2, str_type)) {
-                str_builder *sb = new_str_builder();
-                str_builder_add(sb, str_variant_as_str(v1));
-                str_builder_add(sb, str_variant_as_str(v2));
-                variant *v = new_str_variant(strdup(str_builder_charptr(sb)));
-                str_builder_free(sb);
+                str *str = new_str();
+                str_add(str, str_variant_as_str(v1));
+                str_add(str, str_variant_as_str(v2));
+                variant *v = new_str_variant(strdup(str_cstr(str)));
+                str_free(str);
                 return ok_outcome(v);
             }
             // how about adding items to a list???

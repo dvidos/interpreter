@@ -2,7 +2,7 @@
 #include <string.h>
 #include "token.h"
 #include "../containers/_containers.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 
 
 contained_item_info *token_item_info = &(contained_item_info){
@@ -45,14 +45,14 @@ void token_print(token *t, FILE *stream, char *prefix) {
     );
 }
 
-const void token_describe(token *t, str_builder *sb) {
+const void token_describe(token *t, str *str) {
     token_type tt = t->type;
     const char *data = t->data;
     bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
     
-    str_builder_add(sb, token_type_str(tt));
+    str_add(str, token_type_str(tt));
     if (has_data)
-        str_builder_addf(sb, "(\"%s\")", t->data);
+        str_addf(str, "(\"%s\")", t->data);
 }
 
 void token_print_list(list *tokens, FILE *stream, char *prefix, char *separator) {

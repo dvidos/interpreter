@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../utils/cstr.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "../utils/failable.h"
 #include "../containers/_containers.h"
 #include "expression_parser.h"
@@ -104,11 +104,11 @@ static inline pair *pop_top_operator_pair() {
 }
 
 static void print_operators_stack(FILE *stream, char *prefix) {
-    str_builder *sb = new_str_builder();
-    stack_describe(operators_stack, ", ", sb);
+    str *str = new_str();
+    stack_describe(operators_stack, ", ", str);
     fprintf(stream, "%sOperators   stack, %d items, top -> %s <- bottom\n", 
-        prefix, stack_length(operators_stack), str_builder_charptr(sb));
-    str_builder_free(sb);
+        prefix, stack_length(operators_stack), str_cstr(str));
+    str_free(str);
 }
 
 static inline void push_expression(expression *e) {
@@ -124,11 +124,11 @@ static inline expression *peek_top_expression() {
 }
 
 static void print_expressions_stack(FILE *stream, char *prefix) {
-    str_builder *sb = new_str_builder();
-    stack_describe(expressions_stack, ", ", sb);
+    str *str = new_str();
+    stack_describe(expressions_stack, ", ", str);
     fprintf(stream, "%sExpressions stack, %d items, top -> %s <- bottom\n", 
-        prefix, stack_length(expressions_stack), str_builder_charptr(sb));
-    str_builder_free(sb);
+        prefix, stack_length(expressions_stack), str_cstr(str));
+    str_free(str);
 }
 
 // --------------------------------------------

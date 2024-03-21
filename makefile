@@ -14,7 +14,7 @@ FILES = \
 	src/containers/containers_tests.c \
 	\
 	src/utils/cstr.c \
-	src/utils/str_builder.c \
+	src/utils/str.c \
 	src/utils/failable.c \
 	src/utils/file.c \
 	src/utils/listing.c \

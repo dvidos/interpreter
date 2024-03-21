@@ -43,7 +43,7 @@ expression *new_list_data_expression(list *data, token *token);
 expression *new_dict_data_expression(dict *data, token *token);
 expression *new_func_decl_expression(const char *name, list *arg_names, list *statements, token *token);
 
-const void expression_describe(expression *e, str_builder *sb);
+const void expression_describe(expression *e, str *str);
 bool expressions_are_equal(expression *a, expression *b);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(expression);

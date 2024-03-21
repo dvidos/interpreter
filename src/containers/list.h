@@ -24,7 +24,7 @@ void list_remove(list *l, int index);
 iterator *list_iterator(list *l);
 
 bool lists_are_equal(list *a, list *b);
-const void list_describe(list *l, const char *separator, str_builder *sb);
+const void list_describe(list *l, const char *separator, str *str);
 
 void list_free(list *l);
 

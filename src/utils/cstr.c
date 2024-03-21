@@ -9,8 +9,8 @@ static bool cstrs_are_equal(cstr *a, cstr *b) {
     return strcmp(a, b) == 0;
 }
 
-static const void cstr_describe(cstr *s, str_builder *sb) {
-    str_builder_add(sb, s);
+static const void cstr_describe(cstr *s, str *str) {
+    str_add(str, s);
 }
 
 contained_item_info *cstr_item_info = &(contained_item_info){

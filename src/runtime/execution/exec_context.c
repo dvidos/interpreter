@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
-#include "../../utils/str_builder.h"
+#include "../../utils/str.h"
 #include "../../utils/listing.h"
 #include "exec_context.h"
 #include "stack_frame.h"
@@ -161,35 +161,35 @@ variant_type *exec_context_get_constructable_type(exec_context *c, const char *n
 
 // ---------------------------
 
-static str_builder *exec_context_log = NULL;
+static str *exec_context_log = NULL;
 
 void exec_context_log_reset() {
     if (exec_context_log == NULL)
-        exec_context_log = new_str_builder();
+        exec_context_log = new_str();
     
-    str_builder_clear(exec_context_log);
+    str_clear(exec_context_log);
 }
 
 void exec_context_log_line(const char *line) {
     if (exec_context_log == NULL)
-        exec_context_log = new_str_builder();
+        exec_context_log = new_str();
 
-    str_builder_add(exec_context_log, line);
-    str_builder_add(exec_context_log, "\n");
+    str_add(exec_context_log, line);
+    str_add(exec_context_log, "\n");
 }
 
 void exec_context_log_str(const char *s) {
     if (exec_context_log == NULL)
-        exec_context_log = new_str_builder();
+        exec_context_log = new_str();
 
-    str_builder_add(exec_context_log, s);
+    str_add(exec_context_log, s);
 }
 
 const char *exec_context_get_log() {
     if (exec_context_log == NULL)
-        exec_context_log = new_str_builder();
+        exec_context_log = new_str();
 
-    return str_builder_charptr(exec_context_log);
+    return str_cstr(exec_context_log);
 }
 
 static FILE *log_echo_handle = NULL;

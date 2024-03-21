@@ -8,7 +8,7 @@
 #include "../../utils/execution_outcome.h"
 #include "../../containers/_containers.h"
 #include "../../utils/cstr.h"
-#include "../../utils/str_builder.h"
+#include "../../utils/str.h"
 #include "../../utils/origin.h"
 #include "../../utils/data_types/callable.h"
 #include "../execution/exec_context.h"
@@ -131,27 +131,27 @@ BUILT_IN(strpos) {
     return RET_INT(pos);
 }
 
-str_builder *log_line_builder = NULL;
+str *log_line_builder = NULL;
 
 BUILT_IN(log) {
     int args_count = list_length(arg_values);
 
     if (log_line_builder == NULL)
-        log_line_builder = new_str_builder();
+        log_line_builder = new_str();
 
-    str_builder_clear(log_line_builder);
+    str_clear(log_line_builder);
     for (int i = 0; i < args_count; i++) {
         variant *s = variant_to_string(list_get(arg_values, i));
-        str_builder_add(log_line_builder, str_variant_as_str(s));
+        str_add(log_line_builder, str_variant_as_str(s));
         variant_drop_ref(s);
         if (i < args_count - 1)
-            str_builder_addc(log_line_builder, ' ');
+            str_addc(log_line_builder, ' ');
     }
 
-    exec_context_log_line(str_builder_charptr(log_line_builder));
+    exec_context_log_line(str_cstr(log_line_builder));
     FILE *echo = exec_context_get_log_echo();
     if (echo != NULL)
-        fprintf(echo, "%s\n", str_builder_charptr(log_line_builder));
+        fprintf(echo, "%s\n", str_cstr(log_line_builder));
 
     return RET_VOID();
 }
@@ -172,17 +172,17 @@ BUILT_IN(input) {
 }
 BUILT_IN(output) {
     int args_count = list_length(arg_values);
-    str_builder *sb = new_str_builder();
+    str *str = new_str();
     for (int i = 0; i < args_count; i++) {
         variant *s = variant_to_string(list_get(arg_values, i));
-        str_builder_add(sb, str_variant_as_str(s));
+        str_add(str, str_variant_as_str(s));
         variant_drop_ref(s);
         if (i < args_count - 1)
-            str_builder_addc(sb, ' ');
+            str_addc(str, ' ');
     }
-    str_builder_addc(sb, '\n');
-    fputs(str_builder_charptr(sb), stdout);
-    str_builder_free(sb);
+    str_addc(str, '\n');
+    fputs(str_cstr(str), stdout);
+    str_free(str);
     return RET_VOID();
 }
 

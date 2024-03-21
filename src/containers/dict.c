@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "../utils/cstr.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "dict.h"
 #include "list.h"
 
@@ -256,24 +256,24 @@ bool dicts_are_equal(dict *a, dict *b) {
     return true;
 }
 
-const void dict_describe(dict *d, const char *key_value_separator, const char *entries_separator, str_builder *sb) {
+const void dict_describe(dict *d, const char *key_value_separator, const char *entries_separator, str *str) {
     iterator *it = dict_keys_iterator(d);
     bool first = true;
     for_iterator(it, const_char, key) {
-        str_builder_add(sb, first ? "" : entries_separator);
+        str_add(str, first ? "" : entries_separator);
         first = false;
 
-        str_builder_addf(sb, "%s%s", key, key_value_separator);
+        str_addf(str, "%s%s", key, key_value_separator);
         void *value = dict_get(d, key);
         if (d->item_info != NULL && d->item_info->describe != NULL)
-            d->item_info->describe(value, sb);
+            d->item_info->describe(value, str);
         else
-            str_builder_addf(sb, "@0x%p", value);
+            str_addf(str, "@0x%p", value);
     }
 }
 
-static const void dict_describe_default(dict *d, str_builder *sb) {
-    dict_describe(d, ": ", ", ", sb);
+static const void dict_describe_default(dict *d, str *str) {
+    dict_describe(d, ": ", ", ", str);
 }
 
 void dict_free(dict *d) {

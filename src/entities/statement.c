@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../utils/cstr.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "../containers/_containers.h"
 #include "statement.h"
 
@@ -110,84 +110,84 @@ bool statement_is_at(statement *s, const char *filename, int line_no) {
 }
 
 
-const void statement_describe(statement *s, str_builder *sb) {
+const void statement_describe(statement *s, str *str) {
     switch (s->type) {
         case ST_EXPRESSION:
-            str_builder_add(sb, "expr(");
-            expression_describe(s->per_type.expr.expr, sb);
-            str_builder_add(sb, ")");
+            str_add(str, "expr(");
+            expression_describe(s->per_type.expr.expr, str);
+            str_add(str, ")");
             break;
         case ST_IF:
-            str_builder_add(sb, "if (");
-            expression_describe(s->per_type.if_.condition, sb);
-            str_builder_add(sb, ") {\n    ");
-            list_describe(s->per_type.if_.body_statements, "\n    ", sb);
+            str_add(str, "if (");
+            expression_describe(s->per_type.if_.condition, str);
+            str_add(str, ") {\n    ");
+            list_describe(s->per_type.if_.body_statements, "\n    ", str);
             if (s->per_type.if_.has_else) {
-                str_builder_add(sb, "\n} else {\n    ");
-                list_describe(s->per_type.if_.else_body_statements, "\n    ", sb);
+                str_add(str, "\n} else {\n    ");
+                list_describe(s->per_type.if_.else_body_statements, "\n    ", str);
             }
-            str_builder_add(sb, "\n}");
+            str_add(str, "\n}");
             break;
         case ST_WHILE:
-            str_builder_add(sb, "while (");
-            expression_describe(s->per_type.while_.condition, sb);
-            str_builder_add(sb, ") {\n    ");
-            list_describe(s->per_type.while_.body_statements, "\n    ", sb);
-            str_builder_add(sb, "\n}");
+            str_add(str, "while (");
+            expression_describe(s->per_type.while_.condition, str);
+            str_add(str, ") {\n    ");
+            list_describe(s->per_type.while_.body_statements, "\n    ", str);
+            str_add(str, "\n}");
             break;
         case ST_FOR_LOOP:
-            str_builder_add(sb, "for (");
-            expression_describe(s->per_type.for_.init, sb);
-            str_builder_add(sb, "; ");
-            expression_describe(s->per_type.for_.condition, sb);
-            str_builder_add(sb, "; ");
-            expression_describe(s->per_type.for_.next, sb);
-            str_builder_add(sb, ") {\n    ");
-            list_describe(s->per_type.for_.body_statements, "\n    ", sb);
-            str_builder_add(sb, "\n}");
+            str_add(str, "for (");
+            expression_describe(s->per_type.for_.init, str);
+            str_add(str, "; ");
+            expression_describe(s->per_type.for_.condition, str);
+            str_add(str, "; ");
+            expression_describe(s->per_type.for_.next, str);
+            str_add(str, ") {\n    ");
+            list_describe(s->per_type.for_.body_statements, "\n    ", str);
+            str_add(str, "\n}");
             break;
         case ST_CONTINUE:
-            str_builder_add(sb, "continue;");
+            str_add(str, "continue;");
             break;
         case ST_BREAK:
-            str_builder_add(sb, "break;");
+            str_add(str, "break;");
             break;
         case ST_RETURN:
-            str_builder_add(sb, "return (");
-            expression_describe(s->per_type.return_.value, sb);
-            str_builder_add(sb, ");");
+            str_add(str, "return (");
+            expression_describe(s->per_type.return_.value, str);
+            str_add(str, ");");
             break;
         case ST_FUNCTION:
-            str_builder_add(sb, "function ");
-            str_builder_add(sb, s->per_type.function.name == NULL ?
+            str_add(str, "function ");
+            str_add(str, s->per_type.function.name == NULL ?
                     "(anonymous)": s->per_type.function.name);
-            str_builder_add(sb, "(");
-            list_describe(s->per_type.function.arg_names, ", ", sb);
-            str_builder_add(sb, ") {\n    ");
-            list_describe(s->per_type.function.statements, "\n    ", sb);
-            str_builder_add(sb, "\n}");
+            str_add(str, "(");
+            list_describe(s->per_type.function.arg_names, ", ", str);
+            str_add(str, ") {\n    ");
+            list_describe(s->per_type.function.statements, "\n    ", str);
+            str_add(str, "\n}");
             break;
         case ST_TRY_CATCH:
-            str_builder_add(sb, "try {\n    ");
-            list_describe(s->per_type.try_catch.try_statements, "\n    ", sb);
-            str_builder_addf(sb, "\n} catch (%s) {\n    ", s->per_type.try_catch.exception_identifier);
-            list_describe(s->per_type.try_catch.catch_statements, "\n    ", sb);
+            str_add(str, "try {\n    ");
+            list_describe(s->per_type.try_catch.try_statements, "\n    ", str);
+            str_addf(str, "\n} catch (%s) {\n    ", s->per_type.try_catch.exception_identifier);
+            list_describe(s->per_type.try_catch.catch_statements, "\n    ", str);
             if (s->per_type.try_catch.finally_statements != NULL && !list_empty(s->per_type.try_catch.finally_statements)) {
-                str_builder_addf(sb, "\n} finally {\n    ");
-                list_describe(s->per_type.try_catch.finally_statements, "\n    ", sb);
+                str_addf(str, "\n} finally {\n    ");
+                list_describe(s->per_type.try_catch.finally_statements, "\n    ", str);
             }
-            str_builder_add(sb, "\n}");
+            str_add(str, "\n}");
             break;
         case ST_THROW:
-            str_builder_add(sb, "throw (");
-            expression_describe(s->per_type.throw.exception, sb);
-            str_builder_add(sb, ");");
+            str_add(str, "throw (");
+            expression_describe(s->per_type.throw.exception, str);
+            str_add(str, ");");
             break;
         case ST_BREAKPOINT:
-            str_builder_add(sb, "breakpoint;");
+            str_add(str, "breakpoint;");
             break;
         case ST_CLASS:
-            str_builder_addf(sb, "class '%s' { ... }", s->per_type.class.name);
+            str_addf(str, "class '%s' { ... }", s->per_type.class.name);
             break;
     }
 }
@@ -257,8 +257,8 @@ contained_item_info *statement_item_info = &(contained_item_info){
     .are_equal = (items_equal_func)statements_are_equal
 };
 
-static const void class_attribute_describe(class_attribute *a, str_builder *sb) {
-    str_builder_addf(sb, "%s%s", 
+static const void class_attribute_describe(class_attribute *a, str *str) {
+    str_addf(str, "%s%s", 
         a->public ? "public " : "",
         a->name);
 }
@@ -272,8 +272,8 @@ static bool class_attributes_are_equal(class_attribute *a, class_attribute *b) {
     if (!expressions_are_equal(a->init_value, b->init_value)) return false;
     return true;
 }
-static const void class_method_describe(class_method *m, str_builder *sb) {
-    str_builder_addf(sb, "%s%s()", 
+static const void class_method_describe(class_method *m, str *str) {
+    str_addf(str, "%s%s()", 
         m->public ? "public " : "",
         m->name);
 }

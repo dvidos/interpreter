@@ -122,8 +122,8 @@ const char *operator_type_name(operator_type op) {
     return op_type_infos_per_operator[op].name;
 }
 
-const void operator_type_describe(operator_type op, str_builder *sb) {
-    str_builder_add(sb, op_type_infos_per_operator[op].name);
+const void operator_type_describe(operator_type op, str *str) {
+    str_add(str, op_type_infos_per_operator[op].name);
 }
 
 bool operator_types_are_equal(operator_type a, operator_type b) {

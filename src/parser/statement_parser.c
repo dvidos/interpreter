@@ -281,9 +281,9 @@ static failable_statement parse_class_statement() {
             list_add(methods, new_class_method(public, name, st.result));
 
         } else {
-            str_builder *sb = new_str_builder();
-            token_describe(peek(), sb);
-            return failed_statement(NULL, "was expecting 'function' or identifier in class declaration, got %s", str_builder_charptr(sb));
+            str *str = new_str();
+            token_describe(peek(), str);
+            return failed_statement(NULL, "was expecting 'function' or identifier in class declaration, got %s", str_cstr(str));
         }
 
         dict_set(names, name, (char *)name);

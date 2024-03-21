@@ -3,7 +3,7 @@
 #include <string.h>
 #include "../utils/failable.h"
 #include "../containers/_containers.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "expression.h"
 
 contained_item_info *expression_item_info = &(contained_item_info){
@@ -112,40 +112,40 @@ bool expressions_are_equal(expression *a, expression *b) {
     return true;
 }
 
-const void expression_describe(expression *e, str_builder *sb) {
+const void expression_describe(expression *e, str *str) {
     
     if (e->type == ET_IDENTIFIER) {
-        str_builder_addf(sb, "SYM(\"%s\")", e->per_type.terminal_data);
+        str_addf(str, "SYM(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_NUMERIC_LITERAL) {
-        str_builder_addf(sb, "NUM(\"%s\")", e->per_type.terminal_data);
+        str_addf(str, "NUM(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_STRING_LITERAL) {
-        str_builder_addf(sb, "STR(\"%s\")", e->per_type.terminal_data);
+        str_addf(str, "STR(\"%s\")", e->per_type.terminal_data);
     } else if (e->type == ET_BOOLEAN_LITERAL) {
-        str_builder_addf(sb, "BOOL(%s)", e->per_type.terminal_data);
+        str_addf(str, "BOOL(%s)", e->per_type.terminal_data);
     } else if (e->type == ET_UNARY_OP) {
-        operator_type_describe(e->op, sb);
-        str_builder_addc(sb, '(');
-        expression_describe(e->per_type.operation.operand1, sb);
-        str_builder_addc(sb, ')');
+        operator_type_describe(e->op, str);
+        str_addc(str, '(');
+        expression_describe(e->per_type.operation.operand1, str);
+        str_addc(str, ')');
     } else if (e->type == ET_BINARY_OP) {
-        operator_type_describe(e->op, sb);
-        str_builder_addc(sb, '(');
-        expression_describe(e->per_type.operation.operand1, sb);
-        str_builder_add(sb, ", ");
-        expression_describe(e->per_type.operation.operand2, sb);
-        str_builder_addc(sb, ')');
+        operator_type_describe(e->op, str);
+        str_addc(str, '(');
+        expression_describe(e->per_type.operation.operand1, str);
+        str_add(str, ", ");
+        expression_describe(e->per_type.operation.operand2, str);
+        str_addc(str, ')');
     } else if (e->type == ET_LIST_DATA) {
-        str_builder_add(sb, "LIST(");
-        list_describe(e->per_type.list_, ", ", sb);
-        str_builder_addc(sb, ')');
+        str_add(str, "LIST(");
+        list_describe(e->per_type.list_, ", ", str);
+        str_addc(str, ')');
     } else if (e->type == ET_DICT_DATA) {
-        str_builder_add(sb, "DICT(");
-        dict_describe(e->per_type.dict_, ": ", ", ", sb);
-        str_builder_add(sb, ")");
+        str_add(str, "DICT(");
+        dict_describe(e->per_type.dict_, ": ", ", ", str);
+        str_add(str, ")");
     } else if (e->type == ET_FUNC_DECL) {
-        str_builder_add(sb, "FUNC(");
-        list_describe(e->per_type.func.arg_names, ", ", sb);
-        str_builder_addf(sb, "){ %d statements }", list_length(e->per_type.func.statements));
+        str_add(str, "FUNC(");
+        list_describe(e->per_type.func.arg_names, ", ", str);
+        str_addf(str, "){ %d statements }", list_length(e->per_type.func.statements));
     }
 }
 

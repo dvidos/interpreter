@@ -24,7 +24,7 @@ list *dict_get_keys(dict *d);
 list *dict_get_values(dict *d);
 
 bool dicts_are_equal(dict *a, dict *b);
-const void dict_describe(dict *l, const char *key_value_separator, const char *entries_separator, str_builder *sb);
+const void dict_describe(dict *l, const char *key_value_separator, const char *entries_separator, str *str);
 
 void dict_free(dict *d);
 

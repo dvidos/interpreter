@@ -29,7 +29,7 @@ token *new_data_token(token_type type, const char *data, const char *filename, i
 void token_print(token *t, FILE *stream, char *prefix);
 void token_print_list(list *tokens, FILE *stream, char *prefix, char *separator);
 
-const void token_describe(token *t, str_builder *sb);
+const void token_describe(token *t, str *str);
 bool tokens_are_equal(token *a, token *b);
 
 STRONGLY_TYPED_FAILABLE_PTR_DECLARATION(token);

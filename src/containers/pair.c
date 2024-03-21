@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "pair.h"
 
 typedef struct pair {
@@ -63,27 +63,27 @@ bool pairs_are_equal(pair *a, pair *b) {
     return true;
 }
 
-const void pair_describe(pair *p, const char *separator, str_builder *sb) {
+const void pair_describe(pair *p, const char *separator, str *str) {
     if (p->left == NULL)
-        str_builder_add(sb, "(null)");
+        str_add(str, "(null)");
     else if (p->left_item_info != NULL && p->left_item_info->describe != NULL)
-        p->left_item_info->describe(p->left, sb);
+        p->left_item_info->describe(p->left, str);
     else
-        str_builder_addf(sb, "@0x%p", p->left);
+        str_addf(str, "@0x%p", p->left);
 
-    str_builder_add(sb, separator);
+    str_add(str, separator);
 
     if (p->right == NULL)
-        str_builder_add(sb, "(null)");
+        str_add(str, "(null)");
     else if (p->right_item_info != NULL && p->right_item_info->describe != NULL)
-        p->right_item_info->describe(p->right, sb);
+        p->right_item_info->describe(p->right, str);
     else
-        str_builder_addf(sb, "@0x%p", p->right);
+        str_addf(str, "@0x%p", p->right);
 }
 
 
-const void default_pair_describe(pair *p, str_builder *sb) {
-    pair_describe(p, "-", sb);
+const void default_pair_describe(pair *p, str *str) {
+    pair_describe(p, "-", str);
 }
 
 

@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include "../utils/mem.h"
 #include "contained_item_info.h"
-#include "../utils/str_builder.h"
+#include "../utils/str.h"
 #include "list.h"
 
 typedef struct list_entry {
@@ -203,23 +203,23 @@ bool lists_are_equal(list *a, list *b) {
     return true;
 }
 
-void list_describe(list *l, const char *separator, str_builder *sb) {
+void list_describe(list *l, const char *separator, str *str) {
     list_entry *e = l->head;
     while (e != NULL) {
         if (e != l->head)
-            str_builder_add(sb, separator);
+            str_add(str, separator);
         
         if (l->item_info != NULL && l->item_info->describe != NULL)
-            l->item_info->describe(e->item, sb);
+            l->item_info->describe(e->item, str);
         else
-            str_builder_addf(sb, "@0x%p", e->item);
+            str_addf(str, "@0x%p", e->item);
         
         e = e->next;
     }
 }
 
-static void list_describe_default(list *l, str_builder *sb) {
-    list_describe(l, ", ", sb);
+static void list_describe_default(list *l, str *str) {
+    list_describe(l, ", ", str);
 }
 
 void list_free(list *l) {
