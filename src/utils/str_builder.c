@@ -33,10 +33,10 @@ static void ensure_capacity(str_builder *sb, int len_needed) {
     }
 }
 
-void str_builder_add(str_builder *sb, const char *str) {
-    ensure_capacity(sb, strlen(str));
-    strcat(sb->buffer, str);
-    sb->length += strlen(str);
+void str_builder_add(str_builder *sb, const char *s) {
+    ensure_capacity(sb, strlen(s));
+    strcat(sb->buffer, s);
+    sb->length += strlen(s);
 }
 
 void str_builder_addc(str_builder *sb, char chr) {

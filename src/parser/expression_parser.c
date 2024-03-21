@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "../utils/str.h"
+#include "../utils/cstr.h"
 #include "../utils/str_builder.h"
 #include "../utils/failable.h"
 #include "../containers/_containers.h"
@@ -263,7 +263,7 @@ static failable_expression parse_func_declaration_expression(bool verbose, token
     if (!accept(T_LPAREN))
         return failed_expression(NULL, "Expected '(' after function");
     
-    list *arg_names = new_list(str_item_info);
+    list *arg_names = new_list(cstr_item_info);
     while (!accept(T_RPAREN)) {
         if (!accept(T_IDENTIFIER))
             return failed_expression(NULL, "Expected identifier in function arg names");

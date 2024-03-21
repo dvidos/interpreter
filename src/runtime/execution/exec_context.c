@@ -178,11 +178,11 @@ void exec_context_log_line(const char *line) {
     str_builder_add(exec_context_log, "\n");
 }
 
-void exec_context_log_str(const char *str) {
+void exec_context_log_str(const char *s) {
     if (exec_context_log == NULL)
         exec_context_log = new_str_builder();
 
-    str_builder_add(exec_context_log, str);
+    str_builder_add(exec_context_log, s);
 }
 
 const char *exec_context_get_log() {

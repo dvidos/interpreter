@@ -7,7 +7,7 @@
 #include "../interpreter/interpreter.h"
 #include "../entities/statement.h"
 #include "../entities/expression.h"
-#include "../utils/str.h"
+#include "../utils/cstr.h"
 #include "../utils/str_builder.h"
 
 #define between(num, min, max)        ((num)<(min)?(min):((num)>(max)?(max):(num)))
@@ -244,7 +244,7 @@ static void show_stack_trace(statement *curr_stmt, expression *curr_expr, exec_c
 
 static void show_values_of_symbols_of(dict *symbols) {
     str_builder *sb = new_str_builder();
-    for_dict(symbols, sit, str, name) {
+    for_dict(symbols, sit, cstr, name) {
         str_builder_clear(sb);
         variant *v = dict_get(symbols, name);
         if (v == NULL)

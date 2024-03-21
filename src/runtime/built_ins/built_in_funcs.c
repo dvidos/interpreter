@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include "built_in_funcs.h"
 #include "../../utils/mem.h"
 #include "../../utils/execution_outcome.h"
 #include "../../containers/_containers.h"
-#include "../../utils/str.h"
+#include "../../utils/cstr.h"
 #include "../../utils/str_builder.h"
 #include "../../utils/origin.h"
 #include "../../utils/data_types/callable.h"
@@ -98,23 +99,23 @@ BUILT_IN(type) {
 
 
 BUILT_IN(strlen) {
-    const char *str = STR_ARG(0);
-    return RET_INT(strlen(str));
+    const char *s = STR_ARG(0);
+    return RET_INT(strlen(s));
 }
 
 BUILT_IN(substr) {
-    const char *str = STR_ARG(0);
+    const char *s = STR_ARG(0);
     int index = INT_ARG(1);
     int len = INT_ARG(2);
 
-    int actual_index = index >= 0 ? index : strlen(str) - (-index);
-    actual_index = between(actual_index, 0, strlen(str));
+    int actual_index = index >= 0 ? index : strlen(s) - (-index);
+    actual_index = between(actual_index, 0, strlen(s));
 
-    int actual_len = len >= 0 ? len : strlen(str + actual_index) - (-len);
-    actual_len = between(actual_len, 0, strlen(str + actual_index));
+    int actual_len = len >= 0 ? len : strlen(s + actual_index) - (-len);
+    actual_len = between(actual_len, 0, strlen(s + actual_index));
 
     char *p = malloc(actual_len + 1);
-    memcpy(p, str + actual_index, actual_len);
+    memcpy(p, s + actual_index, actual_len);
     p[actual_len] = 0;
 
     return RET_STR(p);
@@ -197,7 +198,7 @@ BUILT_IN(rand) {
 
 BUILT_IN(str) {
     variant *v = list_get(arg_values, 0);
-    str *s = str_variant_as_str(v);
+    const char *s = str_variant_as_str(v);
     return RET_STR(s);
 }
 BUILT_IN(int) {

@@ -11,19 +11,8 @@
 #include "interpreter/interpreter.h"
 #include "runtime/_runtime.h"
 #include "runtime/variants/_variants.h"
+#include "shell/shell.h"
 
-/*
-    The core of the functionality is the "interpret_and_execute()" function.
-    It would give the ability to programs to evaluate strings,
-    like complex business conditions etc.
-
-    To do this we need a whole ecosystem for these:
-    - variants (strings, numbers, booleans, lists, dictionaries)
-    - parser of expressions with precedence, into an abstract syntax tree
-    - evaluation of the syntax tree, to find the result
-
-    interpret_and_execute("a + b * 2", {a=1, b=2})
-*/
 
 bool run_self_diagnostics(bool verbose) {
     testing_initialize();
@@ -90,7 +79,7 @@ void show_help() {
     printf("  -f <script-file>    Load and interpret a script file\n");
     printf("  -e <expression>     Interpret and execute the expression\n");
     printf("  -i                  Start interactive shell\n");
-    printf("  -d                  Enable debugger\n");
+    printf("  -d                  Enable inline debugger\n");
     printf("  -v                  Be verbose\n");
     printf("  -u                  Run self diagnostics (unit tests)\n");
     printf("  -h                  Show this help message\n");
@@ -128,7 +117,6 @@ void execute_script(const char *filename) {
 }
 
 void execute_shell() {
-    void interactive_shell(bool verbose, bool enable_debugger);
     interactive_shell(options.verbose, options.enable_debugger);
 }
 

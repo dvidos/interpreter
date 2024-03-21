@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "../utils/str.h"
+#include "../utils/cstr.h"
 #include "../utils/str_builder.h"
 #include "dict.h"
 #include "list.h"
@@ -43,11 +43,11 @@ dict *dict_of(contained_item_info *item_info, int pairs_count, ...) {
     return d;
 }
 
-static unsigned hash(const char *str) {
+static unsigned hash(const char *s) {
     unsigned result = 5381;
-    while (*str) {
+    while (*s) {
         // result = (result * 33) + char
-        result = ((result << 5) + result) + *str++;
+        result = ((result << 5) + result) + *s++;
     }
     return result;
 }
@@ -203,9 +203,9 @@ iterator *dict_keys_iterator(dict *d) {
 }
 
 list *dict_get_keys(dict *d) {
-    list *keys = new_list(str_item_info);
+    list *keys = new_list(cstr_item_info);
     iterator *it = dict_keys_iterator(d);
-    for_iterator(it, str, key)
+    for_iterator(it, cstr, key)
         list_add(keys, (void *)key); // we lose 'const' here
     return keys;
 }
@@ -213,7 +213,7 @@ list *dict_get_keys(dict *d) {
 list *dict_get_values(dict *d) {
     list *values = new_list(d->item_info);
     iterator *it = dict_keys_iterator(d);
-    for_iterator(it, str, key)
+    for_iterator(it, cstr, key)
         list_add(values, dict_get(d, key));
     return values;
 }

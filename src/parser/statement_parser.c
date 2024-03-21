@@ -1,5 +1,5 @@
 #include <string.h>
-#include "../utils/str.h"
+#include "../utils/cstr.h"
 #include "../lexer/_lexer.h"
 #include "expression_parser.h"
 #include "statement_parser.h"
@@ -157,7 +157,7 @@ static failable_statement parse_function_statement() {
     if (accept(T_IDENTIFIER))
         name = accepted()->data;
     
-    list *arg_names = new_list(str_item_info);
+    list *arg_names = new_list(cstr_item_info);
     if (!accept(T_LPAREN))
         return failed_statement(NULL, "Was expecting arguments list after function");
     while (!accept(T_RPAREN)) {
@@ -246,7 +246,7 @@ static failable_statement parse_class_statement() {
     if (!accept(T_LBRACKET)) return failed_statement(NULL, "was expecting '{' after class");
 
     const char *name;
-    dict *names = new_dict(str_item_info);
+    dict *names = new_dict(cstr_item_info);
     list *attributes = new_list(class_attribute_item_info);
     list *methods = new_list(class_method_item_info);
     failable_statement st;

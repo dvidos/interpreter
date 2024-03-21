@@ -3,7 +3,7 @@
 #include "../variants/_variants.h"
 #include "../../debugger/debugger.h"
 #include "../../utils/data_types/callable.h"
-#include "../../utils/str.h"
+#include "../../utils/cstr.h"
 #include "../../utils/str_builder.h"
 #include "expression_execution.h"
 #include "statement_execution.h"
@@ -137,7 +137,7 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
             dict *expressions_dict = e->per_type.dict_;
             dict *values_dict = new_dict(variant_item_info);
             iterator *keys_it = dict_keys_iterator(expressions_dict);
-            for_iterator(keys_it, str, key) {
+            for_iterator(keys_it, cstr, key) {
                 ex = execute_expression(dict_get(expressions_dict, key), ctx);
                 if (ex.excepted || ex.failed) return ex;
                 dict_set(values_dict, key, ex.result);

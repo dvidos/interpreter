@@ -1,6 +1,7 @@
 #include <stdlib.h>
+#include <string.h>
 #include "stack_frame.h"
-#include "../../utils/str.h"
+#include "../../utils/cstr.h"
 
 
 stack_frame *new_stack_frame(const char *func_name, origin *call_origin) {
@@ -78,7 +79,7 @@ bool stack_frames_are_equal(stack_frame *a, stack_frame *b) {
     if ((a == NULL && b != NULL) || (a != NULL && b == NULL)) return false;
     if (a == b) return true;
 
-    if (!strs_are_equal(a->func_name, b->func_name))
+    if (strcmp(a->func_name, b->func_name) != 0)
         return false;
     if (!dicts_are_equal(a->symbols, b->symbols))
         return false;

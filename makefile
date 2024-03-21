@@ -13,7 +13,7 @@ FILES = \
 	src/containers/pair.c \
 	src/containers/containers_tests.c \
 	\
-	src/utils/str.c \
+	src/utils/cstr.c \
 	src/utils/str_builder.c \
 	src/utils/failable.c \
 	src/utils/file.c \

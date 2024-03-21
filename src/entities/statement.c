@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "../utils/str.h"
+#include "../utils/cstr.h"
 #include "../utils/str_builder.h"
 #include "../containers/_containers.h"
 #include "statement.h"
@@ -227,13 +227,13 @@ bool statements_are_equal(statement *a, statement *b) {
             if (!expressions_are_equal(a->per_type.return_.value, b->per_type.return_.value)) return false;
             break;
         case ST_FUNCTION:
-            if (!strs_are_equal(a->per_type.function.name, b->per_type.function.name)) return false;
+            if (strcmp(a->per_type.function.name, b->per_type.function.name) != 0) return false;
             if (!lists_are_equal(a->per_type.function.arg_names, b->per_type.function.arg_names)) return false;
             if (!lists_are_equal(a->per_type.function.statements, b->per_type.function.statements)) return false;
             break;
         case ST_TRY_CATCH:
             if (!lists_are_equal(a->per_type.try_catch.try_statements, b->per_type.try_catch.try_statements)) return false;
-            if (!strs_are_equal(a->per_type.try_catch.exception_identifier, b->per_type.try_catch.exception_identifier)) return false;
+            if (strcmp(a->per_type.try_catch.exception_identifier, b->per_type.try_catch.exception_identifier) != 0) return false;
             if (!lists_are_equal(a->per_type.try_catch.catch_statements, b->per_type.try_catch.catch_statements)) return false;
             if (!lists_are_equal(a->per_type.try_catch.finally_statements, b->per_type.try_catch.finally_statements)) return false;
             break;
@@ -241,7 +241,7 @@ bool statements_are_equal(statement *a, statement *b) {
             if (!expressions_are_equal(a->per_type.throw.exception, b->per_type.throw.exception)) return false;
             break;
         case ST_CLASS:
-            if (!strs_are_equal(a->per_type.class.name, b->per_type.class.name)) return false;
+            if (strcmp(a->per_type.class.name, b->per_type.class.name) != 0) return false;
             if (!lists_are_equal(a->per_type.class.attributes, b->per_type.class.attributes)) return false;
             if (!lists_are_equal(a->per_type.class.methods, b->per_type.class.methods)) return false;
             break;

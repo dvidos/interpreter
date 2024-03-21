@@ -105,12 +105,12 @@ variant *new_str_variant(const char *fmt, ...) {
     return (variant *)s;
 }
 
-void str_variant_append(variant *v, variant *str) {
+void str_variant_append(variant *v, variant *other) {
     if (!variant_instance_of(v, str_type))
         return;
     str_instance *s = (str_instance *)v;
 
-    str_instance *stringified = (str_instance *)variant_to_string(str);
+    str_instance *stringified = (str_instance *)variant_to_string(other);
     ensure_capacity(s, s->length + stringified->length + 1);
     strcpy(s->buffer + s->length, stringified->buffer);
     s->length += stringified->length;

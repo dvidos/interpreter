@@ -56,7 +56,7 @@ variant_type *exec_context_get_constructable_type(exec_context *c, const char *n
 // simple things for now.
 void        exec_context_log_reset();
 void        exec_context_log_line(const char *line);
-void        exec_context_log_str(const char *str);
+void        exec_context_log_str(const char *s);
 const char *exec_context_get_log();
 
 FILE *exec_context_get_log_echo();
