@@ -1,5 +1,5 @@
-#ifndef _STR_H
-#define _STR_H
+#ifndef _CSTR_H
+#define _CSTR_H
 
 #include "../containers/_containers.h"
 #include "../containers/_containers.h"
