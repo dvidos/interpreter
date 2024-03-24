@@ -30,6 +30,7 @@ static struct parser_data {
 static struct acceptance_test {
     const char *filename;
     int line_no;
+    str *title;
     dict *initial_vars; // items are str type, expressions
     str *code;
     str *expected_result; // str type, expressions
@@ -41,6 +42,7 @@ static struct acceptance_test {
 static void initialize_acceptance_test() {
     at.filename = NULL;
     at.line_no = 0;
+    at.title = new_str();
     at.initial_vars = new_dict(str_item_info);
     at.code = new_str();
     at.expected_result = new_str();
@@ -50,6 +52,7 @@ static void initialize_acceptance_test() {
 }
 
 static void teardown_acceptance_test() {
+    str_free(at.title);
     dict_free(at.initial_vars);
     str_free(at.code);
     str_free(at.expected_result);
@@ -60,6 +63,7 @@ static void teardown_acceptance_test() {
 static bool reset_acceptance_test() {
     at.filename = NULL;
     at.line_no = 0;
+    str_clear(at.title);
     dict_clear(at.initial_vars);
     str_clear(at.code);
     str_clear(at.expected_result);
@@ -94,7 +98,7 @@ static void run_acceptance_test(bool with_debugger) {
     
     execution_outcome ex = interpret_and_execute(str_cstr(at.code), at.filename, values, false, with_debugger, with_debugger);
     if (ex.failed) {
-        __testing_failed("Internal failure in test", ex.failure_message, at.filename, at.line_no);
+        __testing_failed(ex.failure_message, str_cstr(at.title), at.filename, at.line_no);
         return;
     }
     if (ex.excepted) {
@@ -102,14 +106,14 @@ static void run_acceptance_test(bool with_debugger) {
             __testing_passed();
             return;
         } else {
-            __testing_failed("Unexpected exception in test", NULL, at.filename, at.line_no);
+            __testing_failed(str_variant_as_str(variant_to_string(ex.exception_thrown)), str_cstr(at.title), at.filename, at.line_no);
             return;
         }
     }
     if (!str_empty(at.expected_result)) {
         variant *expected_value = scripted_value_to_variant(at.expected_result);
         if (!variants_are_equal(expected_value, ex.result)) {
-            __testing_failed("Result comparison failed", NULL, at.filename, at.line_no);
+            __testing_failed("Result comparison failed", str_cstr(at.title), at.filename, at.line_no);
             printf("  Expected: %s\n", str_cstr(at.expected_result));
             printf("  Actual  : %s\n", str_variant_as_str(variant_to_string(ex.result)));
             return;
@@ -120,7 +124,8 @@ static void run_acceptance_test(bool with_debugger) {
         variant *expected = scripted_value_to_variant(expected_expr);
         variant *actual = dict_get(values, key);
         if (!variants_are_equal(expected, actual)) {
-            __testing_failed("Expected result variable failed", key, at.filename, at.line_no);
+            __testing_failed("Expected result variable failed", str_cstr(at.title), at.filename, at.line_no);
+            printf("  Key     : %s\n", key);
             printf("  Expected: %s\n", str_cstr(expected_expr));
             printf("  Actual  : %s\n", str_variant_as_str(variant_to_string(actual)));
             return;
@@ -128,7 +133,7 @@ static void run_acceptance_test(bool with_debugger) {
     }
     if (!str_empty(at.expected_log)) {
         if (strcmp(exec_context_get_log(), str_cstr(at.expected_log)) != 0) {
-            __testing_failed("Log comparison failing", NULL, at.filename, at.line_no);
+            __testing_failed("Log comparison failing", str_cstr(at.title), at.filename, at.line_no);
             printf("  Expected: %s\n", str_cstr(at.expected_log));
             printf("  Actual  : %s\n", exec_context_get_log());
             return;
@@ -139,6 +144,9 @@ static void run_acceptance_test(bool with_debugger) {
 
 static bool parse_acceptance_test_line(const char *line_text, const char *filename, int line_no) {
     str *s = str_trim(new_str_of(line_text), " \t\r\n");
+    if (str_starts_with(s, "//"))
+        return true;
+
     if (str_equals(s, "```")) {
         if (parser_data.inside_code_block) {
             parser_data.inside_code_block = false;
@@ -161,17 +169,21 @@ static bool parse_acceptance_test_line(const char *line_text, const char *filena
     }
 
     // expect a first command: expect, result, code, etc.
-    if (str_starts_with(s, "code ")) {
+    if (str_starts_with(s, "# ")) {
+        str_add(at.title, str_substr(s, 2, 999));
+    } else if (str_starts_with(s, "code ")) {
         if (str_ends_with(s, "```")) {
             parser_data.inside_code_block = true;
         } else {
             str_add(at.code, str_substr(s, 5, 1000));
         }
+    } else if (str_starts_with(s, "expect result ")) {
+        str_add(at.expected_result, str_substr(s, 14, 999));
     } else if (str_starts_with(s, "expect log ")) {
         if (str_ends_with(s, "```")) {
             parser_data.inside_log_block = true;
         } else {
-            str_add(at.expected_log, str_substr(s, 5, 1000));
+            str_add(at.expected_log, str_substr(s, 11, 1000));
         }
     } else if (str_starts_with(s, "expect exception")) {
         at.expecting_exception = true;
