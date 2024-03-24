@@ -9,13 +9,14 @@
 #include "parser/statement_parser_tests.h"
 #include "interpreter/interpreter_tests.h"
 #include "interpreter/interpreter.h"
+#include "interpreter/acceptance_tests.h"
 #include "runtime/_runtime.h"
 #include "runtime/variants/_variants.h"
 #include "shell/shell.h"
 
 
 bool run_self_diagnostics(bool verbose) {
-    testing_initialize();
+    testing_initialize("unit");
 
     variant_self_diagnostics(verbose);
     containers_self_diagnostics(verbose);
@@ -32,6 +33,7 @@ struct options {
     bool verbose;
     bool show_help;
     bool run_unit_tests;
+    bool run_acceptance_tests;
     bool execute_expression;
     char *expression;
     bool execute_script;
@@ -64,6 +66,7 @@ void parse_options(int argc, char *argv[]) {
                 case 'h': options.show_help = true; break;
                 case 'v': options.verbose = true; break;
                 case 'u': options.run_unit_tests = true; options.suppress_log_echo = true; break;
+                case 'A': options.run_acceptance_tests = true; options.suppress_log_echo = true; break;
                 case 'q': options.suppress_log_echo = true; break;
                 case 'd': options.enable_debugger = true; break;
                 case 'i': options.start_interactive_shell = true; break;
@@ -81,10 +84,11 @@ void show_help() {
     printf("  -i                  Start interactive shell\n");
     printf("  -d                  Enable inline debugger\n");
     printf("  -v                  Be verbose\n");
-    printf("  -u                  Run self diagnostics (unit tests)\n");
-    printf("  -h                  Show this help message\n");
     printf("  -q                  Suppress log() output to stderr\n");
     printf("  -l <log-file>       Save log() output to file\n");
+    printf("  -u                  Run self diagnostics (unit tests)\n");
+    printf("  -A                  Run acceptance tests\n");
+    printf("  -h                  Show this help message\n");
 }
 
 void execute_code(const char *code, const char *filename) {
@@ -141,6 +145,9 @@ int main(int argc, char *argv[]) {
         show_help();
     } else if (options.run_unit_tests) {
         if (!run_self_diagnostics(options.verbose))
+            return 1;
+    } else if (options.run_acceptance_tests) {
+        if (!run_acceptance_tests_from_dir("./acceptance", "at", options.enable_debugger))
             return 1;
     } else if (options.execute_expression) {
         execute_code(options.expression, "inline");

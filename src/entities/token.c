@@ -50,7 +50,7 @@ const void token_describe(token *t, str *str) {
     const char *data = t->data;
     bool has_data = (tt == T_IDENTIFIER || tt == T_STRING_LITERAL || tt == T_NUMBER_LITERAL || tt == T_BOOLEAN_LITERAL);
     
-    str_add(str, token_type_str(tt));
+    str_adds(str, token_type_str(tt));
     if (has_data)
         str_addf(str, "(\"%s\")", t->data);
 }

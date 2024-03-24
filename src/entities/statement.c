@@ -113,62 +113,62 @@ bool statement_is_at(statement *s, const char *filename, int line_no) {
 const void statement_describe(statement *s, str *str) {
     switch (s->type) {
         case ST_EXPRESSION:
-            str_add(str, "expr(");
+            str_adds(str, "expr(");
             expression_describe(s->per_type.expr.expr, str);
-            str_add(str, ")");
+            str_adds(str, ")");
             break;
         case ST_IF:
-            str_add(str, "if (");
+            str_adds(str, "if (");
             expression_describe(s->per_type.if_.condition, str);
-            str_add(str, ") {\n    ");
+            str_adds(str, ") {\n    ");
             list_describe(s->per_type.if_.body_statements, "\n    ", str);
             if (s->per_type.if_.has_else) {
-                str_add(str, "\n} else {\n    ");
+                str_adds(str, "\n} else {\n    ");
                 list_describe(s->per_type.if_.else_body_statements, "\n    ", str);
             }
-            str_add(str, "\n}");
+            str_adds(str, "\n}");
             break;
         case ST_WHILE:
-            str_add(str, "while (");
+            str_adds(str, "while (");
             expression_describe(s->per_type.while_.condition, str);
-            str_add(str, ") {\n    ");
+            str_adds(str, ") {\n    ");
             list_describe(s->per_type.while_.body_statements, "\n    ", str);
-            str_add(str, "\n}");
+            str_adds(str, "\n}");
             break;
         case ST_FOR_LOOP:
-            str_add(str, "for (");
+            str_adds(str, "for (");
             expression_describe(s->per_type.for_.init, str);
-            str_add(str, "; ");
+            str_adds(str, "; ");
             expression_describe(s->per_type.for_.condition, str);
-            str_add(str, "; ");
+            str_adds(str, "; ");
             expression_describe(s->per_type.for_.next, str);
-            str_add(str, ") {\n    ");
+            str_adds(str, ") {\n    ");
             list_describe(s->per_type.for_.body_statements, "\n    ", str);
-            str_add(str, "\n}");
+            str_adds(str, "\n}");
             break;
         case ST_CONTINUE:
-            str_add(str, "continue;");
+            str_adds(str, "continue;");
             break;
         case ST_BREAK:
-            str_add(str, "break;");
+            str_adds(str, "break;");
             break;
         case ST_RETURN:
-            str_add(str, "return (");
+            str_adds(str, "return (");
             expression_describe(s->per_type.return_.value, str);
-            str_add(str, ");");
+            str_adds(str, ");");
             break;
         case ST_FUNCTION:
-            str_add(str, "function ");
-            str_add(str, s->per_type.function.name == NULL ?
+            str_adds(str, "function ");
+            str_adds(str, s->per_type.function.name == NULL ?
                     "(anonymous)": s->per_type.function.name);
-            str_add(str, "(");
+            str_adds(str, "(");
             list_describe(s->per_type.function.arg_names, ", ", str);
-            str_add(str, ") {\n    ");
+            str_adds(str, ") {\n    ");
             list_describe(s->per_type.function.statements, "\n    ", str);
-            str_add(str, "\n}");
+            str_adds(str, "\n}");
             break;
         case ST_TRY_CATCH:
-            str_add(str, "try {\n    ");
+            str_adds(str, "try {\n    ");
             list_describe(s->per_type.try_catch.try_statements, "\n    ", str);
             str_addf(str, "\n} catch (%s) {\n    ", s->per_type.try_catch.exception_identifier);
             list_describe(s->per_type.try_catch.catch_statements, "\n    ", str);
@@ -176,15 +176,15 @@ const void statement_describe(statement *s, str *str) {
                 str_addf(str, "\n} finally {\n    ");
                 list_describe(s->per_type.try_catch.finally_statements, "\n    ", str);
             }
-            str_add(str, "\n}");
+            str_adds(str, "\n}");
             break;
         case ST_THROW:
-            str_add(str, "throw (");
+            str_adds(str, "throw (");
             expression_describe(s->per_type.throw.exception, str);
-            str_add(str, ");");
+            str_adds(str, ");");
             break;
         case ST_BREAKPOINT:
-            str_add(str, "breakpoint;");
+            str_adds(str, "breakpoint;");
             break;
         case ST_CLASS:
             str_addf(str, "class '%s' { ... }", s->per_type.class.name);

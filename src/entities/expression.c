@@ -131,19 +131,19 @@ const void expression_describe(expression *e, str *str) {
         operator_type_describe(e->op, str);
         str_addc(str, '(');
         expression_describe(e->per_type.operation.operand1, str);
-        str_add(str, ", ");
+        str_adds(str, ", ");
         expression_describe(e->per_type.operation.operand2, str);
         str_addc(str, ')');
     } else if (e->type == ET_LIST_DATA) {
-        str_add(str, "LIST(");
+        str_adds(str, "LIST(");
         list_describe(e->per_type.list_, ", ", str);
         str_addc(str, ')');
     } else if (e->type == ET_DICT_DATA) {
-        str_add(str, "DICT(");
+        str_adds(str, "DICT(");
         dict_describe(e->per_type.dict_, ": ", ", ", str);
-        str_add(str, ")");
+        str_adds(str, ")");
     } else if (e->type == ET_FUNC_DECL) {
-        str_add(str, "FUNC(");
+        str_adds(str, "FUNC(");
         list_describe(e->per_type.func.arg_names, ", ", str);
         str_addf(str, "){ %d statements }", list_length(e->per_type.func.statements));
     }

@@ -522,7 +522,7 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
             if (variant_instance_of(v1, str_type) && variant_instance_of(v2, int_type)) {
                 str *tmp = new_str();
                 for (int i = 0; i < int_variant_as_int(v2); i++)
-                    str_add(tmp, str_variant_as_str(v1));
+                    str_adds(tmp, str_variant_as_str(v1));
                 return ok_outcome(new_str_variant(str_cstr(tmp)));
             }
             return exception_outcome(new_exception_variant_at(
@@ -564,8 +564,8 @@ static execution_outcome calculate_binary_expression(expression *op_expr, varian
                 return ok_outcome(new_float_variant(float_variant_as_float(v1) + float_variant_as_float(v2)));
             if (variant_instance_of(v1, str_type) && variant_instance_of(v2, str_type)) {
                 str *str = new_str();
-                str_add(str, str_variant_as_str(v1));
-                str_add(str, str_variant_as_str(v2));
+                str_adds(str, str_variant_as_str(v1));
+                str_adds(str, str_variant_as_str(v2));
                 variant *v = new_str_variant(strdup(str_cstr(str)));
                 str_free(str);
                 return ok_outcome(v);

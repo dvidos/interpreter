@@ -5,16 +5,6 @@
 #include "../../containers/_containers.h"
 
 
-/*
-    callable is only used in built in functions,
-    to discover a built-in, 
-    or to call a built-in, by passing another callable as an argument
-    maybe we don't need this intermediate class, as we need a "list" or "dict"
-
-    but let's do this on another day!
-*/
-
-
 struct callable {
     contained_item_info *item_info;
     const char *name;

@@ -260,7 +260,7 @@ const void dict_describe(dict *d, const char *key_value_separator, const char *e
     iterator *it = dict_keys_iterator(d);
     bool first = true;
     for_iterator(it, const_char, key) {
-        str_add(str, first ? "" : entries_separator);
+        str_adds(str, first ? "" : entries_separator);
         first = false;
 
         str_addf(str, "%s%s", key, key_value_separator);
@@ -274,6 +274,21 @@ const void dict_describe(dict *d, const char *key_value_separator, const char *e
 
 static const void dict_describe_default(dict *d, str *str) {
     dict_describe(d, ": ", ", ", str);
+}
+
+void dict_clear(dict *d) {
+    for (int i = 0; i < d->capacity; i++) {
+        dict_entry *e = d->entries_array[i];
+        dict_entry *next;
+        while (e != NULL) {
+            next = e->next;
+            free((void *)e->key);
+            free(e);
+            e = next;
+        }
+        d->entries_array[i] = 0;
+    }
+    d->count = 0;
 }
 
 void dict_free(dict *d) {

@@ -9,7 +9,7 @@
 #endif
 
 
-void testing_initialize();
+void testing_initialize(const char *tests_type);
 void __testing_passed();
 void __testing_failed(const char *test_descr, const char *extra, const char *file, int line);
 void __testing_assert(bool passed, const char *test_descr, const char *extra, const char *file, int line);

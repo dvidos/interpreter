@@ -65,16 +65,16 @@ bool pairs_are_equal(pair *a, pair *b) {
 
 const void pair_describe(pair *p, const char *separator, str *str) {
     if (p->left == NULL)
-        str_add(str, "(null)");
+        str_adds(str, "(null)");
     else if (p->left_item_info != NULL && p->left_item_info->describe != NULL)
         p->left_item_info->describe(p->left, str);
     else
         str_addf(str, "@0x%p", p->left);
 
-    str_add(str, separator);
+    str_adds(str, separator);
 
     if (p->right == NULL)
-        str_add(str, "(null)");
+        str_adds(str, "(null)");
     else if (p->right_item_info != NULL && p->right_item_info->describe != NULL)
         p->right_item_info->describe(p->right, str);
     else

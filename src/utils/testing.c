@@ -13,10 +13,10 @@
 static int asserts_passed;
 static int asserts_failed;
 
-void testing_initialize() {
+void testing_initialize(const char *tests_type) {
     asserts_passed = 0;
     asserts_failed = 0;
-    fprintf(stderr, "Running tests...\n");
+    fprintf(stderr, "Running %s tests...\n", tests_type);
 }
 
 void __testing_passed() {

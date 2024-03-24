@@ -118,7 +118,7 @@ void queue_describe(queue *q, const char *separator, str *str) {
     queue_entry *e = q->exit;
     while (e != NULL) {
         if (e != q->exit)
-            str_add(str, separator);
+            str_adds(str, separator);
         
         if (q->item_info != NULL && q->item_info->describe != NULL)
             q->item_info->describe(e->item, str);

@@ -26,6 +26,7 @@ list *dict_get_values(dict *d);
 bool dicts_are_equal(dict *a, dict *b);
 const void dict_describe(dict *l, const char *key_value_separator, const char *entries_separator, str *str);
 
+void dict_clear(dict *d);
 void dict_free(dict *d);
 
 #define for_dict(dict_var, iter_var, item_type, item_var)  \

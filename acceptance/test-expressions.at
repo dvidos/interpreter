@@ -1,0 +1,19 @@
+# basics
+```
+1+1
+```
+expect-result: `2`
+
+---
+
+
+    // write a generic parser, that, 
+    // given the syntax of the test files
+    // it can parse the test files and
+    // allow an engine to run them.
+    
+given: a=1, b='hello', c=true
+and: code=...
+expect a=12, b='there', c=false
+
+maybe we could make a parser that parses these files??? :-) 

@@ -207,7 +207,7 @@ void list_describe(list *l, const char *separator, str *str) {
     list_entry *e = l->head;
     while (e != NULL) {
         if (e != l->head)
-            str_add(str, separator);
+            str_adds(str, separator);
         
         if (l->item_info != NULL && l->item_info->describe != NULL)
             l->item_info->describe(e->item, str);

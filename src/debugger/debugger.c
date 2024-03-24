@@ -248,12 +248,12 @@ static void show_values_of_symbols_of(dict *symbols) {
         str_clear(s);
         variant *v = dict_get(symbols, name);
         if (v == NULL)
-            str_add(s, "(null)");
+            str_adds(s, "(null)");
         else if (variant_instance_of(v, callable_type))
-            str_add(s, "(callable)");
+            str_adds(s, "(callable)");
         else {
             variant *to_string = variant_to_string(v);
-            str_add(s, str_variant_as_str(to_string));
+            str_adds(s, str_variant_as_str(to_string));
             variant_drop_ref(to_string);
         }
         printf("   %s: %s\n", name, str_cstr(s));

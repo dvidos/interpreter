@@ -68,6 +68,7 @@ FILES = \
 	\
 	src/interpreter/interpreter.c \
 	src/interpreter/interpreter_tests.c \
+	src/interpreter/acceptance_tests.c \
 	\
 	src/shell/shell.c
 

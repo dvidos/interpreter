@@ -106,7 +106,7 @@ void stack_describe(stack *s, const char *separator, str *str) {
     stack_entry *e = s->head;
     while (e != NULL) {
         if (e != s->head)
-            str_add(str, separator);
+            str_adds(str, separator);
         
         if (s->item_info != NULL && s->item_info->describe != NULL)
             s->item_info->describe(e->item, str);

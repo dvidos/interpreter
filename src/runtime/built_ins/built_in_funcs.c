@@ -142,7 +142,7 @@ BUILT_IN(log) {
     str_clear(log_line_builder);
     for (int i = 0; i < args_count; i++) {
         variant *s = variant_to_string(list_get(arg_values, i));
-        str_add(log_line_builder, str_variant_as_str(s));
+        str_adds(log_line_builder, str_variant_as_str(s));
         variant_drop_ref(s);
         if (i < args_count - 1)
             str_addc(log_line_builder, ' ');
@@ -175,7 +175,7 @@ BUILT_IN(output) {
     str *str = new_str();
     for (int i = 0; i < args_count; i++) {
         variant *s = variant_to_string(list_get(arg_values, i));
-        str_add(str, str_variant_as_str(s));
+        str_adds(str, str_variant_as_str(s));
         variant_drop_ref(s);
         if (i < args_count - 1)
             str_addc(str, ' ');

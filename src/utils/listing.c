@@ -58,3 +58,8 @@ const char *listing_get_line(listing *l, int line_no) {
     return l->line_ptr_array[line_no];
 }
 
+void listing_free(listing *l) {
+    free((void *)l->code_tokenized);
+    free((void *)l->line_ptr_array);
+    free(l);
+}

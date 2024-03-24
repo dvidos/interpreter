@@ -174,15 +174,15 @@ void exec_context_log_line(const char *line) {
     if (exec_context_log == NULL)
         exec_context_log = new_str();
 
-    str_add(exec_context_log, line);
-    str_add(exec_context_log, "\n");
+    str_adds(exec_context_log, line);
+    str_adds(exec_context_log, "\n");
 }
 
 void exec_context_log_str(const char *s) {
     if (exec_context_log == NULL)
         exec_context_log = new_str();
 
-    str_add(exec_context_log, s);
+    str_adds(exec_context_log, s);
 }
 
 const char *exec_context_get_log() {

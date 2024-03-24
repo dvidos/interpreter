@@ -10,7 +10,7 @@ static bool cstrs_are_equal(cstr *a, cstr *b) {
 }
 
 static const void cstr_describe(cstr *s, str *str) {
-    str_add(str, s);
+    str_adds(str, s);
 }
 
 contained_item_info *cstr_item_info = &(contained_item_info){
@@ -20,6 +20,5 @@ contained_item_info *cstr_item_info = &(contained_item_info){
     .describe = (describe_item_func)cstr_describe
 };
 
-extern contained_item_info *cstr_item_info;
 
 STRONGLY_TYPED_FAILABLE_PTR_IMPLEMENTATION(cstr);

@@ -15,4 +15,19 @@ or expected-log: ...
 expected-output: a=1, b=2
 ```
 
+---
+
+## title
+```
+code goes here
+```
+expectations:
+* expect output: `output`
+* expect log:
+```
+log contents
+```
+* expect exception
+
+
 
