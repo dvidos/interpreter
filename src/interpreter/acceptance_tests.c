@@ -204,7 +204,7 @@ static bool parse_acceptance_test_line(const char *line_text, const char *filena
 }
 
 bool run_acceptance_tests_from_text(const char *text, const char *filename, bool with_debugger) {
-    printf("- %s...\n", filename);
+    printf("    %s\n", filename);
     initialize_acceptance_test();
 
     listing *l = new_listing(text);

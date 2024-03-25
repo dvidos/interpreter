@@ -1,3 +1,12 @@
+// format:
+// # <title>
+// code <code>                          or use ``` for multiline, as with markdown
+// expect result <result>
+// expect exception                     if exception is to be expected
+// ---                                  to separate tests
+
+
+
 # addition
 code          1+1
 expect result 2
@@ -8,27 +17,114 @@ code          2-1
 expect result 1
 ---
 
+# multiplication
+code          3 * 5
+expect result 15
+---
+
+# specific division
+code          15 / 5
+expect result 3
+---
+
+# lossy division
+code          10 / 3
+expect result 3
+---
+
+# modulo division
+code          10 % 3
+expect result 1
+---
+
 # correct sequence
 // if parsed as (8-4)-2, it gives 2
 // if parsed as 8-(4-2), it gives 6
 code          8-4-2
 expect result 2
 ---
-# basic exceptions
+
+# division by zero
 code     1/0
 expect exception
 ---
 
+# negative number 1
+code          -10
+expect result -10
+---
 
+# negative number 2
+code          -(10)
+expect result -10
+---
 
+# negative number 3
+code          10 * -1
+expect result -10
+---
 
-// write a generic parser, that, 
-// given the syntax of the test files
-// it can parse the test files and
-// allow an engine to run them.
+# parentheses 1
+code          (1 + 2)
+expect result 3
+---
 
-// given: a=1, b='hello', c=true
-// and: code=...
-// expect a=12, b='there', c=false
-//
-// maybe we could make a parser that parses these files??? :-) 
+# parentheses 2
+code          ((1) + (2))
+expect result 3
+---
+
+# hierarchy 1
+code          1+2*3+4
+expect result 11
+---
+
+# hierarchy 2
+code          (1+2)*(3+4)
+expect result 21
+---
+
+# hierarchy 3
+code          1+2*(3+4)
+expect result 15
+---
+
+# hierarchy 4
+code          (1+2)*3+4
+expect result 13
+---
+
+# logical expression 1
+code          true
+expect result true
+---
+
+# logical expression 2
+code          false
+expect result false
+---
+
+# logical expression 3
+code          !true
+expect result false
+---
+
+# logical expression 4
+code          true || false
+expect result true
+---
+
+# string expression 1
+code          'test'
+expect result 'test'
+---
+
+# string expression 2
+code          'test' + 'ing'
+expect result 'testing'
+---
+
+# string expression 3
+code          'test ' * 3
+expect result 'test test test '
+---
