@@ -1,0 +1,84 @@
+
+
+# short if
+code            true ? 1 : 2
+expect result   1
+
+----------------------------------------------------
+
+# short if
+code            false ? 1 : 2
+expect result   2
+
+----------------------------------------------------
+
+# longer if
+code ```
+    if (true) 
+        return 1;
+    
+    return 2;
+```
+expect result 1
+
+----------------------------------------------------
+
+# longer if
+code ```
+    if (false) 
+        return 1;
+    
+    return 2;
+```
+expect result 2
+
+----------------------------------------------------
+
+# longer if
+code ```
+    if (true) 
+        return 1;
+    else
+        return 2;
+    return 3;
+```
+expect result 1
+
+----------------------------------------------------
+
+# longer if
+code ```
+    if (false) 
+        return 1;
+    else
+        return 2;
+    return 3;
+```
+expect result 2
+
+----------------------------------------------------
+
+# if with brackets
+code ```
+    if (true) {
+        return 1;
+    } else {
+        return 2;
+    }
+    return 3;
+```
+expect result 1
+
+----------------------------------------------------
+
+# if with brackets
+code ```
+    if (false) {
+        return 1;
+    } else {
+        return 2;
+    }
+    return 3;
+```
+expect result 2
+

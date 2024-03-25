@@ -1,0 +1,52 @@
+
+
+# for statement
+code ```
+    for (i = 0; i < 3; i++)
+        log(i);
+```
+expect log ```
+0
+1
+2
+```
+
+----------------------------------------------------
+
+# for statement
+code ```
+    for (i = 3; i > 0; i--)
+        log(i);
+```
+expect log ```
+3
+2
+1
+```
+----------------------------------------------------
+
+# for statement
+code ```
+    for (i = 0; i < 3; i++) {
+        if (i <= 1)
+            continue;
+        log(i);
+    }
+```
+expect log ```
+2
+ ```
+----------------------------------------------------
+
+# for statement
+code ```
+    for (i = 0; i < 3; i++) {
+        log(i);
+        if (i >= 1)
+            break;
+    }
+```
+expect log ```
+0
+1
+```

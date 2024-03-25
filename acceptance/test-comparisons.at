@@ -1,0 +1,46 @@
+
+# comparisons
+code          1 == 3
+expect result false
+----------------------------------------------------
+
+# comparisons
+code          1 != 3
+expect result true
+----------------------------------------------------
+
+# comparisons
+code          1 > 3
+expect result false
+----------------------------------------------------
+
+# comparisons
+code          1 < 3
+expect result true
+----------------------------------------------------
+
+# comparisons
+code          1 >= 1
+expect result true
+----------------------------------------------------
+
+# comparisons
+code          1 <= 1
+expect result true
+----------------------------------------------------
+
+# comparisons
+code          'hello' == 'hello'
+expect result true
+----------------------------------------------------
+
+# comparisons
+code          'hello' == 'hi'
+expect result false
+----------------------------------------------------
+
+# comparisons
+code          'hello' == 4
+expect exception
+----------------------------------------------------
+

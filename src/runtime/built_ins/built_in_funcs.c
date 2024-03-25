@@ -198,13 +198,16 @@ BUILT_IN(rand) {
 
 BUILT_IN(str) {
     variant *v = list_get(arg_values, 0);
-    const char *s = str_variant_as_str(v);
-    return RET_STR(s);
+    return RET_VARNT(variant_to_string(v));
 }
 BUILT_IN(int) {
     variant *v = list_get(arg_values, 0);
-    int i = int_variant_as_int(v);
-    return RET_INT(i);
+    if (variant_instance_of(v, bool_type)) {
+        return RET_INT(bool_variant_as_bool(v) ? 1 : 0);
+    } else {
+        int i = atoi(str_variant_as_str(variant_to_string(v)));
+        return RET_INT(i);
+    }
 }
 
 

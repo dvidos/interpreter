@@ -1,0 +1,45 @@
+
+code          str(1)
+expect result '1'
+
+-------------------------------------------
+
+code          str('a')
+expect result 'a'
+
+-------------------------------------------
+
+code          str(true)
+expect result 'true'
+
+-------------------------------------------
+
+code          str(false)
+expect result 'false'
+
+-------------------------------------------
+
+code          int('12')
+expect result 12
+
+-------------------------------------------
+
+code          int('-12')
+expect result -12
+
+-------------------------------------------
+
+// this one maybe should throw an exception...
+code          int('abc')
+expect result 0
+
+-------------------------------------------
+
+code          int(true)
+expect result 1
+
+-------------------------------------------
+
+code          int(false)
+expect result 0
+

@@ -101,22 +101,22 @@ static void run_acceptance_test(bool with_debugger) {
         __testing_failed(ex.failure_message, str_cstr(at.title), at.filename, at.line_no);
         return;
     }
+    
     if (ex.excepted) {
         if (at.expecting_exception) {
             __testing_passed();
-            return;
         } else {
             __testing_failed(str_variant_as_str(variant_to_string(ex.exception_thrown)), str_cstr(at.title), at.filename, at.line_no);
-            return;
         }
+        return;
     }
+
     if (!str_empty(at.expected_result)) {
         variant *expected_value = scripted_value_to_variant(at.expected_result);
         if (!variants_are_equal(expected_value, ex.result)) {
             __testing_failed("Result comparison failed", str_cstr(at.title), at.filename, at.line_no);
             printf("  Expected: %s\n", str_cstr(at.expected_result));
             printf("  Actual  : %s\n", str_variant_as_str(variant_to_string(ex.result)));
-            return;
         }
     }
     for_dict(at.expected_vars_expressions, evi, cstr, key) {
@@ -128,7 +128,6 @@ static void run_acceptance_test(bool with_debugger) {
             printf("  Key     : %s\n", key);
             printf("  Expected: %s\n", str_cstr(expected_expr));
             printf("  Actual  : %s\n", str_variant_as_str(variant_to_string(actual)));
-            return;
         }
     }
     if (!str_empty(at.expected_log)) {
@@ -136,7 +135,6 @@ static void run_acceptance_test(bool with_debugger) {
             __testing_failed("Log comparison failing", str_cstr(at.title), at.filename, at.line_no);
             printf("  Expected: %s\n", str_cstr(at.expected_log));
             printf("  Actual  : %s\n", exec_context_get_log());
-            return;
         }
     }
     __testing_passed();

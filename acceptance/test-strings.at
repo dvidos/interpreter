@@ -1,0 +1,60 @@
+
+
+# string expression (double quotes)
+code          "test"
+expect result "test"
+
+----------------------------------------------------
+
+# string expression (single quotes)
+code          'test'
+expect result 'test'
+
+----------------------------------------------------
+
+# string expression 2
+code          'test' + 'ing'
+expect result 'testing'
+
+----------------------------------------------------
+
+# string expression 3
+code          'test ' * 3
+expect result 'test test test '
+
+----------------------------------------------------
+
+# comparisons
+code          'hello' == 'hello'
+expect result true
+
+----------------------------------------------------
+
+# comparisons
+code          'hello' == 'hi'
+expect result false
+
+----------------------------------------------------
+
+# comparisons
+code          'hello' == 'hello1'
+expect result false
+
+----------------------------------------------------
+
+# comparisons
+code          'hello' != 'hi'
+expect result true
+
+----------------------------------------------------
+
+# comparisons
+code          'hello' == 4
+expect exception
+
+----------------------------------------------------
+
+# conversion
+code          'a' + str(1)
+expect result 'a1'
+

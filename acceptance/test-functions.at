@@ -1,0 +1,47 @@
+
+# simple function
+code ```
+    function a() {
+        log("inside a");
+    }
+    a();
+    a();
+```
+expect log ```
+    inside a
+    inside a
+```
+
+----------------------------------------------------
+
+# pass argument
+code ```
+    function a(x) {
+        log("inside a, x is", x);
+    }
+    a(1);
+    a(2);
+```
+expect log ```
+    inside a, x is 1
+    inside a, x is 2
+```
+
+----------------------------------------------------
+
+# pass argument, grab result
+code ```
+    function a(x, y) {
+        log("inside a, x=" + str(x) + ", y=" + str(y));
+        return x * y;
+    }
+    x = a(2, 3);
+    log("a() returned " + str(x));
+```
+expect log ```
+    inside a, x=2, y=3 
+    a() returned 6
+```
+
+----------------------------------------------------
+

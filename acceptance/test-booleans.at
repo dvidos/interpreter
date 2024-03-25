@@ -1,0 +1,37 @@
+
+# logical expression 1
+code          true
+expect result true
+
+----------------------------------------------------
+
+# logical expression 2
+code          false
+expect result false
+
+----------------------------------------------------
+
+# logical expression 3
+code          !true
+expect result false
+
+----------------------------------------------------
+
+# logical expression 3
+code          !!true
+expect result true
+
+----------------------------------------------------
+
+# logical expression 4
+code          true || false
+expect result true
+
+----------------------------------------------------
+
+# logical expression 5
+code          true && false
+expect result false
+
+----------------------------------------------------
+
