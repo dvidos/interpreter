@@ -277,7 +277,7 @@ execution_outcome statement_function_callable_executor(
     }
 
     stack_frame *frame = new_stack_frame(stmt->per_type.function.name, stmt->token->origin);
-    stack_frame_initialization(frame, arg_names, arg_values, NULL);
+    stack_frame_initialization(frame, arg_names, arg_values, NULL, NULL);
     exec_context_push_stack_frame(ctx, frame);
     
     execution_outcome result = execute_statements(stmt->per_type.function.statements, ctx);

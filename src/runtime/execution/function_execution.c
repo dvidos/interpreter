@@ -25,7 +25,7 @@ execution_outcome execute_user_function(
     }
 
     stack_frame *frame = new_stack_frame(name, call_origin);
-    stack_frame_initialization(frame, func_arg_names, arg_values, this_obj);
+    stack_frame_initialization(frame, func_arg_names, arg_values, this_obj, NULL);
     exec_context_push_stack_frame(ctx, frame);
 
     execution_outcome result = execute_statements(func_statements, ctx);

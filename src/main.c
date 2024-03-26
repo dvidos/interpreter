@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
         if (!run_self_diagnostics(options.verbose))
             return 1;
     } else if (options.run_acceptance_tests) {
-        if (!run_acceptance_tests_from_dir("./acceptance", "at", options.enable_debugger))
+        if (!run_acceptance_tests_from_dir("acceptance", "at", options.enable_debugger))
             return 1;
     } else if (options.execute_expression) {
         execute_code(options.expression, "inline");

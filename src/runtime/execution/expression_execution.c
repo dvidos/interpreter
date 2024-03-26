@@ -45,6 +45,9 @@ static execution_outcome expression_function_callable_executor(
     dict *captured_values, // optional for closures
     origin *call_origin, // source of call
     exec_context *ctx);
+dict *capture_variables_for_closure(expression *expr, exec_context *ctx);
+
+
 
 
 
@@ -174,11 +177,14 @@ static execution_outcome retrieve_value(expression *e, exec_context *ctx) {
         
         case ET_FUNC_DECL:
             // "retrieving" a `function () { ...}` expression merely creates and returns a callable variant
-            return ok_outcome(new_callable_variant(
-                new_callable(
-                    "(user anonymous function)",
-                    expression_function_callable_executor, 
-                    e, NULL, NULL)));
+            // we need to find any variables to capture.
+            return ok_outcome(new_callable_variant(new_callable(
+                e->per_type.func.name == NULL ? "(anonymous)" : e->per_type.func.name,
+                expression_function_callable_executor, 
+                e,
+                NULL,
+                capture_variables_for_closure(e, ctx)
+            )));
     }
 
     return exception_outcome(new_exception_variant_at(e->token->origin, NULL,
@@ -670,7 +676,6 @@ static execution_outcome expression_function_callable_executor(
 
     list *arg_names = expr->per_type.func.arg_names;
     if (list_length(arg_values) < list_length(arg_names)) {
-        // we should report where the call was made, not where the function is
         return exception_outcome(new_exception_variant_at(
             expr->token->origin, NULL,
             "%s() expected %d arguments, got %d", expr->per_type.func.name, list_length(arg_names), list_length(arg_values)
@@ -678,7 +683,7 @@ static execution_outcome expression_function_callable_executor(
     }
 
     stack_frame *frame = new_stack_frame(expr->per_type.func.name, expr->token->origin);
-    stack_frame_initialization(frame, arg_names, arg_values, this_obj);
+    stack_frame_initialization(frame, arg_names, arg_values, this_obj, captured_values);
     exec_context_push_stack_frame(ctx, frame);
 
     execution_outcome result = execute_statements(expr->per_type.func.statements, ctx);
@@ -687,4 +692,21 @@ static execution_outcome expression_function_callable_executor(
     exec_context_pop_stack_frame(ctx);
 
     return result;
+}
+
+dict *capture_variables_for_closure(expression *expr, exec_context *ctx) {
+    if (stack_empty(ctx->stack_frames))
+        return NULL;
+
+    stack_frame *f = stack_peek(ctx->stack_frames);
+    if (f->symbols == NULL || dict_is_empty(f->symbols))
+        return NULL;
+
+    dict *captured_variables = new_dict(variant_item_info);
+    for_dict(f->symbols, it, cstr, key) {
+        variant *v = variant_clone(dict_get(f->symbols, key));
+        dict_set(captured_variables, key, v);
+    }
+
+    return captured_variables;
 }

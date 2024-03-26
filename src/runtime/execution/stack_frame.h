@@ -20,10 +20,11 @@ struct stack_frame {
     origin *call_origin;
     variant_type *method_owning_class; // if curr function is a method.
     dict *symbols;
+    dict *captured_values; // not destroyed when stack_frame is destroyed
 };
 
 stack_frame *new_stack_frame(const char *func_name, origin *call_origin);
-void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, variant *this_value);
+void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, variant *this_value, dict *captured_values);
 
 variant *stack_frame_resolve_symbol(stack_frame *f, const char *name);
 bool stack_frame_symbol_exists(stack_frame *f, const char *name);

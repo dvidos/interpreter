@@ -14,7 +14,7 @@ stack_frame *new_stack_frame(const char *func_name, origin *call_origin) {
     return f;
 }
 
-void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, variant *this_obj) {
+void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_values, variant *this_obj, dict *captured_values) {
 
     if (arg_names != NULL && arg_values != NULL) {
         for (int i = 0; i < list_length(arg_names); i++) {
@@ -27,31 +27,51 @@ void stack_frame_initialization(stack_frame *f, list *arg_names, list *arg_value
         f->method_owning_class = this_obj->_type;
     }
 
+    f->captured_values = captured_values;
 }
 
 
 variant *stack_frame_resolve_symbol(stack_frame *f, const char *name) {
     if (dict_has(f->symbols, name))
         return dict_get(f->symbols, name);
+
+    if (f->captured_values != NULL && dict_has(f->captured_values, name))
+        return dict_get(f->captured_values, name);
+    
     return NULL;
 }
 
 bool stack_frame_symbol_exists(stack_frame *f, const char *name) {
-    return dict_has(f->symbols, name);
+    if (dict_has(f->symbols, name))
+        return true;
+
+    if (f->captured_values != NULL && dict_has(f->captured_values, name))
+        return true;
+    
+    return false;
 }
 
 failable stack_frame_register_symbol(stack_frame *f, const char *name, variant *v) {
+
     if (dict_has(f->symbols, name))
         return failed("Symbol %s already exists", name);
+    
     dict_set(f->symbols, name, v);
     return ok();
 }
 
 failable stack_frame_update_symbol(stack_frame *f, const char *name, variant *v) {
-    if (!dict_has(f->symbols, name))
-        return failed("Symbol %s does not exist", name);
-    dict_set(f->symbols, name, v);
-    return ok();
+    if (dict_has(f->symbols, name)) {
+        dict_set(f->symbols, name, v);
+        return ok();
+    }
+
+    if (f->captured_values != NULL && dict_has(f->captured_values, name)) {
+        dict_set(f->captured_values, name, v);
+        return ok();
+    }
+
+    return failed("Symbol %s does not exist", name);
 }
 
 failable stack_frame_unregister_symbol(stack_frame *f, const char *name) {

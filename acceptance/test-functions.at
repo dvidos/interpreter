@@ -45,3 +45,68 @@ expect log ```
 
 ----------------------------------------------------
 
+# expression function. notice the semicolor after it.
+code ```
+    a = function () { return 2; };
+    return a();
+```
+expect result 2
+
+----------------------------------------------------
+
+# return function from function
+code ```
+    function make_function() {
+        return function() { 
+            return 5;
+        };
+    }
+    a = make_function();
+    b = a;
+    return b() * 2;
+```
+expect result 10
+
+----------------------------------------------------
+
+# closure captures environment
+code ```
+    function make_multiplier(multi) {
+        return function(arg) { 
+            return arg * multi;
+        };
+    }
+    m = make_multiplier(3);
+    x = m(4);
+    return x;
+```
+expect result 12
+
+----------------------------------------------------
+
+# closure modify the copies of captured variables
+code ```
+    function make_generator(start, step) {
+        return function() { 
+            new_value = start;
+            start = start + step;
+            return new_value;
+        };
+    }
+
+    g = make_generator(5, 5);
+    for (i = 0; i < 4; i++)
+        log(g());
+```
+expect log ```
+5
+10
+15
+20
+```
+
+----------------------------------------------------
+
+
+
+

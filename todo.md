@@ -63,8 +63,6 @@ whose behavior will be controlled by the switches `-i`, `-o`-, `-l` respectively
   * `log()` similarly could go to stderr or files etc.
 
 
-
-
 ## later
 
 * Maybe have an interactive way to navigate the AST code and structures...
@@ -72,10 +70,9 @@ whose behavior will be controlled by the switches `-i`, `-o`-, `-l` respectively
 keeping track of variables and memory, ala Rust.
 * Ability to parse EBNF syntax and then parse things on the fly?
 
-
-
 # done!
 
+* closures are capturing variables and able to modify them!
 * Make a debugger, with ability to step, and investigate variables!!!!!
 * reorg folders into src, scripts, docs etc?
 * continue to old-style variants (union-based) convert types from `variant_original` to the new variant types (type-based)
