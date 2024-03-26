@@ -1,33 +1,49 @@
-# tests
+# acceptance tests
 
-Wanting to create a system for easy tests. Imagining a folder 
-full of files, each describing one or more tests.
+This folder contains files describing acceptance tests that the interpreter takes.
+Each file contains one or more acceptance tests.
+
+
+Each acceptance test does the following:
+
+* prepares possible input variables,
+* grabs and executes the code
+* validates outcome:
+  * whether an exception is expected or not
+  * the actual result returned from the code evaluation
+  * the value of various input/output variables
+  * the possible log contents
 
 Each test has the following structure:
 
 ```
-# comments
-code: <code goes here (or can be multi line, using tripple quotes or indentation?)>
-output: a=1, b=2
-result: <expected result>
-or expected-exception:
-or expected-log: ...
-expected-output: a=1, b=2
-```
-
+# title
+// comment
+code <code under test>
+set a=1, b=2
+expect result <expected result>
+expect exception
+expect log ...
+ensure a=4, b=5
 ---
-
-## title
 ```
-code goes here
-```
-expectations:
-* expect output: `output`
-* expect log:
-```
-log contents
-```
-* expect exception
 
+Individually:
 
+* `//` define comments
+* `#` optional title of the test
+* `code` describes the code to run
+* `expect result` describes the expected resulting value
+* `expect log` describes the log contents to expect
+* `set` describes variables to set before execution
+* `ensure` describes variable values expected after execution
+* `---` three or more dashes separate the tests
 
+Code and log can be multiline, by using triple backticks and the end-of-text indicator, as below:
+
+~~~
+code ```
+    for (i = 0; i < 10; i++)
+        log(i);
+```
+~~~

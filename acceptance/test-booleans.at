@@ -1,35 +1,35 @@
 
-# logical expression 1
+# parsing
 code          true
 expect result true
 
 ----------------------------------------------------
 
-# logical expression 2
+# parsing
 code          false
 expect result false
 
 ----------------------------------------------------
 
-# logical expression 3
+# negation
 code          !true
 expect result false
 
 ----------------------------------------------------
 
-# logical expression 3
+# double negation
 code          !!true
 expect result true
 
 ----------------------------------------------------
 
-# logical expression 4
+# logical OR
 code          true || false
 expect result true
 
 ----------------------------------------------------
 
-# logical expression 5
+# logical AND
 code          true && false
 expect result false
 

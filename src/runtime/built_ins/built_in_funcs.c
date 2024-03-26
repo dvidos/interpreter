@@ -47,6 +47,7 @@ static dict *built_in_funcs_dict = NULL;
 
 #define RET_STR(val)    ok_outcome(new_str_variant(val))
 #define RET_INT(val)    ok_outcome(new_int_variant(val))
+#define RET_BOOL(val)   ok_outcome(new_bool_variant(val))
 #define RET_VARNT(var)  ok_outcome(var)
 #define RET_VOID()      ok_outcome(void_singleton)
 
@@ -209,6 +210,19 @@ BUILT_IN(int) {
         return RET_INT(i);
     }
 }
+BUILT_IN(bool) {
+    variant *v = list_get(arg_values, 0);
+    if (variant_instance_of(v, void_type)) {
+        return RET_VARNT(false_instance);
+    } else if (variant_instance_of(v, int_type)) {
+        return RET_VARNT(int_variant_as_int(v) == 0 ? false_instance : true_instance);
+    } else {
+        const char *s = str_variant_as_str(variant_to_string(v));
+        // most strings evaluate to true, only empty, "0" and "false" evaluate to false
+        bool is_false = (strlen(s) == 0 || strcmp(s, "0") == 0 || strcmp(s, "false") == 0);
+        return RET_BOOL(!is_false);
+    }
+}
 
 
 
@@ -234,6 +248,7 @@ void initialize_built_in_funcs_table() {
     add_callable(make_callable_for_srand());
     add_callable(make_callable_for_str());
     add_callable(make_callable_for_int());
+    add_callable(make_callable_for_bool());
 }
 
 dict *get_built_in_funcs_table() {

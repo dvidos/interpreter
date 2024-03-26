@@ -54,7 +54,16 @@ expect exception
 
 ----------------------------------------------------
 
-# conversion
+# no implicit conversion
+code          'a' + 1
+expect exception
+
+----------------------------------------------------
+
+# explicit conversion 
 code          'a' + str(1)
 expect result 'a1'
 
+----------------------------------------------------
+
+// we should also check methods such as "hello".length(), "hello".substr() etc.

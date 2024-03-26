@@ -1,0 +1,143 @@
+
+# empty list
+code ```
+    a = [];
+    return a.empty();
+```
+expect result true
+
+--------------------------------------------
+
+# empty list
+code ```
+    a = [];
+    return a.length();
+```
+expect result 0
+
+--------------------------------------------
+
+# non empty list
+code ```
+    a = [ 15 ];
+    return a.empty();
+```
+expect result false
+
+--------------------------------------------
+
+# non empty list
+code ```
+    a = [ 15 ];
+    return a.length();
+```
+expect result 1
+
+--------------------------------------------
+
+# many things in a list
+code ```
+    a = [ 15, 'hello', true ];
+    return a.length();
+```
+expect result 3
+
+--------------------------------------------
+
+# get element
+code ```
+    a = [ 15, 'hello', true ];
+    return a[1];
+```
+expect result 'hello'
+
+--------------------------------------------
+
+# set element
+code ```
+    a = [ 15, 'hello', true ];
+    a[1] = 7;
+    return a[1];
+```
+expect result 7
+
+--------------------------------------------
+
+# set element at end
+code ```
+    a = [ 15, 'hello', true ];
+    a[3] = 3;
+    return a.length();
+```
+expect result 4
+
+--------------------------------------------
+
+# set element beyond end
+code ```
+    a = [ 15, 'hello', true ];
+    a[99] = 3;
+    return a.length();
+```
+expect exception
+
+--------------------------------------------
+
+# add element
+code ```
+    a = [ 15, 'hello', true ];
+    a.add(4);
+    return a.length();
+```
+expect result 4
+
+--------------------------------------------
+
+# filter
+code ```
+    arr = [ 1, 2, 3, 4, 5, 6, 7 ];
+    filtered = arr.filter(function(item, index, arr) { 
+        return item % 2 == 0;
+    });
+    log(arr);
+    log(filtered);
+```
+expect log ```
+    1, 2, 3, 4, 5, 6, 7
+    2, 4, 6
+```
+
+--------------------------------------------
+
+# map
+code ```
+    arr = [ 1, 2, 3, 4, 5, 6, 7 ];
+    filtered = arr.map(function(item, index, arr) { 
+        return item * 3;
+    });
+    log(arr);
+    log(filtered);
+```
+expect log ```
+    1, 2, 3, 4, 5, 6, 7
+    3, 6, 9, 12, 15, 18, 21
+```
+
+--------------------------------------------
+
+# reduce
+code ```
+    arr = [ 1, 2, 3, 4, 5, 6, 7 ];
+    value = arr.reduce(100, function(acc, item, index, arr) { 
+        return acc + item;
+    });
+    log(arr);
+    log(value);
+```
+expect log ```
+    1, 2, 3, 4, 5, 6, 7
+    128
+```
+
+--------------------------------------------
+

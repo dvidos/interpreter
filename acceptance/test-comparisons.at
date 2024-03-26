@@ -44,3 +44,18 @@ code          'hello' == 4
 expect exception
 ----------------------------------------------------
 
+# bool comparisons
+code          true == true
+expect result true
+----------------------------------------------------
+
+# bool comparisons
+code          true != true
+expect result false
+----------------------------------------------------
+
+# bool comparisons
+code          true != false
+expect result true
+----------------------------------------------------
+

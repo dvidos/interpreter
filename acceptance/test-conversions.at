@@ -43,3 +43,39 @@ expect result 1
 code          int(false)
 expect result 0
 
+-------------------------------------------
+
+code          bool(0)
+expect result false
+
+-------------------------------------------
+
+code          bool(1)
+expect result true
+
+-------------------------------------------
+
+code          bool(-1)
+expect result true
+
+-------------------------------------------
+
+code          bool("")
+expect result false
+
+-------------------------------------------
+
+code          bool("false")
+expect result false
+
+-------------------------------------------
+
+code          bool("0")
+expect result false
+
+-------------------------------------------
+
+code          bool("anything")
+expect result true
+
+-------------------------------------------
