@@ -1,0 +1,59 @@
+
+# simple class, type identifiers
+code ```
+    class Class1 {
+        x = 1;
+        y = 2;
+    }
+    a = new(Class1);
+    log(Class1);
+    log(type(a));
+```
+expect log ```
+    Class1
+    Class1
+```
+
+--------------------------------------
+
+# simple class, early initializer
+code ```
+    class Class1 {
+        x = 1;
+        y = 2;
+        z = 3;
+        function construct() {
+            log(this.x, this.y, this.z);
+        }
+    }
+    a = new(Class1);
+```
+expect log ```
+    1 2 3
+```
+
+--------------------------------------
+
+# constructor
+
+code ```
+    class C {
+        x = 1;
+        y = 2;
+        function construct(a, b) {
+            this.x = a;
+            this.y = b;
+        }
+        public function speak() {
+            log(this.x, this.y);
+        }
+    }
+    a = new(C, 3, 4);
+    b = new(C, 5, 6);
+    a.speak();
+    b.speak();
+```
+expect log ```
+    3 4
+    5 6
+```

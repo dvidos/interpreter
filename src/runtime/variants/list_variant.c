@@ -183,6 +183,16 @@ static variant_method_definition methods[] = {
     { "empty",    (variant_method_handler_func)method_empty, VMF_PUBLIC },
     { "length",   (variant_method_handler_func)method_legth, VMF_PUBLIC },
     { "add",      (variant_method_handler_func)method_add, VMF_PUBLIC },
+    // { "addAll", }
+    // { "insert", }
+    // { "delete", }
+    // { "clear", }
+    // { "sorted", }
+    // { "contains" }
+    // { "indexOf" }
+    // { "forEach" }
+    // { "group" (given func to return group, return dict of lists)}
+    // { "toString" (separator) }
     { "filter",   (variant_method_handler_func)method_filter, VMF_PUBLIC },
     { "map",      (variant_method_handler_func)method_map, VMF_PUBLIC },
     { "reduce",   (variant_method_handler_func)method_reduce, VMF_PUBLIC },

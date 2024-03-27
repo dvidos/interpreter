@@ -93,6 +93,19 @@ expect result 4
 
 --------------------------------------------
 
+// addAll
+// insert
+// delete
+// clear
+// sorted
+// contains
+// indexOf
+// forEach
+// group (given func to return group, return dict of lists)
+// toString (separator)
+
+--------------------------------------------
+
 # filter
 code ```
     arr = [ 1, 2, 3, 4, 5, 6, 7 ];

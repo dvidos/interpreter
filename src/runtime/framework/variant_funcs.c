@@ -134,7 +134,7 @@ bool variant_has_attr(variant *obj, const char *name, visibility vis) {
 execution_outcome variant_get_attr_value(variant *obj, const char *name, visibility vis) {
     variant_type *type = obj->_type;
     if (type->attributes == NULL)
-        return exception_outcome(new_exception_variant("attribute '%s' not found in type '%s'", name, type->name));
+        return exception_outcome(new_exception_variant("object '%s' has no attributes", type->name));
 
     for (int i = 0; type->attributes[i].name != NULL; i++) {
         if (strcmp(type->attributes[i].name, name) != 0)
@@ -146,7 +146,6 @@ execution_outcome variant_get_attr_value(variant *obj, const char *name, visibil
         variant_attrib_definition *attr = &type->attributes[i];
         if (attr->getter != NULL) {
             return attr->getter(obj, attr);
-
         } else {
             variant **var_ptr_ptr = (variant **)(((void *)obj) + attr->offset);
             variant_inc_ref(*var_ptr_ptr); // the one returned
